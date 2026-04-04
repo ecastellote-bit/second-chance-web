@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { runAnalysisPipeline } from "@/lib/engines/analysisPipeline";
 import type { UserIntake } from "@/lib/types/intake";
 
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    route: "analyze",
+    message: "API route is alive",
+  });
+}
+
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as Partial<UserIntake>;
@@ -24,11 +32,12 @@ export async function POST(req: Request) {
       data: result.data,
       warnings: result.warnings,
     });
-  } catch {
+  } catch (error) {
     return NextResponse.json(
       {
         ok: false,
         error: "INVALID_REQUEST",
+        detail: String(error),
       },
       { status: 400 }
     );

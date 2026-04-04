@@ -85,12 +85,6 @@ export default function FullStep2Page() {
           </label>
         </div>
 
-        <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
-          Hasta acá dejamos armado el estado compartido y las dos primeras
-          pantallas. En el próximo bloque seguimos con los pasos 3, 4, 5 y el
-          envío al pipeline real.
-        </div>
-
         <div className="flex gap-3">
           <button
             onClick={() => router.push("/full/step-1")}
@@ -100,10 +94,10 @@ export default function FullStep2Page() {
           </button>
 
           <button
-            disabled
-            className="px-4 py-2 rounded-md border border-neutral-300 text-sm opacity-60 cursor-not-allowed"
+            onClick={() => router.push("/full/step-3")}
+            className="px-4 py-2 rounded-md border border-black text-sm"
           >
-            Paso 3 en el próximo bloque
+            Guardar y seguir
           </button>
         </div>
       </div>
