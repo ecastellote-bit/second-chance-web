@@ -3,7 +3,9 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -58,9 +60,15 @@ type AnalysisState = {
   warnings: string[];
 };
 
+type PersistedPayload = {
+  state: FullFlowState;
+  analysis: AnalysisState;
+};
+
 type FullAnswersContextValue = {
   state: FullFlowState;
   analysis: AnalysisState;
+  isHydrated: boolean;
   updateProfile: <K extends keyof ProfileState>(
     field: K,
     value: ProfileState[K]
@@ -76,7 +84,10 @@ type FullAnswersContextValue = {
   buildUserIntake: () => UserIntake;
   setAnalysis: (result: FinalReading | null, warnings?: string[]) => void;
   clearAnalysis: () => void;
+  resetFlow: () => void;
 };
+
+const STORAGE_KEY = "second-chance-full-flow-v1";
 
 const initialState: FullFlowState = {
   profile: {
@@ -109,6 +120,11 @@ const initialState: FullFlowState = {
   },
 };
 
+const initialAnalysis: AnalysisState = {
+  result: null,
+  warnings: [],
+};
+
 const FullAnswersContext = createContext<FullAnswersContextValue | null>(null);
 
 function splitList(text: string): string[] {
@@ -118,12 +134,49 @@ function splitList(text: string): string[] {
     .filter(Boolean);
 }
 
+function safeParsePersistedPayload(raw: string): PersistedPayload | null {
+  try {
+    const parsed = JSON.parse(raw) as PersistedPayload;
+    if (!parsed || typeof parsed !== "object") return null;
+    if (!parsed.state || !parsed.analysis) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
 export function FullAnswersProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<FullFlowState>(initialState);
-  const [analysis, setAnalysisState] = useState<AnalysisState>({
-    result: null,
-    warnings: [],
-  });
+  const [analysis, setAnalysisState] = useState<AnalysisState>(initialAnalysis);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const hasLoadedFromStorage = useRef(false);
+
+  useEffect(() => {
+    if (hasLoadedFromStorage.current) return;
+
+    const raw = window.sessionStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = safeParsePersistedPayload(raw);
+      if (parsed) {
+        setState(parsed.state);
+        setAnalysisState(parsed.analysis);
+      }
+    }
+
+    hasLoadedFromStorage.current = true;
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+
+    const payload: PersistedPayload = {
+      state,
+      analysis,
+    };
+
+    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  }, [state, analysis, isHydrated]);
 
   const updateProfile: FullAnswersContextValue["updateProfile"] = (
     field,
@@ -204,21 +257,29 @@ export function FullAnswersProvider({ children }: { children: ReactNode }) {
   };
 
   const clearAnalysis = () => {
-    setAnalysisState({ result: null, warnings: [] });
+    setAnalysisState(initialAnalysis);
+  };
+
+  const resetFlow = () => {
+    setState(initialState);
+    setAnalysisState(initialAnalysis);
+    window.sessionStorage.removeItem(STORAGE_KEY);
   };
 
   const value = useMemo(
     () => ({
       state,
       analysis,
+      isHydrated,
       updateProfile,
       updateCurrentContext,
       updateNarrative,
       buildUserIntake,
       setAnalysis,
       clearAnalysis,
+      resetFlow,
     }),
-    [state, analysis]
+    [state, analysis, isHydrated]
   );
 
   return (
@@ -234,5 +295,6 @@ export function useFullAnswers() {
   if (!context) {
     throw new Error("useFullAnswers must be used inside FullAnswersProvider");
   }
-return context;
+
+  return context;
 }

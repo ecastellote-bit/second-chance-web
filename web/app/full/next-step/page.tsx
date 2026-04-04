@@ -22,7 +22,7 @@ function routingLabel(value: string) {
 
 export default function FullNextStepPage() {
   const router = useRouter();
-  const { analysis } = useFullAnswers();
+  const { analysis, resetFlow } = useFullAnswers();
 
   useEffect(() => {
     if (!analysis.result) {
@@ -77,12 +77,15 @@ export default function FullNextStepPage() {
             Volver al resultado
           </Link>
 
-          <Link
-            href="/full/step-1"
+          <button
+            onClick={() => {
+              resetFlow();
+              router.push("/full/step-1");
+            }}
             className="px-4 py-2 rounded-md border border-black text-sm"
           >
             Re-entry
-          </Link>
+          </button>
         </div>
       </div>
     </main>
