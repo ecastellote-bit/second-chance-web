@@ -94,4 +94,82 @@ export const FULL_FLOW_COPY = {
       backLabel: "Volver",
       nextLabel: "Guardar y seguir",
     },
+  
+    step3: {
+      stepLabel: "Paso 3 de 5",
+      title: "Pérdidas, renuncias y compresión",
+      subtitle:
+        "Acá importa detectar qué se fue apagando y qué parte de tu vida actual te redujo.",
+      fields: {
+        lossesOrRenunciations: {
+          label:
+            "¿Qué fuiste dejando de lado por necesidad, cansancio o adaptación?",
+        },
+        whatFeelsCompressedNow: {
+          label:
+            "¿Qué sentís hoy más comprimido o achicado en tu vida laboral?",
+        },
+      },
+      validation: {
+        summaryTitle: "Antes de seguir, corregí esto:",
+        lossesRequired:
+          "No dejes vacía la parte sobre pérdidas o renuncias.",
+        compressedRequired:
+          "No dejes vacía la parte sobre lo que hoy se siente comprimido.",
+      },
+      backLabel: "Volver",
+      nextLabel: "Guardar y seguir",
+    },
+  
+    step4: {
+      stepLabel: "Paso 4 de 5",
+      title: "Restricciones y activos actuales",
+      subtitle:
+        "El sistema también tiene que leer con qué margen real contás hoy.",
+      fields: {
+        restrictionsText: {
+          label: "Restricciones actuales",
+          placeholder: "Una por línea o separadas por comas",
+        },
+        assetsText: {
+          label: "Activos actuales",
+          placeholder:
+            "Experiencia, contactos, habilidades, credibilidad, herramientas, etc.",
+        },
+        transitionGoal: {
+          label: "Objetivo de transición",
+          placeholder:
+            "¿Qué tipo de movimiento te gustaría poder hacer sin romper todo?",
+        },
+      },
+      validation: {
+        summaryTitle: "Antes de seguir, corregí esto:",
+        restrictionsRequired:
+          "No dejes vacías las restricciones actuales.",
+        assetsRequired:
+          "No dejes vacíos los activos actuales.",
+        goalRequired:
+          "No dejes vacío el objetivo de transición.",
+      },
+      backLabel: "Volver",
+      nextLabel: "Guardar y seguir",
+    },
+  
+    step5: {
+      stepLabel: "Paso 5 de 5",
+      title: "Revisión final y envío",
+      subtitle:
+        "No estamos buscando una respuesta perfecta. Estamos buscando suficiente evidencia para una lectura seria.",
+      reviewLabels: {
+        currentSituation: "Situación actual",
+        childhoodMemories: "Infancia / memoria inicial",
+        earlyFascinations: "Fascinaciones",
+        repeatedWorkPatterns: "Patrones repetidos",
+        whatFeelsCompressedNow: "Vida comprimida hoy",
+        missingValue: "Todavía vacío",
+      },
+      backLabel: "Volver",
+      nextLabel: "Generar lectura inicial",
+      hydratingLabel: "Recuperando tu progreso...",
+    },
   } as const;
