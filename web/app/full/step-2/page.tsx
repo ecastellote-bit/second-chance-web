@@ -1,27 +1,65 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFullAnswers } from "../fullAnswersContext";
+import { FULL_FLOW_COPY } from "@/lib/content/fullFlowCopy";
 
 export default function FullStep2Page() {
   const router = useRouter();
   const { state, updateNarrative } = useFullAnswers();
+  const [errors, setErrors] = useState<string[]>([]);
+
+  const copy = FULL_FLOW_COPY.step2;
+
+  const handleNext = () => {
+    const nextErrors: string[] = [];
+
+    if (!state.narrative.childhoodMemories.trim()) {
+      nextErrors.push(copy.validation.childhoodMemoriesRequired);
+    }
+
+    if (!state.narrative.earlyFascinations.trim()) {
+      nextErrors.push(copy.validation.earlyFascinationsRequired);
+    }
+
+    if (!state.narrative.repeatedWorkPatterns.trim()) {
+      nextErrors.push(copy.validation.repeatedWorkPatternsRequired);
+    }
+
+    setErrors(nextErrors);
+
+    if (nextErrors.length > 0) return;
+
+    router.push("/full/step-3");
+  };
 
   return (
     <main className="min-h-screen bg-white text-black px-6 py-10">
       <div className="max-w-3xl mx-auto space-y-8">
         <div className="space-y-2">
-          <p className="text-sm text-neutral-500">Paso 2 de 5</p>
-          <h1 className="text-2xl font-semibold">Memoria vocacional inicial</h1>
-          <p className="text-sm text-neutral-700">
-            No busques quedar bien. Buscá hechos, patrones y recuerdos concretos.
-          </p>
+          <p className="text-sm text-neutral-500">{copy.stepLabel}</p>
+          <h1 className="text-2xl font-semibold">{copy.title}</h1>
+          <p className="text-sm text-neutral-700">{copy.subtitle}</p>
         </div>
+
+        {errors.length > 0 ? (
+          <div className="rounded-xl border border-red-300 bg-red-50 p-4 space-y-2">
+            <p className="text-sm font-medium text-red-900">
+              {copy.validation.summaryTitle}
+            </p>
+            <ul className="space-y-1 text-sm text-red-800">
+              {errors.map((error) => (
+                <li key={error}>• {error}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         <div className="grid gap-5">
           <label className="grid gap-2">
             <span className="text-sm font-medium">
-              ¿Qué te gustaba hacer de chico/a sin que nadie te lo pidiera?
+              {copy.fields.childhoodMemories.label}
             </span>
             <textarea
               value={state.narrative.childhoodMemories}
@@ -34,7 +72,7 @@ export default function FullStep2Page() {
 
           <label className="grid gap-2">
             <span className="text-sm font-medium">
-              ¿Qué te fascinaba o te atraía de forma persistente?
+              {copy.fields.earlyFascinations.label}
             </span>
             <textarea
               value={state.narrative.earlyFascinations}
@@ -47,7 +85,7 @@ export default function FullStep2Page() {
 
           <label className="grid gap-2">
             <span className="text-sm font-medium">
-              ¿Qué materias o experiencias educativas te dejaban algo?
+              {copy.fields.meaningfulSchoolSubjects.label}
             </span>
             <textarea
               value={state.narrative.meaningfulSchoolSubjects}
@@ -60,7 +98,7 @@ export default function FullStep2Page() {
 
           <label className="grid gap-2">
             <span className="text-sm font-medium">
-              ¿Qué patrones se repiten en tus trabajos o actividades?
+              {copy.fields.repeatedWorkPatterns.label}
             </span>
             <textarea
               value={state.narrative.repeatedWorkPatterns}
@@ -73,7 +111,7 @@ export default function FullStep2Page() {
 
           <label className="grid gap-2">
             <span className="text-sm font-medium">
-              ¿Qué lugar solés ocupar naturalmente entre otras personas?
+              {copy.fields.naturalSocialRoles.label}
             </span>
             <textarea
               value={state.narrative.naturalSocialRoles}
@@ -90,14 +128,14 @@ export default function FullStep2Page() {
             onClick={() => router.push("/full/step-1")}
             className="px-4 py-2 rounded-md border border-neutral-300 text-sm"
           >
-            Volver
+            {copy.backLabel}
           </button>
 
           <button
-            onClick={() => router.push("/full/step-3")}
+            onClick={handleNext}
             className="px-4 py-2 rounded-md border border-black text-sm"
           >
-            Guardar y seguir
+            {copy.nextLabel}
           </button>
         </div>
       </div>

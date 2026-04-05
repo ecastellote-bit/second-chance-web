@@ -1,14 +1,37 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFullAnswers } from "../fullAnswersContext";
+import { FULL_FLOW_COPY } from "@/lib/content/fullFlowCopy";
 
 export default function FullStep1Page() {
   const router = useRouter();
   const { state, updateProfile, updateCurrentContext, clearAnalysis } =
     useFullAnswers();
+  const [errors, setErrors] = useState<string[]>([]);
+
+  const copy = FULL_FLOW_COPY.step1;
 
   const handleNext = () => {
+    const nextErrors: string[] = [];
+
+    if (!state.profile.age.trim()) {
+      nextErrors.push(copy.validation.ageRequired);
+    }
+
+    if (!state.profile.country.trim()) {
+      nextErrors.push(copy.validation.countryRequired);
+    }
+
+    if (!state.currentContext.currentSituation.trim()) {
+      nextErrors.push(copy.validation.currentSituationRequired);
+    }
+
+    setErrors(nextErrors);
+
+    if (nextErrors.length > 0) return;
+
     clearAnalysis();
     router.push("/full/step-2");
   };
@@ -17,36 +40,53 @@ export default function FullStep1Page() {
     <main className="min-h-screen bg-white text-black px-6 py-10">
       <div className="max-w-3xl mx-auto space-y-8">
         <div className="space-y-2">
-          <p className="text-sm text-neutral-500">Paso 1 de 5</p>
-          <h1 className="text-2xl font-semibold">Tu situación actual</h1>
-          <p className="text-sm text-neutral-700">
-            Acá no busques lucirte. Buscá precisión.
-          </p>
+          <p className="text-sm text-neutral-500">{copy.stepLabel}</p>
+          <h1 className="text-2xl font-semibold">{copy.title}</h1>
+          <p className="text-sm text-neutral-700">{copy.subtitle}</p>
         </div>
+
+        {errors.length > 0 ? (
+          <div className="rounded-xl border border-red-300 bg-red-50 p-4 space-y-2">
+            <p className="text-sm font-medium text-red-900">
+              {copy.validation.summaryTitle}
+            </p>
+            <ul className="space-y-1 text-sm text-red-800">
+              {errors.map((error) => (
+                <li key={error}>• {error}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         <div className="grid gap-5">
           <label className="grid gap-2">
-            <span className="text-sm font-medium">Edad</span>
+            <span className="text-sm font-medium">
+              {copy.fields.age.label}
+            </span>
             <input
               value={state.profile.age}
               onChange={(e) => updateProfile("age", e.target.value)}
               className="border rounded-md px-3 py-2 text-sm"
-              placeholder="Ej: 42"
+              placeholder={copy.fields.age.placeholder}
             />
           </label>
 
           <label className="grid gap-2">
-            <span className="text-sm font-medium">País</span>
+            <span className="text-sm font-medium">
+              {copy.fields.country.label}
+            </span>
             <input
               value={state.profile.country}
               onChange={(e) => updateProfile("country", e.target.value)}
               className="border rounded-md px-3 py-2 text-sm"
-              placeholder="Ej: Argentina"
+              placeholder={copy.fields.country.placeholder}
             />
           </label>
 
           <label className="grid gap-2">
-            <span className="text-sm font-medium">Situación laboral</span>
+            <span className="text-sm font-medium">
+              {copy.fields.employmentStatus.label}
+            </span>
             <select
               value={state.profile.employmentStatus}
               onChange={(e) =>
@@ -65,30 +105,38 @@ export default function FullStep1Page() {
           </label>
 
           <label className="grid gap-2">
-            <span className="text-sm font-medium">Rol actual</span>
+            <span className="text-sm font-medium">
+              {copy.fields.currentRole.label}
+            </span>
             <input
               value={state.currentContext.currentRole}
-              onChange={(e) => updateCurrentContext("currentRole", e.target.value)}
+              onChange={(e) =>
+                updateCurrentContext("currentRole", e.target.value)
+              }
               className="border rounded-md px-3 py-2 text-sm"
-              placeholder="Ej: Administrativo, ventas, docencia, etc."
+              placeholder={copy.fields.currentRole.placeholder}
             />
           </label>
 
           <label className="grid gap-2">
-            <span className="text-sm font-medium">Situación actual</span>
+            <span className="text-sm font-medium">
+              {copy.fields.currentSituation.label}
+            </span>
             <textarea
               value={state.currentContext.currentSituation}
               onChange={(e) =>
                 updateCurrentContext("currentSituation", e.target.value)
               }
               className="border rounded-md px-3 py-2 text-sm min-h-28"
-              placeholder="Describí dónde estás parado hoy, sin épica y sin maquillaje."
+              placeholder={copy.fields.currentSituation.placeholder}
             />
           </label>
 
           <div className="grid md:grid-cols-3 gap-4">
             <label className="grid gap-2">
-              <span className="text-sm font-medium">Energía disponible</span>
+              <span className="text-sm font-medium">
+                {copy.fields.energyLevel.label}
+              </span>
               <select
                 value={state.currentContext.energyLevel}
                 onChange={(e) =>
@@ -104,7 +152,9 @@ export default function FullStep1Page() {
             </label>
 
             <label className="grid gap-2">
-              <span className="text-sm font-medium">Presión económica</span>
+              <span className="text-sm font-medium">
+                {copy.fields.economicPressure.label}
+              </span>
               <select
                 value={state.currentContext.economicPressure}
                 onChange={(e) =>
@@ -120,7 +170,9 @@ export default function FullStep1Page() {
             </label>
 
             <label className="grid gap-2">
-              <span className="text-sm font-medium">Carga familiar/práctica</span>
+              <span className="text-sm font-medium">
+                {copy.fields.familyLoad.label}
+              </span>
               <select
                 value={state.currentContext.familyLoad}
                 onChange={(e) =>
@@ -142,14 +194,14 @@ export default function FullStep1Page() {
             onClick={() => router.push("/full")}
             className="px-4 py-2 rounded-md border border-neutral-300 text-sm"
           >
-            Volver
+            {copy.backLabel}
           </button>
 
           <button
             onClick={handleNext}
             className="px-4 py-2 rounded-md border border-black text-sm"
           >
-            Guardar y seguir
+            {copy.nextLabel}
           </button>
         </div>
       </div>
