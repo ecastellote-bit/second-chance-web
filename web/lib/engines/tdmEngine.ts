@@ -55,35 +55,48 @@ const PROFILE_TEMPLATES: ProfileTemplate[] = [
 ];
 
 export function runTDM(signals: DetectedSignal[]): ProbableProfile[] {
-  const ranked = PROFILE_TEMPLATES.map((template) => {
-    const matchedSignals = signals.filter((signal) =>
-      template.supportingSignalKeys.includes(signal.key),
-    );
-
-    const rawConfidence =
-      matchedSignals.reduce((acc, signal) => acc + signal.weight, 0) /
-      Math.max(template.supportingSignalKeys.length, 1);
-
-    return {
-      id: template.id,
-      label: template.label,
-      summary: template.summary,
-      supportingSignalKeys: template.supportingSignalKeys,
-      rationale:
-        matchedSignals.length > 0
-          ? `Se apoya en señales como ${matchedSignals.map((s) => s.label).join(", ")}.`
-          : "Todavía tiene poco soporte en las señales detectadas.",
-      confidence: normalizeConfidence(rawConfidence),
-      rank: 0,
-    };
-  })
-    .filter((profile) => profile.confidence > 0)
-    .sort((a, b) => b.confidence - a.confidence)
-    .slice(0, 3)
-    .map((profile, index) => ({
-      ...profile,
-      rank: index + 1,
-    }));
-
-  return ranked;
-}
+    const ranked = PROFILE_TEMPLATES.map((template) => {
+      const matchedSignals = signals.filter((signal) =>
+        template.supportingSignalKeys.includes(signal.key)
+      );
+  
+      const uniqueMatchedKeys = Array.from(
+        new Set(matchedSignals.map((signal) => signal.key))
+      );
+  
+      const keyCoverage =
+        uniqueMatchedKeys.length / Math.max(template.supportingSignalKeys.length, 1);
+  
+      const rawConfidence =
+        matchedSignals.reduce((acc, signal) => acc + signal.weight, 0) /
+        Math.max(template.supportingSignalKeys.length, 1);
+  
+      const hasEnoughEvidence =
+        uniqueMatchedKeys.length >= 2 && keyCoverage >= 0.5;
+  
+      if (!hasEnoughEvidence) {
+        return null;
+      }
+  
+      return {
+        id: template.id,
+        label: template.label,
+        summary: template.summary,
+        supportingSignalKeys: template.supportingSignalKeys,
+        rationale: `Se apoya en señales como ${matchedSignals
+          .map((signal) => signal.label)
+          .join(", ")}.`,
+        confidence: normalizeConfidence(rawConfidence),
+        rank: 0,
+      };
+    })
+      .filter((profile): profile is ProbableProfile => profile !== null)
+      .sort((a, b) => b.confidence - a.confidence)
+      .slice(0, 3)
+      .map((profile, index) => ({
+        ...profile,
+        rank: index + 1,
+      }));
+  
+    return ranked;
+  }

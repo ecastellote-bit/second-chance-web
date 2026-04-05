@@ -19,19 +19,39 @@ type OrchestratorInput = {
 };
 
 function decideResultType(input: OrchestratorInput): ResultType {
-  if (input.signals.length < 2 || input.profiles.length === 0) {
-    return "insufficient_evidence";
+    const topProfile = input.profiles[0];
+    const secondProfile = input.profiles[1];
+  
+    const hasCompressionNarrative = Boolean(
+      input.intake.narrative.whatFeelsCompressedNow?.trim()
+    );
+  
+    const minimalMargin =
+      input.transitionAssessment.transitionMargin === "minimal";
+  
+    if (
+      input.signals.length < 3 ||
+      !topProfile ||
+      input.plausibleDirections.length === 0
+    ) {
+      return "insufficient_evidence";
+    }
+  
+    const secondTooClose =
+      !!secondProfile &&
+      topProfile.confidence > 0 &&
+      secondProfile.confidence / topProfile.confidence >= 0.85;
+  
+    if (secondTooClose) {
+      return "insufficient_evidence";
+    }
+  
+    if (minimalMargin && hasCompressionNarrative) {
+      return "compressed_life";
+    }
+  
+    return "clear_direction";
   }
-
-  if (
-    input.transitionAssessment.transitionMargin === "minimal" &&
-    input.intake.narrative.whatFeelsCompressedNow
-  ) {
-    return "compressed_life";
-  }
-
-  return "clear_direction";
-}
 
 function decideCommunityRouting(resultType: ResultType): CommunityRoutingRecommendation {
   if (resultType === "compressed_life") return "cohort_candidate";
