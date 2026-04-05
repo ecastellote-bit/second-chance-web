@@ -165,11 +165,60 @@ export const FULL_FLOW_COPY = {
         childhoodMemories: "Infancia / memoria inicial",
         earlyFascinations: "Fascinaciones",
         repeatedWorkPatterns: "Patrones repetidos",
+        lossesOrRenunciations: "Pérdidas o renuncias",
         whatFeelsCompressedNow: "Vida comprimida hoy",
+        restrictionsText: "Restricciones actuales",
+        assetsText: "Activos actuales",
+        transitionGoal: "Objetivo de transición",
         missingValue: "Todavía vacío",
       },
       backLabel: "Volver",
       nextLabel: "Generar lectura inicial",
       hydratingLabel: "Recuperando tu progreso...",
+    },
+  
+    result: {
+      eyebrow: "Resultado inicial",
+      sections: {
+        dominantTension: "Tensión dominante",
+        hiloConductor: "Hilo conductor",
+        plausibleDirections: "Direcciones plausibles",
+        actionVectors: "Vectores de acción",
+        caminoMinimo: "Camino mínimo",
+      },
+      fallbacks: {
+        noDirections:
+          "Todavía no conviene forzar una dirección específica.",
+        noActionVectors:
+          "Antes de mover demasiado, hace falta ampliar evidencia.",
+      },
+      buttons: {
+        reentry: "Re-entry",
+        nextStep: "Ver siguiente paso",
+      },
+    },
+  
+    nextStep: {
+      eyebrow: "Next step",
+      title: "Qué hacer después de esta lectura",
+      subtitle:
+        "Esto es un placeholder real de continuidad. No es todavía la comunidad completa.",
+      sections: {
+        routing: "Routing sugerido",
+        cierre: "Cierre actual",
+        action: "Movimiento más razonable ahora",
+      },
+      routingLabels: {
+        discord_recommended: "Continuidad abierta recomendada",
+        cohort_candidate: "Candidato/a a círculo guiado",
+        reentry_first: "Conviene reingresar antes de una comunidad",
+        self_guided_next_step: "Siguiente paso autoguiado",
+        unknown: "Sin routing específico todavía",
+      },
+      detectedResultPrefix: "Resultado detectado:",
+      buttons: {
+        backToResult: "Volver al resultado",
+        reentry: "Re-entry",
+      },
     },
   } as const;

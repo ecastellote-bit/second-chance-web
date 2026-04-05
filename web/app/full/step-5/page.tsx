@@ -66,10 +66,40 @@ export default function FullStep5Page() {
 
             <div>
               <p className="font-medium">
+                {copy.reviewLabels.lossesOrRenunciations}
+              </p>
+              <p className="text-neutral-700">
+                {formatReviewValue(state.narrative.lossesOrRenunciations, fallback)}
+              </p>
+            </div>
+
+            <div>
+              <p className="font-medium">
                 {copy.reviewLabels.whatFeelsCompressedNow}
               </p>
               <p className="text-neutral-700">
                 {formatReviewValue(state.narrative.whatFeelsCompressedNow, fallback)}
+              </p>
+            </div>
+
+            <div>
+              <p className="font-medium">{copy.reviewLabels.restrictionsText}</p>
+              <p className="text-neutral-700">
+                {formatReviewValue(state.currentContext.restrictionsText, fallback)}
+              </p>
+            </div>
+
+            <div>
+              <p className="font-medium">{copy.reviewLabels.assetsText}</p>
+              <p className="text-neutral-700">
+                {formatReviewValue(state.currentContext.assetsText, fallback)}
+              </p>
+            </div>
+
+            <div>
+              <p className="font-medium">{copy.reviewLabels.transitionGoal}</p>
+              <p className="text-neutral-700">
+                {formatReviewValue(state.currentContext.transitionGoal, fallback)}
               </p>
             </div>
           </div>
