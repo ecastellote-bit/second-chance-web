@@ -8,6 +8,7 @@ import type {
   ResultType,
   TransitionAssessment,
 } from "../types/result";
+import { evaluateResultDecision } from "./resultDecision";
 
 type OrchestratorInput = {
   intake: UserIntake;
@@ -18,59 +19,8 @@ type OrchestratorInput = {
   actionVectors: ActionVector[];
 };
 
-function decideResultType(input: OrchestratorInput): ResultType {
-  const topProfile = input.profiles[0];
-  const secondProfile = input.profiles[1];
-
-  const hasCompressionNarrative = Boolean(
-    input.intake.narrative.whatFeelsCompressedNow?.trim()
-  );
-
-  const minimalMargin =
-    input.transitionAssessment.transitionMargin === "minimal";
-
-  if (
-    input.signals.length < 3 ||
-    !topProfile ||
-    input.plausibleDirections.length === 0
-  ) {
-    return "insufficient_evidence";
-  }
-
-  const topConfidence = topProfile.confidence ?? 0;
-  const secondConfidence = secondProfile?.confidence ?? 0;
-
-  const hasStrongEnoughTopProfile = topConfidence >= 0.55;
-
-  if (!hasStrongEnoughTopProfile) {
-    return "insufficient_evidence";
-  }
-
-  const sharedSupportCount = secondProfile
-    ? topProfile.supportingSignalKeys.filter((key) =>
-        secondProfile.supportingSignalKeys.includes(key)
-      ).length
-    : 0;
-
-  const secondTooClose =
-    !!secondProfile &&
-    topConfidence > 0 &&
-    secondConfidence / topConfidence >= 0.92 &&
-    sharedSupportCount < 2;
-
-  if (secondTooClose) {
-    return "insufficient_evidence";
-  }
-
-  if (minimalMargin && hasCompressionNarrative) {
-    return "compressed_life";
-  }
-
-  return "clear_direction";
-}
-
 function decideCommunityRouting(
-  resultType: ResultType
+  resultType: ResultType,
 ): CommunityRoutingRecommendation {
   if (resultType === "compressed_life") return "cohort_candidate";
   if (resultType === "insufficient_evidence") return "reentry_first";
@@ -78,7 +28,8 @@ function decideCommunityRouting(
 }
 
 export function buildFinalReading(input: OrchestratorInput): FinalReading {
-  const resultType = decideResultType(input);
+  const decision = evaluateResultDecision(input);
+  const resultType = decision.resultType;
   const topProfile = input.profiles[0];
 
   return {
@@ -90,8 +41,8 @@ export function buildFinalReading(input: OrchestratorInput): FinalReading {
       resultType === "compressed_life"
         ? "La vida actual parece más comprimida que alineada."
         : resultType === "insufficient_evidence"
-        ? "La evidencia todavía no alcanza para afirmar una dirección seria."
-        : "Hay una dirección plausible, pero debe probarse contra la realidad.",
+          ? "La evidencia todavía no alcanza para afirmar una dirección seria."
+          : "Hay una dirección plausible, pero debe probarse contra la realidad.",
     currentCost:
       input.transitionAssessment.transitionMargin === "minimal"
         ? "El costo actual de mover demasiado es alto."
@@ -107,8 +58,8 @@ export function buildFinalReading(input: OrchestratorInput): FinalReading {
         resultType === "clear_direction"
           ? "Aparece una dirección plausible con señales repetidas y compatibles."
           : resultType === "compressed_life"
-          ? "No aparece todavía una vocación nítida; aparece una vida comprimida por el presente."
-          : "La lectura todavía no tiene evidencia suficiente para afirmar una dirección sin inventar.",
+            ? "No aparece todavía una vocación nítida; aparece una vida comprimida por el presente."
+            : "La lectura todavía no tiene evidencia suficiente para afirmar una dirección sin inventar.",
       hilo_conductor:
         topProfile?.summary ??
         "Todavía no hay un hilo conductor suficientemente sostenido para organizar una lectura fuerte.",
@@ -129,8 +80,8 @@ export function buildFinalReading(input: OrchestratorInput): FinalReading {
         resultType === "clear_direction"
           ? "No hace falta romper todo ahora. Hace falta probar bien."
           : resultType === "compressed_life"
-          ? "Antes de exigir claridad total, hay que recuperar espacio interno y margen de maniobra."
-          : "Más evidencia ahora vale más que una conclusión linda pero falsa.",
+            ? "Antes de exigir claridad total, hay que recuperar espacio interno y margen de maniobra."
+            : "Más evidencia ahora vale más que una conclusión linda pero falsa.",
     },
   };
 }

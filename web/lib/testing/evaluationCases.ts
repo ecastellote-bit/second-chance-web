@@ -10,9 +10,9 @@ export type EvaluationCase = {
 export const EVALUATION_CASES: EvaluationCase[] = [
   {
     id: "compressed_life_case",
-    label: "Vida comprimida con margen mínimo",
+    label: "Vida comprimida con margen minimo",
     expectation:
-      "Debería tender a compressed_life o, como mínimo, evitar clear_direction fácil.",
+      "Deberia tender a compressed_life o, como minimo, evitar clear_direction facil.",
     payload: {
       profile: {
         age: 46,
@@ -44,21 +44,21 @@ export const EVALUATION_CASES: EvaluationCase[] = [
       },
       narrative: {
         childhoodMemories:
-          "De chico me gustaba leer, escribir y pensar ideas, pero eso quedó muy atrás.",
+          "De chico me gustaba leer, escribir y pensar ideas, pero eso quedo muy atras.",
         earlyFascinations:
-          "Me interesaban la historia, la política y entender a la gente.",
+          "Me interesaban la historia, la politica y entender a la gente.",
         meaningfulSchoolSubjects:
-          "Historia y lengua me dejaban algo, pero no seguí por ahí.",
+          "Historia y lengua me dejaban algo, pero no segui por ahi.",
         repeatedWorkPatterns:
-          "Suelo cumplir, sostener, aguantar y resolver lo urgente más que construir algo propio.",
+          "Suelo cumplir, sostener, aguantar y resolver lo urgente mas que construir algo propio.",
         naturalSocialRoles:
-          "A veces ordeno o acompaño, pero hoy casi no me queda resto.",
+          "A veces ordeno o acompano, pero hoy casi no me queda resto.",
         lossesOrRenunciations:
-          "Fui dejando intereses, curiosidad y ganas por necesidad económica.",
+          "Fui dejando intereses, curiosidad y ganas por necesidad economica.",
         whatFeelsCompressedNow:
-          "Mi vida laboral se volvió pura supervivencia y siento que me achiqué.",
+          "Mi vida laboral se volvio pura supervivencia y siento que me achique.",
         additionalContext:
-          "No busco una fantasía. Busco una lectura honesta.",
+          "No busco una fantasia. Busco una lectura honesta.",
       },
     },
   },
@@ -66,7 +66,7 @@ export const EVALUATION_CASES: EvaluationCase[] = [
     id: "insufficient_evidence_case",
     label: "Caso ambiguo con evidencia insuficiente",
     expectation:
-      "Debería caer en insufficient_evidence y no inventar dirección.",
+      "Deberia caer en insufficient_evidence y no inventar direccion.",
     payload: {
       profile: {
         age: 34,
@@ -79,35 +79,37 @@ export const EVALUATION_CASES: EvaluationCase[] = [
       currentContext: {
         currentRole: "Sin rol estable",
         currentSituation:
-          "Estoy entre trabajos y no tengo muy claro qué quiero.",
+          "Estoy entre trabajos y no tengo muy claro que quiero.",
         energyLevel: "medium",
         economicPressure: "medium",
         familyLoad: "light",
         restrictions: ["Necesito volver a trabajar pronto"],
-        assets: ["Título universitario"],
+        assets: ["Titulo universitario"],
         transitionGoal: "Encontrar algo que me ordene",
       },
       narrative: {
         childhoodMemories: "Me gustaban distintas cosas.",
         earlyFascinations: "A veces me interesaban temas variados.",
         meaningfulSchoolSubjects: "No hubo una materia muy clara.",
-        repeatedWorkPatterns: "Tuve trabajos distintos sin mucho patrón.",
+        repeatedWorkPatterns: "Tuve trabajos distintos sin mucho patron.",
         naturalSocialRoles: "Depende del grupo.",
-        lossesOrRenunciations: "No sé si dejé algo claro atrás.",
-        whatFeelsCompressedNow: "Más que comprimido, me siento confundido.",
-        additionalContext: "Necesito más claridad, pero no tengo mucho más para agregar.",
+        lossesOrRenunciations: "No se si deje algo claro atras.",
+        whatFeelsCompressedNow:
+          "Mas que comprimido, me siento confundido.",
+        additionalContext:
+          "Necesito mas claridad, pero no tengo mucho mas para agregar.",
       },
     },
   },
   {
     id: "analytical_strategist_case",
-    label: "Perfil analítico con señales convergentes",
+    label: "Perfil analitico con senales convergentes",
     expectation:
-      "Debería poder acercarse a clear_direction o al menos mostrar dirección plausible más nítida.",
+      "Deberia poder acercarse a clear_direction o al menos mostrar direccion plausible mas nitida.",
     payload: {
       profile: {
         age: 39,
-        country: "México",
+        country: "Mexico",
         language: "es",
         employmentStatus: "employed",
         educationLevel: "university",
@@ -124,36 +126,35 @@ export const EVALUATION_CASES: EvaluationCase[] = [
         assets: [
           "Experiencia coordinando procesos",
           "Pensamiento estructural",
-          "Capacidad analítica",
+          "Capacidad analitica",
         ],
         transitionGoal:
-          "Moverme gradualmente hacia algo más estratégico y menos reactivo",
+          "Moverme gradualmente hacia algo mas estrategico y menos reactivo",
       },
       narrative: {
         childhoodMemories:
-          "De chico me entretenía armando sistemas, clasificando cosas y entendiendo cómo funcionaban.",
+          "De chico me entretenia armando sistemas, clasificando cosas y entendiendo como funcionaban.",
         earlyFascinations:
-          "Me interesaban los mapas, la lógica, los juegos de estrategia y entender estructuras.",
+          "Me interesaban los mapas, la logica, los juegos de estrategia y entender estructuras.",
         meaningfulSchoolSubjects:
-          "Matemática, historia y cualquier materia donde hubiera que analizar y relacionar.",
+          "Matematica, historia y cualquier materia donde hubiera que analizar y relacionar.",
         repeatedWorkPatterns:
           "En cualquier trabajo termino detectando patrones, ordenando procesos y proponiendo mejoras.",
         naturalSocialRoles:
           "Suelo ser quien ordena la complejidad y baja problemas a algo manejable.",
         lossesOrRenunciations:
-          "Fui dejando de lado la parte más estratégica por urgencias operativas.",
+          "Fui dejando de lado la parte mas estrategica por urgencias operativas.",
         whatFeelsCompressedNow:
-          "Siento que resuelvo demasiado en corto y uso poco mi capacidad de análisis de fondo.",
-        additionalContext:
-          "Me interesa una lectura concreta, no motivacional.",
+          "Siento que resuelvo demasiado en corto y uso poco mi capacidad de analisis de fondo.",
+        additionalContext: "Me interesa una lectura concreta, no motivacional.",
       },
     },
   },
   {
     id: "community_builder_case",
-    label: "Perfil social/articulador con señales repetidas",
+    label: "Perfil social/articulador con senales repetidas",
     expectation:
-      "Debería detectar una dirección social/articuladora sin inflarla de más.",
+      "Deberia detectar una direccion social/articuladora sin inflarla de mas.",
     payload: {
       profile: {
         age: 37,
@@ -170,40 +171,40 @@ export const EVALUATION_CASES: EvaluationCase[] = [
         energyLevel: "medium",
         economicPressure: "high",
         familyLoad: "moderate",
-        restrictions: ["Necesito más previsibilidad económica"],
+        restrictions: ["Necesito mas previsibilidad economica"],
         assets: [
           "Red de contactos",
-          "Capacidad de coordinación",
-          "Buena comunicación",
+          "Capacidad de coordinacion",
+          "Buena comunicacion",
         ],
         transitionGoal:
-          "Encontrar un rol más estable donde articular personas y procesos",
+          "Encontrar un rol mas estable donde articular personas y procesos",
       },
       narrative: {
         childhoodMemories:
-          "De chica organizaba juegos, reunía grupos y me gustaba que todos encontraran su lugar.",
+          "De chica organizaba juegos, reunia grupos y me gustaba que todos encontraran su lugar.",
         earlyFascinations:
-          "Me atraían los grupos, los proyectos compartidos y las dinámicas entre personas.",
+          "Me atraian los grupos, los proyectos compartidos y las dinamicas entre personas.",
         meaningfulSchoolSubjects:
-          "Me gustaban las actividades grupales, lengua y espacios de participación.",
+          "Me gustaban las actividades grupales, lengua y espacios de participacion.",
         repeatedWorkPatterns:
           "Siempre termino coordinando gente, mediando tensiones y sosteniendo el funcionamiento del grupo.",
         naturalSocialRoles:
-          "Ocupo un lugar de articulación, contención y orden entre personas.",
+          "Ocupo un lugar de articulacion, contencion y orden entre personas.",
         lossesOrRenunciations:
-          "Por necesidad económica acepté trabajos que no aprovechaban eso.",
+          "Por necesidad economica acepte trabajos que no aprovechaban eso.",
         whatFeelsCompressedNow:
           "Siento que hago tareas aisladas cuando mi fuerza real aparece trabajando con otros.",
         additionalContext:
-          "No quiero que me idealicen. Quiero saber si esto realmente tiene traducción laboral.",
+          "No quiero que me idealicen. Quiero saber si esto realmente tiene traduccion laboral.",
       },
     },
   },
   {
     id: "technical_builder_case",
-    label: "Perfil técnico/práctico con dirección operativa",
+    label: "Perfil tecnico/practico con direccion operativa",
     expectation:
-      "Debería detectar una dirección técnica/operativa plausible, sin romantizarla.",
+      "Deberia detectar una direccion tecnica/operativa plausible, sin romantizarla.",
     payload: {
       profile: {
         age: 41,
@@ -214,38 +215,532 @@ export const EVALUATION_CASES: EvaluationCase[] = [
         dependents: 2,
       },
       currentContext: {
-        currentRole: "Supervisor técnico",
+        currentRole: "Supervisor tecnico",
         currentSituation:
-          "Tengo experiencia práctica y siempre termino mejorando cómo se hacen las cosas.",
+          "Tengo experiencia practica y siempre termino mejorando como se hacen las cosas.",
         energyLevel: "medium",
         economicPressure: "medium",
         familyLoad: "moderate",
         restrictions: ["No puedo volver a estudiar una carrera larga"],
         assets: [
-          "Experiencia técnica",
-          "Capacidad de ejecución",
+          "Experiencia tecnica",
+          "Capacidad de ejecucion",
           "Orden operativo",
         ],
         transitionGoal:
-          "Pasar a algo más diseñado y menos puramente reactivo dentro del mundo operativo",
+          "Pasar a algo mas disenado y menos puramente reactivo dentro del mundo operativo",
       },
       narrative: {
         childhoodMemories:
-          "Me gustaba armar, desarmar, reparar y entender cómo funcionaban los objetos.",
+          "Me gustaba armar, desarmar, reparar y entender como funcionaban los objetos.",
         earlyFascinations:
-          "Siempre me atrajeron las herramientas, los mecanismos y la mejora práctica.",
+          "Siempre me atrajeron las herramientas, los mecanismos y la mejora practica.",
         meaningfulSchoolSubjects:
-          "Me servían más los espacios técnicos que los puramente teóricos.",
+          "Me servian mas los espacios tecnicos que los puramente teoricos.",
         repeatedWorkPatterns:
           "Termino ordenando tareas, resolviendo fallas y mejorando procesos concretos.",
         naturalSocialRoles:
-          "Ocupo un lugar de ejecución confiable y resolución práctica.",
+          "Ocupo un lugar de ejecucion confiable y resolucion practica.",
         lossesOrRenunciations:
-          "Dejé de lado crecimiento más estructurado por quedarme en lo urgente.",
+          "Deje de lado crecimiento mas estructurado por quedarme en lo urgente.",
         whatFeelsCompressedNow:
-          "Siento que resuelvo demasiado sobre la marcha y diseño poco.",
+          "Siento que resuelvo demasiado sobre la marcha y diseno poco.",
+        additionalContext: "Quiero una lectura realista y aplicable.",
+      },
+    },
+  },
+  {
+    id: "social_connector_clear_case",
+    label: "Articulador social dominante, no terapeutico",
+    expectation:
+      "Deberia tender a clear_direction con perfil diplomatic_social_connector y no caer por defecto en empathic_guide.",
+    payload: {
+      profile: {
+        age: 38,
+        country: "Argentina",
+        language: "es",
+        employmentStatus: "employed",
+        educationLevel: "university",
+        dependents: 1,
+      },
+      currentContext: {
+        currentRole: "Coordinadora de alianzas",
+        currentSituation:
+          "Estoy estable, pero donde mas rindo es cuando tengo que coordinar equipos, ordenar procesos entre personas y conectar areas para que el grupo avance.",
+        energyLevel: "medium",
+        economicPressure: "medium",
+        familyLoad: "moderate",
+        restrictions: ["Necesito previsibilidad economica"],
+        assets: [
+          "Red de contactos",
+          "Capacidad para coordinar",
+          "Orden de gestion",
+        ],
+        transitionGoal:
+          "Consolidar un rol donde pueda articular personas, procesos y alianzas",
+      },
+      narrative: {
+        childhoodMemories:
+          "De chica organizaba juegos, repartia roles y buscaba que el grupo funcionara bien.",
+        earlyFascinations:
+          "Me atraian los grupos, los proyectos compartidos y ver como conectar personas distintas.",
+        meaningfulSchoolSubjects:
+          "Disfrutaba lengua, actividades grupales y espacios donde hubiera que organizar.",
+        repeatedWorkPatterns:
+          "Siempre termino coordinando gente, mediando intereses, gestionando cruces y sosteniendo el orden del equipo.",
+        naturalSocialRoles:
+          "Suelo ocupar un lugar de articulacion y coordinacion entre personas y areas.",
+        lossesOrRenunciations:
+          "Por necesidad economica acepte tareas mas aisladas y menos conectadas con esa fuerza.",
+        whatFeelsCompressedNow:
+          "Siento que uso mi capacidad de articulacion para apagar incendios y no para construir algo mas grande.",
         additionalContext:
-          "Quiero una lectura realista y aplicable.",
+          "Quiero saber si esto tiene salida laboral concreta y no solo valor humano.",
+      },
+    },
+  },
+  {
+    id: "empathic_guide_case",
+    label: "Empatico guia puro",
+    expectation:
+      "Deberia tender a empathic_guide y no confundirse con social connector institucional.",
+    payload: {
+      profile: {
+        age: 35,
+        country: "Peru",
+        language: "es",
+        employmentStatus: "self_employed",
+        educationLevel: "university",
+        dependents: 0,
+      },
+      currentContext: {
+        currentRole: "Consultora independiente",
+        currentSituation:
+          "Lo que mejor hago es escuchar personas, entender conflictos y ayudar a ordenar situaciones complejas.",
+        energyLevel: "medium",
+        economicPressure: "medium",
+        familyLoad: "light",
+        restrictions: ["Necesito una transicion gradual"],
+        assets: [
+          "Escucha profunda",
+          "Sensibilidad interpersonal",
+          "Capacidad de acompanar",
+        ],
+        transitionGoal:
+          "Encontrar una salida laboral donde la escucha y la comprension tengan valor real",
+      },
+      narrative: {
+        childhoodMemories:
+          "Desde chica la gente me contaba cosas y yo trataba de entender lo que les pasaba.",
+        earlyFascinations:
+          "Me interesaban las personas, los conflictos humanos y por que alguien se siente como se siente.",
+        meaningfulSchoolSubjects:
+          "Me servian lengua, filosofia y todo espacio donde hubiera que interpretar personas.",
+        repeatedWorkPatterns:
+          "Siempre termino escuchando, acompanando y ayudando a otros a entender situaciones tensas.",
+        naturalSocialRoles:
+          "Ocupo un lugar de escucha, contencion y acompanamiento mas que de coordinacion.",
+        lossesOrRenunciations:
+          "Por priorizar ingresos deje de lado espacios donde podia ayudar de manera mas clara.",
+        whatFeelsCompressedNow:
+          "Sostengo a otros, pero no termino de ordenar mi propia direccion.",
+        additionalContext:
+          "No quiero una lectura mistica. Quiero saber si esta fuerza tiene traduccion laboral seria.",
+      },
+    },
+  },
+  {
+    id: "creative_storyteller_case",
+    label: "Creativo narrativo claro",
+    expectation:
+      "Deberia tender a creative_storyteller y no desdibujarse como simple curiosidad cultural.",
+    payload: {
+      profile: {
+        age: 33,
+        country: "Spain",
+        language: "es",
+        employmentStatus: "employed",
+        educationLevel: "university",
+        dependents: 0,
+      },
+      currentContext: {
+        currentRole: "Asistente de comunicacion",
+        currentSituation:
+          "Estoy en un rol administrativo, pero donde mas rindo es escribiendo, explicando ideas y comunicando con claridad.",
+        energyLevel: "high",
+        economicPressure: "medium",
+        familyLoad: "light",
+        restrictions: ["No quiero quemar mi ingreso actual"],
+        assets: [
+          "Escritura",
+          "Sintesis",
+          "Capacidad de comunicar",
+        ],
+        transitionGoal:
+          "Moverme hacia un rol donde escribir, contar y traducir ideas sea parte central del trabajo",
+      },
+      narrative: {
+        childhoodMemories:
+          "De chica escribia cuentos, relataba escenas y me inventaba formas de contar lo que veia.",
+        earlyFascinations:
+          "Me atraian los libros, la historia, las palabras y como una idea cambia segun como se la cuente.",
+        meaningfulSchoolSubjects:
+          "Lengua, historia y cualquier espacio donde hubiera que escribir, relatar o explicar.",
+        repeatedWorkPatterns:
+          "Siempre termino redactando, contando, explicando procesos y comunicando mejor que otros.",
+        naturalSocialRoles:
+          "Suelo ocupar el lugar de quien baja ideas complejas a un lenguaje claro.",
+        lossesOrRenunciations:
+          "Fui dejando la parte mas narrativa por tareas administrativas y operativas.",
+        whatFeelsCompressedNow:
+          "Siento que uso lenguaje funcional, pero poco mi capacidad real de construir relato.",
+        additionalContext:
+          "Quiero una lectura laboral, no una etiqueta linda.",
+      },
+    },
+  },
+  {
+    id: "cultural_explorer_case",
+    label: "Explorador cultural sin narrativa dominante",
+    expectation:
+      "Deberia tender a cultural_explorer sin inflarse de mas hacia storyteller claro.",
+    payload: {
+      profile: {
+        age: 36,
+        country: "Mexico",
+        language: "es",
+        employmentStatus: "employed",
+        educationLevel: "university",
+        dependents: 1,
+      },
+      currentContext: {
+        currentRole: "Analista documental",
+        currentSituation:
+          "Trabajo en algo estable, pero mi interes persistente esta en leer sobre historia, cultura, idiomas e ideas.",
+        energyLevel: "medium",
+        economicPressure: "medium",
+        familyLoad: "moderate",
+        restrictions: ["Necesito que cualquier cambio sea gradual"],
+        assets: [
+          "Lectura profunda",
+          "Curiosidad sostenida",
+          "Capacidad de relacionar contextos",
+        ],
+        transitionGoal:
+          "Encontrar una salida donde investigar, leer y conectar ideas tenga mas peso",
+      },
+      narrative: {
+        childhoodMemories:
+          "De chico me perdia leyendo atlas, enciclopedias y textos sobre otros paises.",
+        earlyFascinations:
+          "Siempre me atrajeron la historia, la cultura, los idiomas y como cambia una sociedad.",
+        meaningfulSchoolSubjects:
+          "Historia, geografia y espacios donde hubiera que comparar contextos e ideas.",
+        repeatedWorkPatterns:
+          "Siempre termino investigando, comparando contextos, leyendo y conectando ideas de distintos campos.",
+        naturalSocialRoles:
+          "No suelo liderar grupos; mas bien observo, entiendo y comparo lo que pasa.",
+        lossesOrRenunciations:
+          "Fui dejando exploraciones mas abiertas por necesidad de trabajar en algo mas cerrado.",
+        whatFeelsCompressedNow:
+          "Aprendo mucho, pero convierto poco de eso en un camino laboral reconocible.",
+        additionalContext:
+          "No quiero que me sobrediagnostiquen solo por curiosidad intelectual.",
+      },
+    },
+  },
+  {
+    id: "analytical_compressed_case",
+    label: "Analitico comprimido por supervivencia",
+    expectation:
+      "Deberia mostrar patron analitico fuerte, pero leerlo como compressed_life por el presente.",
+    payload: {
+      profile: {
+        age: 42,
+        country: "Argentina",
+        language: "es",
+        employmentStatus: "employed",
+        educationLevel: "university",
+        dependents: 2,
+      },
+      currentContext: {
+        currentRole: "Jefe operativo",
+        currentSituation:
+          "Trabajo en algo estable pero muy reactivo. Llego agotado y casi no me queda energia mental.",
+        energyLevel: "very_low",
+        economicPressure: "very_high",
+        familyLoad: "heavy",
+        restrictions: [
+          "No puedo resignar ingresos ahora",
+          "No puedo mover demasiado a la vez",
+        ],
+        assets: [
+          "Pensamiento estructural",
+          "Capacidad de analisis",
+          "Experiencia coordinando procesos",
+        ],
+        transitionGoal:
+          "Recuperar margen y despues moverme hacia algo mas analitico y estrategico",
+      },
+      narrative: {
+        childhoodMemories:
+          "De chico me gustaba entender sistemas, mapas, reglas y como encajaban las partes.",
+        earlyFascinations:
+          "Siempre me atrajeron la logica, la estructura, la estrategia y detectar patrones.",
+        meaningfulSchoolSubjects:
+          "Matematica, historia y cualquier materia donde hubiera que analizar y comparar.",
+        repeatedWorkPatterns:
+          "En cualquier trabajo termino detectando patrones, ordenando estructura y proponiendo mejoras.",
+        naturalSocialRoles:
+          "Ocupo el lugar de quien compara opciones, baja la complejidad y ve el mapa general.",
+        lossesOrRenunciations:
+          "Fui dejando de lado exploracion mas profunda por necesidad economica y urgencia familiar.",
+        whatFeelsCompressedNow:
+          "Mi vida actual me deja usar solo una parte muy reducida de mi capacidad analitica.",
+        additionalContext:
+          "No necesito entusiasmo. Necesito saber si esto es direccion o solo nostalgia.",
+      },
+    },
+  },
+  {
+    id: "social_compressed_case",
+    label: "Social fuerte pero comprimido por contexto",
+    expectation:
+      "Deberia detectar patron social claro, pero priorizar compressed_life si el margen es minimo.",
+    payload: {
+      profile: {
+        age: 40,
+        country: "Uruguay",
+        language: "es",
+        employmentStatus: "employed",
+        educationLevel: "university",
+        dependents: 3,
+      },
+      currentContext: {
+        currentRole: "Administrativa senior",
+        currentSituation:
+          "Entre trabajo, familia y obligaciones quede reducida a sostener la rueda.",
+        energyLevel: "very_low",
+        economicPressure: "very_high",
+        familyLoad: "heavy",
+        restrictions: [
+          "Necesito ingresos previsibles",
+          "No puedo asumir riesgos grandes",
+        ],
+        assets: [
+          "Red de contactos",
+          "Capacidad para coordinar",
+          "Buena comunicacion",
+        ],
+        transitionGoal:
+          "Encontrar una salida gradual donde pueda usar mejor mi fuerza con personas",
+      },
+      narrative: {
+        childhoodMemories:
+          "De chica reunia gente, organizaba grupos y hacia de puente cuando habia roces.",
+        earlyFascinations:
+          "Me interesaban los proyectos compartidos, los grupos y el lugar de cada persona en una dinamica.",
+        meaningfulSchoolSubjects:
+          "Me gustaban lengua, trabajo grupal y espacios de participacion.",
+        repeatedWorkPatterns:
+          "Siempre termino conectando personas, coordinando equipos y destrabando tensiones.",
+        naturalSocialRoles:
+          "Suelo ocupar un lugar de articulacion, orden y contencion entre personas.",
+        lossesOrRenunciations:
+          "Fui aceptando tareas mas cerradas por necesidad economica y familiar.",
+        whatFeelsCompressedNow:
+          "Mi direccion aparece con otros, pero hoy casi no tengo margen de maniobra.",
+        additionalContext:
+          "Quiero saber si hay una lectura seria sin obligarme a moverme ahora.",
+      },
+    },
+  },
+  {
+    id: "lexical_trap_humanistic_business_case",
+    label: "Humanistico con vocabulario de negocio",
+    expectation:
+      "No deberia irse facil a analitico u oportunidad solo por palabras de negocio.",
+    payload: {
+      profile: {
+        age: 31,
+        country: "Argentina",
+        language: "es",
+        employmentStatus: "self_employed",
+        educationLevel: "university",
+        dependents: 0,
+      },
+      currentContext: {
+        currentRole: "Freelance de contenido",
+        currentSituation:
+          "Me interesa pensar proyectos, posicionamiento y estrategia, pero lo que mas disfruto es escribir, interpretar climas y construir mensajes con sentido.",
+        energyLevel: "medium",
+        economicPressure: "high",
+        familyLoad: "light",
+        restrictions: ["Necesito sostener facturacion"],
+        assets: [
+          "Escritura",
+          "Lectura cultural",
+          "Capacidad de comunicar",
+        ],
+        transitionGoal:
+          "Encontrar un rol donde la comunicacion, el contenido y la narrativa tengan mas centralidad",
+      },
+      narrative: {
+        childhoodMemories:
+          "Desde chico escribia, relataba escenas y me gustaba darle forma a ideas en palabras.",
+        earlyFascinations:
+          "Me atraian los libros, la historia, las ideas y tambien pensar como hacer que un proyecto llegue mejor.",
+        meaningfulSchoolSubjects:
+          "Lengua, historia y todo espacio donde hubiera que contar, explicar o comunicar.",
+        repeatedWorkPatterns:
+          "Siempre termino escribiendo, explicando mejor, comunicando ideas y pensando como posicionarlas.",
+        naturalSocialRoles:
+          "Suelo ocupar el lugar de quien interpreta el clima, baja mensajes y encuentra el tono correcto.",
+        lossesOrRenunciations:
+          "Por necesidad de facturar empece a hablar mas en lenguaje de negocio que en lenguaje propio.",
+        whatFeelsCompressedNow:
+          "Siento que uso palabras de estrategia, pero en el fondo lo mio es narrativo y expresivo.",
+        additionalContext:
+          "Quiero evitar que el sistema confunda vocabulario de mercado con direccion real.",
+      },
+    },
+  },
+  {
+    id: "hybrid_analytical_technical_case",
+    label: "Hibrido analitico-tecnico legitimo",
+    expectation:
+      "No deberia caer en insufficient_evidence solo por mezcla; deberia admitir clear_direction hibrida.",
+    payload: {
+      profile: {
+        age: 38,
+        country: "Chile",
+        language: "es",
+        employmentStatus: "employed",
+        educationLevel: "technical",
+        dependents: 1,
+      },
+      currentContext: {
+        currentRole: "Lider de mejora continua",
+        currentSituation:
+          "Disfruto tanto pensar estructura y mejoras como bajar eso a procesos concretos y operacion.",
+        energyLevel: "high",
+        economicPressure: "medium",
+        familyLoad: "moderate",
+        restrictions: ["No quiero cambiar de sector de golpe"],
+        assets: [
+          "Pensamiento estructural",
+          "Ejecucion",
+          "Mejora continua",
+        ],
+        transitionGoal:
+          "Consolidar una salida donde estrategia operativa y ejecucion convivan",
+      },
+      narrative: {
+        childhoodMemories:
+          "De chico me gustaba entender como funcionaban los sistemas y tambien arreglar cosas concretas.",
+        earlyFascinations:
+          "Me interesaban la logica, los procesos, los mecanismos y como mejorar lo que ya existia.",
+        meaningfulSchoolSubjects:
+          "Me servian tanto las materias tecnicas como los espacios donde habia que analizar y relacionar.",
+        repeatedWorkPatterns:
+          "Siempre termino viendo el mapa general, detectando patrones y corrigiendo como se ejecuta el proceso.",
+        naturalSocialRoles:
+          "Ocupo un lugar de orden, comparacion y resolucion aplicada.",
+        lossesOrRenunciations:
+          "Por urgencia del dia a dia quede mas pegado a la ejecucion que al diseno mas amplio.",
+        whatFeelsCompressedNow:
+          "Resuelvo bien en operacion, pero todavia uso poco mi parte mas estrategica.",
+        additionalContext:
+          "No quiero que la mezcla se lea como confusion si en realidad es una combinacion legitima.",
+      },
+    },
+  },
+  {
+    id: "technical_with_emotional_lexicon_case",
+    label: "Tecnico con lenguaje emocional superficial",
+    expectation:
+      "No deberia irse a empathic_guide solo por palabras como ayudar o personas.",
+    payload: {
+      profile: {
+        age: 36,
+        country: "Colombia",
+        language: "es",
+        employmentStatus: "employed",
+        educationLevel: "technical",
+        dependents: 2,
+      },
+      currentContext: {
+        currentRole: "Encargado de mantenimiento",
+        currentSituation:
+          "Me gusta ayudar, pero donde de verdad aporto es ordenando operaciones, resolviendo fallas y mejorando procesos.",
+        energyLevel: "medium",
+        economicPressure: "medium",
+        familyLoad: "moderate",
+        restrictions: ["No puedo dejar mi estabilidad actual"],
+        assets: [
+          "Capacidad de ejecucion",
+          "Orden operativo",
+          "Experiencia tecnica",
+        ],
+        transitionGoal:
+          "Moverme hacia una funcion mas tecnica y menos reactiva",
+      },
+      narrative: {
+        childhoodMemories:
+          "Me gustaba armar, desarmar y reparar cosas hasta entender como funcionaban.",
+        earlyFascinations:
+          "Siempre me atrajeron las herramientas, los mecanismos y la mejora practica.",
+        meaningfulSchoolSubjects:
+          "Me iba mejor en talleres, espacios tecnicos y practicos.",
+        repeatedWorkPatterns:
+          "Siempre termino resolviendo fallas, ordenando tareas, gestionando prioridad y mejorando procesos concretos.",
+        naturalSocialRoles:
+          "Suelo ocupar un lugar confiable de ejecucion y resolucion, aunque tambien me gusta ayudar a otros.",
+        lossesOrRenunciations:
+          "Deje de lado crecimiento mas estructurado por quedarme en lo urgente.",
+        whatFeelsCompressedNow:
+          "Apago incendios sobre la marcha y diseno poco.",
+        additionalContext:
+          "Quiero evitar una lectura blanda si mi fuerza real es operativa.",
+      },
+    },
+  },
+  {
+    id: "weak_cultural_signal_case",
+    label: "Curiosidad cultural aislada no suficiente",
+    expectation:
+      "Deberia caer en insufficient_evidence aunque aparezca una senal cultural suelta.",
+    payload: {
+      profile: {
+        age: 29,
+        country: "Peru",
+        language: "es",
+        employmentStatus: "between_roles",
+        educationLevel: "university",
+        dependents: 0,
+      },
+      currentContext: {
+        currentRole: "Sin rol estable",
+        currentSituation:
+          "Estoy buscando trabajo y una de las pocas cosas que me interesa de verdad es la historia y la cultura.",
+        energyLevel: "medium",
+        economicPressure: "high",
+        familyLoad: "light",
+        restrictions: ["Necesito volver a trabajar pronto"],
+        assets: ["Curiosidad"],
+        transitionGoal: "Encontrar algo que no me desconecte del todo",
+      },
+      narrative: {
+        childhoodMemories: "Me gustaba leer algunas cosas sueltas.",
+        earlyFascinations: "Me interesaban la historia y ciertos temas de cultura.",
+        meaningfulSchoolSubjects: "Historia a veces me gustaba.",
+        repeatedWorkPatterns: "No tengo un patron claro.",
+        naturalSocialRoles: "No se bien.",
+        lossesOrRenunciations: "No identifico una renuncia clara.",
+        whatFeelsCompressedNow:
+          "Mas que comprimido, me siento en pausa.",
+        additionalContext:
+          "No quiero que una curiosidad aislada se lea como direccion seria.",
       },
     },
   },
