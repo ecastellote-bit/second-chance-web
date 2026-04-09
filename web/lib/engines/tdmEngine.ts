@@ -70,7 +70,11 @@ const PROFILE_TEMPLATES: ProfileTemplate[] = [
     label: "Cultural Explorer",
     summary:
       "Tiende a orientarse por ideas, contextos, cultura y aprendizaje persistente.",
-    supportingSignalKeys: ["cultural_curiosity", "pattern_analysis"],
+    supportingSignalKeys: [
+      "cultural_curiosity",
+      "pattern_analysis",
+      "system_thinking",
+    ],
   },
   {
     id: "empathic_guide",
@@ -92,8 +96,17 @@ const HUMAN_GUIDE_CUES = [
   "acompañar",
   "acompanando",
   "acompañando",
+  "acompanamiento",
+  "acompañamiento",
   "entender",
   "ayudar",
+  "ayudar a otros",
+  "contener",
+  "contencion",
+  "contención",
+  "presencia humana",
+  "hacer preguntas justas",
+  "hacer buenas preguntas",
   "conflicto",
   "conflictos",
   "tension",
@@ -101,9 +114,6 @@ const HUMAN_GUIDE_CUES = [
   "tensiones",
   "persona",
   "personas",
-  "contener",
-  "contencion",
-  "contención",
   "situacion",
   "situaciones",
 ];
@@ -117,22 +127,119 @@ const CONNECTOR_CUES = [
   "articulando",
   "articulacion",
   "articulación",
+  "alinear",
+  "alineando",
   "mediar",
   "mediando",
-  "equipo",
-  "equipos",
-  "grupo",
-  "grupos",
-  "alianza",
-  "alianzas",
+  "negociar",
+  "negociando",
+  "negociacion",
+  "negociación",
+  "intereses",
+  "sectores",
+  "areas",
+  "áreas",
+  "cruces",
   "actores",
+  "vinculo",
+  "vínculo",
+  "vinculos",
+  "vínculos",
   "red",
   "redes",
   "institucional",
+  "institucionales",
+  "diplomacia",
+  "alianza",
+  "alianzas",
   "stakeholder",
   "stakeholders",
   "partnership",
   "partnerships",
+  "representando",
+  "posiciones",
+  "bajar tensiones",
+  "reputacion",
+  "reputación",
+];
+
+const EXECUTION_CUES = [
+  "resolver fallas",
+  "fallas",
+  "ajustar procesos",
+  "ajusto procesos",
+  "operacion",
+  "operación",
+  "operativo",
+  "operativa",
+  "priorizar",
+  "prioridad",
+  "orden operativo",
+  "apagar incendios",
+  "incendios",
+  "crisis",
+  "destrabar",
+  "hacer que salga",
+  "sin trabarse",
+  "pasos concretos",
+  "ejecucion",
+  "ejecución",
+  "mejorar procesos",
+];
+
+const ANALYTICAL_CUES = [
+  "escenarios",
+  "comparar",
+  "comparando",
+  "alternativas",
+  "criterio",
+  "criterio comparativo",
+  "estructura",
+  "lectura estructural",
+  "modelo",
+  "logica",
+  "lógica",
+  "costo de cada camino",
+  "decidir",
+  "decision",
+  "decisión",
+  "estrategia",
+  "pensamiento estrategico",
+  "pensamiento estratégico",
+  "posicionamiento",
+  "lectura de oportunidad",
+  "analisis",
+  "análisis",
+];
+
+const CULTURAL_CUES = [
+  "historia",
+  "cultura",
+  "idiomas",
+  "lenguas",
+  "literatura",
+  "arte",
+  "filosofia",
+  "filosofía",
+  "antropologia",
+  "antropología",
+  "sociologia",
+  "sociología",
+  "geopolitica",
+  "geopolítica",
+  "procesos sociales",
+  "contextos",
+  "contexto",
+  "contexto cultural",
+  "comparar contextos",
+  "relacionar contextos",
+  "autores",
+  "campos",
+  "curiosidad cultural",
+  "interes cultural",
+  "interés cultural",
+  "aprender idiomas",
+  "leer historia",
 ];
 
 function normalizeText(text: string): string {
@@ -171,7 +278,10 @@ function passesHardGate(
   template: ProfileTemplate,
   signalMap: Record<string, number>,
   humanCueCount: number,
-  connectorCueCount: number
+  connectorCueCount: number,
+  executionCueCount: number,
+  analyticalCueCount: number,
+  culturalCueCount: number
 ): boolean {
   if (template.id === "diplomatic_social_connector") {
     return hasSignal(signalMap, "social_coordination") && connectorCueCount >= 2;
@@ -182,7 +292,37 @@ function passesHardGate(
   }
 
   if (template.id === "empathic_guide") {
-    return hasSignal(signalMap, "empathic_listening") && humanCueCount >= 2;
+    return (
+      hasSignal(signalMap, "empathic_listening") &&
+      humanCueCount >= 2 &&
+      humanCueCount >= connectorCueCount
+    );
+  }
+
+  if (template.id === "technical_builder") {
+    return hasSignal(signalMap, "practical_organizing") && executionCueCount >= 2;
+  }
+
+  if (template.id === "analytical_strategist") {
+    return (
+      hasSignal(signalMap, "pattern_analysis") &&
+      (hasSignal(signalMap, "system_thinking") ||
+        hasSignal(signalMap, "opportunity_detection") ||
+        analyticalCueCount >= 2)
+    );
+  }
+
+  if (template.id === "cultural_explorer") {
+    return (
+      hasSignal(signalMap, "cultural_curiosity") &&
+      culturalCueCount >= 2 &&
+      (hasSignal(signalMap, "pattern_analysis") ||
+        hasSignal(signalMap, "system_thinking"))
+    );
+  }
+
+  if (template.id === "creative_storyteller") {
+    return hasSignal(signalMap, "narrative_creation");
   }
 
   return true;
@@ -193,9 +333,22 @@ function scoreTemplate(
   signals: DetectedSignal[],
   signalMap: Record<string, number>,
   humanCueCount: number,
-  connectorCueCount: number
+  connectorCueCount: number,
+  executionCueCount: number,
+  analyticalCueCount: number,
+  culturalCueCount: number
 ): ScoredProfile | null {
-  if (!passesHardGate(template, signalMap, humanCueCount, connectorCueCount)) {
+  if (
+    !passesHardGate(
+      template,
+      signalMap,
+      humanCueCount,
+      connectorCueCount,
+      executionCueCount,
+      analyticalCueCount,
+      culturalCueCount
+    )
+  ) {
     return null;
   }
 
@@ -246,32 +399,36 @@ function scoreTemplate(
       adjustedScore += 0.07;
     }
 
-    if (connectorCueCount === 0 && humanCueCount >= 3) {
-      adjustedScore += 0.08;
+    if (connectorCueCount > humanCueCount) {
+      adjustedScore -= 0.22;
     }
   }
 
   if (template.id === "diplomatic_social_connector") {
-    if (connectorCueCount >= 2) {
-      adjustedScore += 0.12;
+    if (connectorCueCount >= 3) {
+      adjustedScore += 0.20;
     }
 
     if (
       hasSignal(signalMap, "social_coordination") &&
       hasSignal(signalMap, "practical_organizing")
     ) {
-      adjustedScore += 0.06;
+      adjustedScore += 0.08;
     }
 
     if (
       hasSignal(signalMap, "social_coordination") &&
       hasSignal(signalMap, "system_thinking")
     ) {
-      adjustedScore += 0.06;
+      adjustedScore += 0.08;
     }
 
-    if (humanCueCount >= 3 && connectorCueCount < 2) {
-      adjustedScore -= 0.18;
+    if (connectorCueCount > humanCueCount) {
+      adjustedScore += 0.08;
+    }
+
+    if (humanCueCount >= connectorCueCount + 2) {
+      adjustedScore -= 0.12;
     }
   }
 
@@ -290,11 +447,16 @@ function scoreTemplate(
       adjustedScore += 0.05;
     }
 
-    if (
-      hasSignal(signalMap, "pattern_analysis") &&
-      hasSignal(signalMap, "system_thinking")
-    ) {
-      adjustedScore += 0.04;
+    if (executionCueCount >= 3) {
+      adjustedScore += 0.16;
+    }
+
+    if (executionCueCount === 0) {
+      adjustedScore -= 0.20;
+    }
+
+    if (analyticalCueCount >= 3 && executionCueCount < 2) {
+      adjustedScore -= 0.12;
     }
   }
 
@@ -303,14 +465,26 @@ function scoreTemplate(
       hasSignal(signalMap, "pattern_analysis") &&
       hasSignal(signalMap, "system_thinking")
     ) {
-      adjustedScore += 0.08;
+      adjustedScore += 0.10;
     }
 
     if (
       hasSignal(signalMap, "pattern_analysis") &&
       hasSignal(signalMap, "opportunity_detection")
     ) {
-      adjustedScore += 0.04;
+      adjustedScore += 0.06;
+    }
+
+    if (analyticalCueCount >= 2) {
+      adjustedScore += 0.14;
+    }
+
+    if (executionCueCount < 2) {
+      adjustedScore += 0.08;
+    }
+
+    if (analyticalCueCount >= culturalCueCount + 2) {
+      adjustedScore += 0.12;
     }
   }
 
@@ -328,7 +502,26 @@ function scoreTemplate(
       hasSignal(signalMap, "cultural_curiosity") &&
       hasSignal(signalMap, "pattern_analysis")
     ) {
+      adjustedScore += 0.08;
+    }
+
+    if (
+      hasSignal(signalMap, "cultural_curiosity") &&
+      hasSignal(signalMap, "system_thinking")
+    ) {
+      adjustedScore += 0.14;
+    }
+
+    if (culturalCueCount >= 3) {
+      adjustedScore += 0.16;
+    }
+
+    if (!hasSignal(signalMap, "narrative_creation")) {
       adjustedScore += 0.06;
+    }
+
+    if (analyticalCueCount >= culturalCueCount + 2) {
+      adjustedScore -= 0.14;
     }
   }
 
@@ -394,12 +587,75 @@ function resolveGuideVsConnector(
   }
 }
 
+function resolveTechnicalVsAnalytical(
+  ranked: ScoredProfile[],
+  executionCueCount: number,
+  analyticalCueCount: number
+): void {
+  const technical = ranked.find((profile) => profile.id === "technical_builder");
+  const analytical = ranked.find(
+    (profile) => profile.id === "analytical_strategist"
+  );
+
+  if (!technical || !analytical) {
+    return;
+  }
+
+  if (analyticalCueCount >= executionCueCount + 1) {
+    analytical.rawScore += 0.16;
+    technical.rawScore -= 0.10;
+    analytical.confidence = normalizeConfidence(analytical.rawScore);
+    technical.confidence = normalizeConfidence(technical.rawScore);
+    return;
+  }
+
+  if (executionCueCount >= analyticalCueCount + 1) {
+    technical.rawScore += 0.16;
+    analytical.rawScore -= 0.10;
+    technical.confidence = normalizeConfidence(technical.rawScore);
+    analytical.confidence = normalizeConfidence(analytical.rawScore);
+  }
+}
+
+function resolveAnalyticalVsCultural(
+  ranked: ScoredProfile[],
+  analyticalCueCount: number,
+  culturalCueCount: number
+): void {
+  const analytical = ranked.find(
+    (profile) => profile.id === "analytical_strategist"
+  );
+  const cultural = ranked.find((profile) => profile.id === "cultural_explorer");
+
+  if (!analytical || !cultural) {
+    return;
+  }
+
+  if (analyticalCueCount >= culturalCueCount + 2) {
+    analytical.rawScore += 0.16;
+    cultural.rawScore -= 0.12;
+    analytical.confidence = normalizeConfidence(analytical.rawScore);
+    cultural.confidence = normalizeConfidence(cultural.rawScore);
+    return;
+  }
+
+  if (culturalCueCount >= analyticalCueCount + 2) {
+    cultural.rawScore += 0.16;
+    analytical.rawScore -= 0.12;
+    cultural.confidence = normalizeConfidence(cultural.rawScore);
+    analytical.confidence = normalizeConfidence(analytical.rawScore);
+  }
+}
+
 export function runTDM(signals: DetectedSignal[]): ProbableProfile[] {
   const signalMap = buildSignalWeightMap(signals);
   const evidenceText = getRelevantEvidenceText(signals);
 
   const humanCueCount = countCueHits(evidenceText, HUMAN_GUIDE_CUES);
   const connectorCueCount = countCueHits(evidenceText, CONNECTOR_CUES);
+  const executionCueCount = countCueHits(evidenceText, EXECUTION_CUES);
+  const analyticalCueCount = countCueHits(evidenceText, ANALYTICAL_CUES);
+  const culturalCueCount = countCueHits(evidenceText, CULTURAL_CUES);
 
   const ranked = PROFILE_TEMPLATES.map((template) =>
     scoreTemplate(
@@ -407,11 +663,16 @@ export function runTDM(signals: DetectedSignal[]): ProbableProfile[] {
       signals,
       signalMap,
       humanCueCount,
-      connectorCueCount
+      connectorCueCount,
+      executionCueCount,
+      analyticalCueCount,
+      culturalCueCount
     )
   ).filter((profile): profile is ScoredProfile => profile !== null);
 
   resolveGuideVsConnector(ranked, humanCueCount, connectorCueCount);
+  resolveTechnicalVsAnalytical(ranked, executionCueCount, analyticalCueCount);
+  resolveAnalyticalVsCultural(ranked, analyticalCueCount, culturalCueCount);
 
   return ranked
     .sort((a, b) => b.rawScore - a.rawScore)
