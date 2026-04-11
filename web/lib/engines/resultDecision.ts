@@ -12,67 +12,6 @@ export type ResultDecisionInput = {
   plausibleDirections: EmployabilityDirection[];
 };
 
-const HARD_COMPRESSION_CUES = [
-  "vida actual esta claramente comprimida",
-  "forma defensiva",
-  "reactiva",
-  "tactica",
-  "funcionamiento inmediato",
-  "sostener funcionamiento inmediato",
-  "urgencias",
-  "muy poco margen real",
-  "no puedo mover demasiadas cosas",
-  "no puedo resignar ingresos ahora",
-  "responsabilidades",
-  "por debajo de lo que podria desplegar",
-  "por debajo de lo que podria usar",
-  "apagando incendios",
-  "apago incendios",
-];
-
-function normalizeText(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-}
-
-function getCompressionCueCount(intake: UserIntake): number {
-  const text = normalizeText(
-    [
-      intake.narrative.whatFeelsCompressedNow,
-      intake.narrative.lossesOrRenunciations,
-      intake.currentContext.currentSituation,
-      ...(intake.currentContext.restrictions ?? []),
-    ]
-      .filter(Boolean)
-      .join(" ")
-  );
-
-  return HARD_COMPRESSION_CUES.filter((cue) =>
-    text.includes(normalizeText(cue))
-  ).length;
-}
-
-function hasHardCompression(
-  intake: UserIntake,
-  topConfidence: number
-): boolean {
-  const hasCompressionNarrative = Boolean(
-    intake.narrative.whatFeelsCompressedNow?.trim()
-  );
-
-  const restrictionCount = intake.currentContext.restrictions?.length ?? 0;
-  const compressionCueCount = getCompressionCueCount(intake);
-
-  return (
-    hasCompressionNarrative &&
-    restrictionCount >= 2 &&
-    compressionCueCount >= 4 &&
-    topConfidence >= 0.7
-  );
-}
-
 export function evaluateResultDecision(
   input: ResultDecisionInput
 ): { resultType: ResultType; trace: DiagnosticTrace } {
@@ -90,10 +29,11 @@ export function evaluateResultDecision(
   const minimalMargin =
     input.transitionAssessment.transitionMargin === "minimal";
 
-  const hardCompression = hasHardCompression(input.intake, topConfidence);
-
   const hasPlausibleDirections = input.plausibleDirections.length > 0;
   const hasStrongEnoughTopProfile = topConfidence >= 0.55;
+
+  const hasVeryStrongTopProfile = topConfidence >= 0.85;
+  const hasRobustEvidence = signalCount >= 5;
 
   let decisionReason: DecisionReasonCode;
   let resultTypePreview: ResultType;
@@ -105,8 +45,9 @@ export function evaluateResultDecision(
     decisionReason = "TOO_FEW_SIGNALS";
     resultTypePreview = "insufficient_evidence";
   } else if (
-    (minimalMargin && hasCompressionNarrative && hasStrongEnoughTopProfile) ||
-    hardCompression
+    minimalMargin &&
+    hasCompressionNarrative &&
+    hasStrongEnoughTopProfile
   ) {
     decisionReason = "MINIMAL_MARGIN_WITH_COMPRESSION";
     resultTypePreview = "compressed_life";
@@ -120,9 +61,15 @@ export function evaluateResultDecision(
     const secondTooClose =
       !!secondProfile &&
       topConfidence > 0 &&
-      secondConfidence / topConfidence >= 0.92;
+      secondConfidence / topConfidence >= 0.995;
 
-    if (secondTooClose) {
+    const allowClearDespiteCloseSecond =
+      !!secondProfile &&
+      hasVeryStrongTopProfile &&
+      hasRobustEvidence &&
+      hasPlausibleDirections;
+
+    if (secondTooClose && !allowClearDespiteCloseSecond) {
       decisionReason = "SECOND_PROFILE_TOO_CLOSE";
       resultTypePreview = "insufficient_evidence";
     } else {

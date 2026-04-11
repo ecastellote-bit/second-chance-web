@@ -34,7 +34,6 @@ const PROFILE_TEMPLATES: ProfileTemplate[] = [
       "social_coordination",
       "empathic_listening",
       "narrative_creation",
-      "practical_organizing",
     ],
   },
   {
@@ -53,11 +52,7 @@ const PROFILE_TEMPLATES: ProfileTemplate[] = [
     label: "Creative Storyteller",
     summary:
       "Tiende a expresar sentido, construir relato y transformar experiencia en lenguaje.",
-    supportingSignalKeys: [
-      "narrative_creation",
-      "cultural_curiosity",
-      "opportunity_detection",
-    ],
+    supportingSignalKeys: ["narrative_creation", "cultural_curiosity"],
   },
   {
     id: "technical_builder",
@@ -121,9 +116,8 @@ const HUMAN_GUIDE_CUES = [
   "personas",
   "situacion",
   "situaciones",
-  "crisis humana",
-  "crisis humanas",
-  "situaciones personales",
+  "crisis personal",
+  "conflictos humanos",
   "situaciones personales complejas",
 ];
 
@@ -170,6 +164,34 @@ const CONNECTOR_CUES = [
   "bajar tensiones",
   "reputacion",
   "reputación",
+];
+
+const COMMUNITY_CUES = [
+  "comunidad",
+  "comunidades",
+  "pertenencia",
+  "circulacion",
+  "circulación",
+  "interaccion",
+  "interacción",
+  "circulacion entre personas",
+  "circulación entre personas",
+  "sostener comunidad",
+  "construccion de comunidad",
+  "construcción de comunidad",
+  "sosten de grupos",
+  "sostén de grupos",
+  "coordinar grupos",
+  "grupos",
+  "grupo",
+  "clima grupal",
+  "espacio compartido",
+  "mensaje compartido",
+  "mensajes claros",
+  "ordenar la interaccion",
+  "ordenar la interacción",
+  "program coordination",
+  "community operations",
 ];
 
 const EXECUTION_CUES = [
@@ -251,56 +273,6 @@ const CULTURAL_CUES = [
   "leer historia",
 ];
 
-const COMMUNITY_CUES = [
-  "comunidad",
-  "comunidades",
-  "pertenencia",
-  "circulacion",
-  "circulación",
-  "grupo",
-  "grupos",
-  "interaccion",
-  "interacción",
-  "espacio colectivo",
-  "espacios colectivos",
-  "colectivo",
-  "colectivos",
-  "miembros",
-  "participacion",
-  "participación",
-  "clima grupal",
-  "sostener comunidad",
-  "community",
-  "programa",
-  "programas",
-  "cohorte",
-  "cohortes",
-];
-
-const STORYTELLER_CUES = [
-  "escribir",
-  "escribiendo",
-  "redactar",
-  "redactando",
-  "editar",
-  "editando",
-  "relato",
-  "narrativa",
-  "narrar",
-  "copy",
-  "voz",
-  "nombrar",
-  "verbalizar",
-  "dar forma verbal",
-  "contenido",
-  "editorial",
-  "construir relato",
-  "construyendo relato",
-  "claridad narrativa",
-  "construccion de voz",
-  "construcción de voz",
-];
-
 function normalizeText(text: string): string {
   return text
     .toLowerCase()
@@ -338,11 +310,10 @@ function passesHardGate(
   signalMap: Record<string, number>,
   humanCueCount: number,
   connectorCueCount: number,
+  communityCueCount: number,
   executionCueCount: number,
   analyticalCueCount: number,
-  culturalCueCount: number,
-  communityCueCount: number,
-  storytellerCueCount: number
+  culturalCueCount: number
 ): boolean {
   if (template.id === "diplomatic_social_connector") {
     return hasSignal(signalMap, "social_coordination") && connectorCueCount >= 2;
@@ -352,8 +323,8 @@ function passesHardGate(
     return (
       hasSignal(signalMap, "social_coordination") &&
       (communityCueCount >= 2 ||
-        (hasSignal(signalMap, "empathic_listening") &&
-          hasSignal(signalMap, "narrative_creation")))
+        (hasSignal(signalMap, "narrative_creation") &&
+          hasSignal(signalMap, "empathic_listening")))
     );
   }
 
@@ -388,7 +359,7 @@ function passesHardGate(
   }
 
   if (template.id === "creative_storyteller") {
-    return hasSignal(signalMap, "narrative_creation") && storytellerCueCount >= 2;
+    return hasSignal(signalMap, "narrative_creation");
   }
 
   return true;
@@ -400,11 +371,10 @@ function scoreTemplate(
   signalMap: Record<string, number>,
   humanCueCount: number,
   connectorCueCount: number,
+  communityCueCount: number,
   executionCueCount: number,
   analyticalCueCount: number,
-  culturalCueCount: number,
-  communityCueCount: number,
-  storytellerCueCount: number
+  culturalCueCount: number
 ): ScoredProfile | null {
   if (
     !passesHardGate(
@@ -412,11 +382,10 @@ function scoreTemplate(
       signalMap,
       humanCueCount,
       connectorCueCount,
+      communityCueCount,
       executionCueCount,
       analyticalCueCount,
-      culturalCueCount,
-      communityCueCount,
-      storytellerCueCount
+      culturalCueCount
     )
   ) {
     return null;
@@ -469,20 +438,20 @@ function scoreTemplate(
       adjustedScore += 0.07;
     }
 
-    if (humanCueCount >= culturalCueCount + 1) {
-      adjustedScore += 0.10;
-    }
-
     if (connectorCueCount > humanCueCount) {
       adjustedScore -= 0.22;
     }
 
-    if (communityCueCount >= 3) {
-      adjustedScore -= 0.12;
+    if (
+      communityCueCount >= 3 &&
+      hasSignal(signalMap, "social_coordination") &&
+      hasSignal(signalMap, "narrative_creation")
+    ) {
+      adjustedScore -= 0.18;
     }
 
-    if (culturalCueCount >= humanCueCount + 2) {
-      adjustedScore -= 0.10;
+    if (communityCueCount >= humanCueCount + 1) {
+      adjustedScore -= 0.08;
     }
   }
 
@@ -510,6 +479,42 @@ function scoreTemplate(
     }
 
     if (humanCueCount >= connectorCueCount + 2) {
+      adjustedScore -= 0.12;
+    }
+  }
+
+  if (template.id === "community_builder") {
+    if (
+      hasSignal(signalMap, "social_coordination") &&
+      hasSignal(signalMap, "empathic_listening")
+    ) {
+      adjustedScore += 0.06;
+    }
+
+    if (
+      hasSignal(signalMap, "social_coordination") &&
+      hasSignal(signalMap, "narrative_creation")
+    ) {
+      adjustedScore += 0.12;
+    }
+
+    if (communityCueCount >= 3) {
+      adjustedScore += 0.20;
+    }
+
+    if (
+      communityCueCount >= 2 &&
+      hasSignal(signalMap, "narrative_creation") &&
+      hasSignal(signalMap, "empathic_listening")
+    ) {
+      adjustedScore += 0.14;
+    }
+
+    if (communityCueCount > humanCueCount) {
+      adjustedScore += 0.10;
+    }
+
+    if (humanCueCount >= communityCueCount + 2) {
       adjustedScore -= 0.12;
     }
   }
@@ -575,30 +580,7 @@ function scoreTemplate(
       hasSignal(signalMap, "narrative_creation") &&
       hasSignal(signalMap, "cultural_curiosity")
     ) {
-      adjustedScore += 0.06;
-    }
-
-    if (
-      hasSignal(signalMap, "narrative_creation") &&
-      hasSignal(signalMap, "opportunity_detection")
-    ) {
-      adjustedScore += 0.12;
-    }
-
-    if (storytellerCueCount >= 2) {
-      adjustedScore += 0.18;
-    }
-
-    if (storytellerCueCount >= 4) {
-      adjustedScore += 0.12;
-    }
-
-    if (storytellerCueCount >= culturalCueCount + 1) {
-      adjustedScore += 0.10;
-    }
-
-    if (culturalCueCount >= storytellerCueCount + 2) {
-      adjustedScore -= 0.10;
+      adjustedScore += 0.05;
     }
   }
 
@@ -618,7 +600,7 @@ function scoreTemplate(
     }
 
     if (culturalCueCount >= 3) {
-      adjustedScore += 0.14;
+      adjustedScore += 0.16;
     }
 
     if (!hasSignal(signalMap, "narrative_creation")) {
@@ -630,51 +612,10 @@ function scoreTemplate(
     }
 
     if (
-      hasSignal(signalMap, "narrative_creation") &&
-      storytellerCueCount >= culturalCueCount
+      hasSignal(signalMap, "empathic_listening") &&
+      humanCueCount >= culturalCueCount + 1
     ) {
-      adjustedScore -= 0.24;
-    } else if (storytellerCueCount >= 3) {
-      adjustedScore -= 0.12;
-    }
-
-    if (humanCueCount >= culturalCueCount + 2) {
-      adjustedScore -= 0.10;
-    }
-  }
-
-  if (template.id === "community_builder") {
-    if (
-      hasSignal(signalMap, "social_coordination") &&
-      hasSignal(signalMap, "empathic_listening")
-    ) {
-      adjustedScore += 0.05;
-    }
-
-    if (
-      hasSignal(signalMap, "social_coordination") &&
-      hasSignal(signalMap, "narrative_creation")
-    ) {
-      adjustedScore += 0.08;
-    }
-
-    if (
-      hasSignal(signalMap, "social_coordination") &&
-      hasSignal(signalMap, "practical_organizing")
-    ) {
-      adjustedScore += 0.08;
-    }
-
-    if (communityCueCount >= 2) {
-      adjustedScore += 0.18;
-    }
-
-    if (communityCueCount >= 4) {
-      adjustedScore += 0.12;
-    }
-
-    if (communityCueCount > humanCueCount + 1) {
-      adjustedScore += 0.08;
+      adjustedScore -= 0.22;
     }
   }
 
@@ -720,6 +661,62 @@ function resolveGuideVsConnector(
     connector.rawScore += 0.16;
     guide.rawScore -= 0.08;
     connector.confidence = normalizeConfidence(connector.rawScore);
+    guide.confidence = normalizeConfidence(guide.rawScore);
+  }
+}
+
+function resolveCommunityVsGuide(
+  ranked: ScoredProfile[],
+  communityCueCount: number,
+  humanCueCount: number
+): void {
+  const community = ranked.find((profile) => profile.id === "community_builder");
+  const guide = ranked.find((profile) => profile.id === "empathic_guide");
+
+  if (!community || !guide) {
+    return;
+  }
+
+  if (communityCueCount >= humanCueCount + 1) {
+    community.rawScore += 0.18;
+    guide.rawScore -= 0.10;
+    community.confidence = normalizeConfidence(community.rawScore);
+    guide.confidence = normalizeConfidence(guide.rawScore);
+    return;
+  }
+
+  if (humanCueCount >= communityCueCount + 2) {
+    guide.rawScore += 0.14;
+    community.rawScore -= 0.08;
+    guide.confidence = normalizeConfidence(guide.rawScore);
+    community.confidence = normalizeConfidence(community.rawScore);
+  }
+}
+
+function resolveGuideVsCultural(
+  ranked: ScoredProfile[],
+  humanCueCount: number,
+  culturalCueCount: number
+): void {
+  const guide = ranked.find((profile) => profile.id === "empathic_guide");
+  const cultural = ranked.find((profile) => profile.id === "cultural_explorer");
+
+  if (!guide || !cultural) {
+    return;
+  }
+
+  if (humanCueCount >= culturalCueCount + 1) {
+    guide.rawScore += 0.18;
+    cultural.rawScore -= 0.14;
+    guide.confidence = normalizeConfidence(guide.rawScore);
+    cultural.confidence = normalizeConfidence(cultural.rawScore);
+    return;
+  }
+
+  if (culturalCueCount >= humanCueCount + 2) {
+    cultural.rawScore += 0.12;
+    guide.rawScore -= 0.08;
+    cultural.confidence = normalizeConfidence(cultural.rawScore);
     guide.confidence = normalizeConfidence(guide.rawScore);
   }
 }
@@ -784,111 +781,16 @@ function resolveAnalyticalVsCultural(
   }
 }
 
-function resolveGuideVsCultural(
-  ranked: ScoredProfile[],
-  humanCueCount: number,
-  culturalCueCount: number
-): void {
-  const guide = ranked.find((profile) => profile.id === "empathic_guide");
-  const cultural = ranked.find((profile) => profile.id === "cultural_explorer");
-
-  if (!guide || !cultural) {
-    return;
-  }
-
-  if (humanCueCount >= culturalCueCount + 1) {
-    guide.rawScore += 0.20;
-    cultural.rawScore -= 0.12;
-    guide.confidence = normalizeConfidence(guide.rawScore);
-    cultural.confidence = normalizeConfidence(cultural.rawScore);
-    return;
-  }
-
-  if (culturalCueCount >= humanCueCount + 2) {
-    cultural.rawScore += 0.10;
-    guide.rawScore -= 0.08;
-    cultural.confidence = normalizeConfidence(cultural.rawScore);
-    guide.confidence = normalizeConfidence(guide.rawScore);
-  }
-}
-
-function resolveCommunityVsGuide(
-  ranked: ScoredProfile[],
-  communityCueCount: number,
-  humanCueCount: number
-): void {
-  const community = ranked.find((profile) => profile.id === "community_builder");
-  const guide = ranked.find((profile) => profile.id === "empathic_guide");
-
-  if (!community || !guide) {
-    return;
-  }
-
-  if (communityCueCount >= 3) {
-    community.rawScore += 0.24;
-    guide.rawScore -= 0.14;
-    community.confidence = normalizeConfidence(community.rawScore);
-    guide.confidence = normalizeConfidence(guide.rawScore);
-    return;
-  }
-
-  if (humanCueCount >= communityCueCount + 2) {
-    guide.rawScore += 0.10;
-    community.rawScore -= 0.08;
-    guide.confidence = normalizeConfidence(guide.rawScore);
-    community.confidence = normalizeConfidence(community.rawScore);
-  }
-}
-
-function resolveStorytellerVsCultural(
-  ranked: ScoredProfile[],
-  storytellerCueCount: number,
-  culturalCueCount: number
-): void {
-  const storyteller = ranked.find(
-    (profile) => profile.id === "creative_storyteller"
-  );
-  const cultural = ranked.find((profile) => profile.id === "cultural_explorer");
-
-  if (!storyteller || !cultural) {
-    return;
-  }
-
-  if (storytellerCueCount >= culturalCueCount + 1) {
-    storyteller.rawScore += 0.22;
-    cultural.rawScore -= 0.14;
-    storyteller.confidence = normalizeConfidence(storyteller.rawScore);
-    cultural.confidence = normalizeConfidence(cultural.rawScore);
-    return;
-  }
-
-  if (storytellerCueCount >= 3 && culturalCueCount >= 1) {
-    storyteller.rawScore += 0.14;
-    cultural.rawScore -= 0.10;
-    storyteller.confidence = normalizeConfidence(storyteller.rawScore);
-    cultural.confidence = normalizeConfidence(cultural.rawScore);
-    return;
-  }
-
-  if (culturalCueCount >= storytellerCueCount + 2) {
-    cultural.rawScore += 0.12;
-    storyteller.rawScore -= 0.10;
-    cultural.confidence = normalizeConfidence(cultural.rawScore);
-    storyteller.confidence = normalizeConfidence(storyteller.rawScore);
-  }
-}
-
 export function runTDM(signals: DetectedSignal[]): ProbableProfile[] {
   const signalMap = buildSignalWeightMap(signals);
   const evidenceText = getRelevantEvidenceText(signals);
 
   const humanCueCount = countCueHits(evidenceText, HUMAN_GUIDE_CUES);
   const connectorCueCount = countCueHits(evidenceText, CONNECTOR_CUES);
+  const communityCueCount = countCueHits(evidenceText, COMMUNITY_CUES);
   const executionCueCount = countCueHits(evidenceText, EXECUTION_CUES);
   const analyticalCueCount = countCueHits(evidenceText, ANALYTICAL_CUES);
   const culturalCueCount = countCueHits(evidenceText, CULTURAL_CUES);
-  const communityCueCount = countCueHits(evidenceText, COMMUNITY_CUES);
-  const storytellerCueCount = countCueHits(evidenceText, STORYTELLER_CUES);
 
   const ranked = PROFILE_TEMPLATES.map((template) =>
     scoreTemplate(
@@ -897,20 +799,18 @@ export function runTDM(signals: DetectedSignal[]): ProbableProfile[] {
       signalMap,
       humanCueCount,
       connectorCueCount,
+      communityCueCount,
       executionCueCount,
       analyticalCueCount,
-      culturalCueCount,
-      communityCueCount,
-      storytellerCueCount
+      culturalCueCount
     )
   ).filter((profile): profile is ScoredProfile => profile !== null);
 
   resolveGuideVsConnector(ranked, humanCueCount, connectorCueCount);
+  resolveCommunityVsGuide(ranked, communityCueCount, humanCueCount);
+  resolveGuideVsCultural(ranked, humanCueCount, culturalCueCount);
   resolveTechnicalVsAnalytical(ranked, executionCueCount, analyticalCueCount);
   resolveAnalyticalVsCultural(ranked, analyticalCueCount, culturalCueCount);
-  resolveGuideVsCultural(ranked, humanCueCount, culturalCueCount);
-  resolveCommunityVsGuide(ranked, communityCueCount, humanCueCount);
-  resolveStorytellerVsCultural(ranked, storytellerCueCount, culturalCueCount);
 
   return ranked
     .sort((a, b) => b.rawScore - a.rawScore)

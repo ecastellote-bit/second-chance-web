@@ -7,6 +7,7 @@ import { runLTE } from "./lteEngine";
 import { runSEL } from "./selEngine";
 import { runAVE } from "./aveEngine";
 import { buildFinalReading } from "./resultOrchestrator";
+import { buildFinalDiagnostic } from "./finalDiagnosticComposer";
 
 export type PipelineSuccess = {
   ok: true;
@@ -22,7 +23,9 @@ export type PipelineFailure = {
 
 export type PipelineResult = PipelineSuccess | PipelineFailure;
 
-export function runAnalysisPipeline(rawInput: Partial<UserIntake>): PipelineResult {
+export function runAnalysisPipeline(
+  rawInput: Partial<UserIntake>,
+): PipelineResult {
   const intake = normalizeUserIntake(rawInput);
   const validation = validateUserIntake(intake);
 
@@ -49,9 +52,24 @@ export function runAnalysisPipeline(rawInput: Partial<UserIntake>): PipelineResu
     actionVectors,
   });
 
+  const finalDiagnostic = buildFinalDiagnostic({
+    intake,
+    signals,
+    profiles,
+    plausibleDirections,
+    transitionAssessment,
+    actionVectors,
+    resultType: finalReading.resultType,
+  } as any);
+
+  const enrichedFinalReading = {
+    ...finalReading,
+    finalDiagnostic,
+  };
+
   return {
     ok: true,
-    data: finalReading,
+    data: enrichedFinalReading,
     warnings: validation.warnings,
   };
 }

@@ -1,7 +1,7 @@
-import type { ResultType } from "./result";
-import type { EmployabilityDirection, ProbableProfile } from "./profiles";
+import type { ProbableProfile } from "./profiles";
 
 export type DiagnosticSeverity = "low" | "medium" | "high";
+export type FunctionalSubtype = string;
 
 export type TransitionMode =
   | "gradual_lateral"
@@ -17,80 +17,57 @@ export type DiagnosticProfileSnapshot = {
   confidence: number;
 };
 
-export type FunctionalSubtype = {
-  id: string;
+export type DirectionSnapshot = {
   label: string;
-  explanation: string;
+  ecosystem?: string;
+  rationale?: string;
 };
 
-export type ValueGenerationBlock = {
-  headline: string;
-  explanation: string;
-  evidenceKeys: string[];
+type BaseDiagnosticBlock = {
+  title?: string;
+  headline?: string;
+  summary?: string;
+  description?: string;
+  rationale?: string;
+  severity?: DiagnosticSeverity;
+  subtype?: string;
+  bullets?: string[];
+  items?: string[];
+  microActions?: string[];
+  firstMoves?: string[];
+  signals?: string[];
+  evidenceKeys?: string[];
+  warnings?: string[];
 };
 
-export type MisalignmentBlock = {
-  headline: string;
-  explanation: string;
-  severity: DiagnosticSeverity;
-  evidenceKeys: string[];
+export type ValueGenerationBlock = BaseDiagnosticBlock;
+export type MisalignmentBlock = BaseDiagnosticBlock;
+export type WorkContextBlock = BaseDiagnosticBlock;
+export type MisreadRiskBlock = BaseDiagnosticBlock;
+
+export type TransitionRecommendationBlock = BaseDiagnosticBlock & {
+  transitionMode?: TransitionMode;
 };
 
-export type WorkContextBlock = {
-  headline: string;
-  explanation: string;
-  environmentMarkers: string[];
-};
-
-export type MisreadRiskBlock = {
-  headline: string;
-  explanation: string;
-  mistakenFor: string[];
-};
-
-export type TransitionRecommendationBlock = {
-  mode: TransitionMode;
-  headline: string;
-  explanation: string;
-  rationale: string;
-};
-
-export type NextMoveBlock = {
-  headline: string;
-  explanation: string;
-  actions: string[];
-};
-
-export type DirectionSnapshot = Pick<
-  EmployabilityDirection,
-  "id" | "ecosystem" | "label" | "whyItFits"
->;
+export type NextMoveBlock = BaseDiagnosticBlock;
 
 export type FinalDiagnostic = {
-  resultType: ResultType;
-
-  dominantProfile: DiagnosticProfileSnapshot | null;
-  secondaryProfile: DiagnosticProfileSnapshot | null;
-
-  functionalSubtype: FunctionalSubtype | null;
+  severity: DiagnosticSeverity;
+  functionalSubtype: FunctionalSubtype;
+  profileSnapshot: DiagnosticProfileSnapshot | null;
+  secondaryProfileSnapshot?: DiagnosticProfileSnapshot | null;
+  directions?: DirectionSnapshot[];
 
   valueGeneration: ValueGenerationBlock;
   currentMisalignment: MisalignmentBlock;
-  bestContexts: WorkContextBlock;
+  bestWorkContexts: WorkContextBlock;
   misreadRisk: MisreadRiskBlock;
-
-  compatibleDirections: DirectionSnapshot[];
   transitionRecommendation: TransitionRecommendationBlock;
   nextMove: NextMoveBlock;
-
-  summaryForUser: {
-    headline: string;
-    diagnostico: string;
-  };
 };
 
 export function toDiagnosticProfileSnapshot(
-  profile: ProbableProfile | null | undefined
+  profile: ProbableProfile | null | undefined,
 ): DiagnosticProfileSnapshot | null {
   if (!profile) return null;
 

@@ -58,4 +58,6 @@ export interface FinalReading {
   supportingProfiles: ProbableProfile[];
   detectedSignals: DetectedSignal[];
   communityRouting: CommunityRoutingRecommendation;
+  finalDiagnostic?: import("./finalDiagnostic").FinalDiagnostic;
+  trace?: unknown;
 }
