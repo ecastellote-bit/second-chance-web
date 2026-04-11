@@ -355,9 +355,9 @@ export default function LabPage() {
         <div className="rounded-2xl border p-5 space-y-3">
           <h2 className="text-lg font-medium">Trace de decisión</h2>
 
-          {result && result.ok && result.trace ? (
+          {result && result.ok && result.data.trace ? (
         <pre className="whitespace-pre-wrap break-words text-xs text-neutral-700 font-sans">
-              {formatUnknown(result.trace)}
+              {formatUnknown(result.data.trace)}
             </pre>
           ) : (
             <p className="text-sm text-neutral-700">
