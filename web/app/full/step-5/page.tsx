@@ -11,13 +11,14 @@ function formatReviewValue(value: string, fallback: string) {
 
 export default function FullStep5Page() {
   const router = useRouter();
-  const { state, clearAnalysis, isHydrated } = useFullAnswers();
+  const { state, clearAnalysis, clearFollowup, isHydrated } = useFullAnswers();
 
   const copy = FULL_FLOW_COPY.step5;
   const fallback = copy.reviewLabels.missingValue;
 
   const handleContinue = () => {
     clearAnalysis();
+    clearFollowup();
     router.push("/full/processing");
   };
 

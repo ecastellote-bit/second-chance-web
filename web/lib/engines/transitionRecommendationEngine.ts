@@ -76,18 +76,18 @@ function buildSummary(
   profileLabel: string,
 ): string {
   if (resultType === "compressed_life") {
-    return `Hay patrón reconocible en ${profileLabel}, pero la transición hoy necesita recuperar margen antes de exigir expansión fuerte.`;
+    return `La dirección aparece y tiene sentido, pero hoy no conviene exigirle una expansión fuerte. Primero hay que recuperar margen para que el patrón ${profileLabel} deje de operar apretado por el presente.`;
   }
 
   if (resultType === "insufficient_evidence") {
-    return `Todavía no conviene hacer un movimiento grande. Primero hay que confirmar mejor el patrón dominante antes de reposicionarse.`;
+    return `Todavía no conviene hacer un movimiento grande. Antes de reposicionarte, hace falta confirmar mejor cuál es tu patrón dominante y separarlo de lo que hoy hacés por adaptación o contexto.`;
   }
 
   if (mode === "gradual_lateral") {
-    return `La dirección es plausible, pero conviene moverse por aproximaciones laterales y no con un salto brusco.`;
+    return `La dirección es plausible, pero conviene moverse de forma lateral, protegida y acumulativa. No parece el momento de un salto brusco, sino de una transición cuidada.`;
   }
 
-  return `La dirección aparece con consistencia suficiente como para empezar un reposicionamiento guiado y concreto.`;
+  return `La dirección aparece con base suficiente como para empezar un reposicionamiento guiado. No hace falta romper todo ahora; hace falta empezar a moverte con foco y contraste con la realidad.`;
 }
 
 function buildRationale(
@@ -96,18 +96,18 @@ function buildRationale(
   profileLabel: string,
 ): string {
   if (resultType === "compressed_life") {
-    return `No falta señal. Falta aire. El patrón central (${profileLabel}) aparece, pero el presente todavía lo mantiene comprimido.`;
+    return `No parece faltar señal. Lo que falta es aire. El patrón ${profileLabel} ya se deja ver, pero el presente todavía lo mantiene comprimido y funcionando por debajo de su nivel.`;
   }
 
   if (resultType === "insufficient_evidence") {
-    return `El sistema detecta una hipótesis plausible, pero no una lectura lo bastante separada del segundo perfil como para justificar un movimiento serio.`;
+    return `Ya hay hipótesis valiosas, pero todavía no una separación lo bastante firme entre el patrón principal y sus perfiles vecinos como para justificar una decisión seria.`;
   }
 
   if (mode === "gradual_lateral") {
-    return `Hay dirección, pero las restricciones actuales piden una transición protegida, con pruebas pequeñas y acumulativas.`;
+    return `La lectura ya permite ver dirección, pero las restricciones actuales piden una transición protegida, con pruebas pequeñas y acumulativas en vez de un cambio total.`;
   }
 
-  return `La combinación entre patrón dominante, tensión principal y direcciones plausibles permite empezar una transición con foco.`;
+  return `La combinación entre patrón dominante, tensiones actuales y direcciones plausibles ya da base suficiente para empezar una transición con más intención y menos improvisación.`;
 }
 
 function buildFirstMoves(
@@ -117,32 +117,32 @@ function buildFirstMoves(
 ): string[] {
   if (resultType === "compressed_life") {
     return [
-      `Reducir una fuente concreta de sobrecarga para recuperar margen real.`,
-      `Probar una versión pequeña y lateral del patrón ${profileLabel}.`,
-      `No exigir todavía un cambio completo; exigir una prueba seria.`,
+      "Reducí una fuente concreta de sobrecarga para recuperar un poco de margen real.",
+      `Probá una versión pequeña, lateral y verificable del patrón ${profileLabel}.`,
+      "No te exijas un cambio completo todavía; exigite una prueba seria y bien delimitada.",
     ];
   }
 
   if (resultType === "insufficient_evidence") {
     return [
-      `Volver a entrar con más historia, más matices y más ejemplos concretos.`,
-      `Agregar evidencia sobre lo que repetís cuando rendís mejor.`,
-      `Evitar decisiones grandes hasta que el patrón se separe con más claridad.`,
+      "Volvé a entrar con más historia real, más matices y más ejemplos concretos.",
+      "Agregá evidencia sobre lo que repetís cuando rendís mejor.",
+      "Evitá decisiones grandes hasta que el patrón se separe con más claridad.",
     ];
   }
 
   if (mode === "gradual_lateral") {
     return [
-      `Diseñar una prueba lateral de bajo riesgo alineada al patrón dominante.`,
-      `Traducir el patrón ${profileLabel} a funciones concretas de trabajo.`,
-      `Mover primero posicionamiento y experimentos; después estructura completa.`,
+      "Diseñá una prueba lateral de bajo riesgo alineada con tu patrón dominante.",
+      `Traducí el patrón ${profileLabel} a funciones de trabajo concretas y visibles.`,
+      "Mové primero posicionamiento, lenguaje y experimentos; después estructura completa.",
     ];
   }
 
   return [
-    `Traducir el patrón ${profileLabel} a un lenguaje laboral claro.`,
-    `Elegir una dirección plausible y convertirla en prueba concreta.`,
-    `Construir validación externa antes de intentar un giro mayor.`,
+    `Traducí el patrón ${profileLabel} a un lenguaje laboral claro y verificable.`,
+    "Elegí una dirección plausible y convertí esa hipótesis en una prueba concreta.",
+    "Buscá validación externa antes de intentar un giro mayor.",
   ];
 }
 
@@ -152,27 +152,27 @@ function buildWarnings(
 ): string[] {
   if (resultType === "compressed_life") {
     return [
-      "No confundir compresión presente con falta de patrón.",
-      "No forzar claridad total cuando todavía falta margen.",
+      "No confundas compresión presente con falta de dirección.",
+      "No te exijas claridad total cuando todavía te falta margen real.",
     ];
   }
 
   if (resultType === "insufficient_evidence") {
     return [
-      "No inventar una vocación cerrada solo para salir rápido de la duda.",
-      "Más evidencia vale más que una conclusión elegante pero falsa.",
+      "No inventes una vocación cerrada solo para salir rápido de la duda.",
+      "Más evidencia vale más que una conclusión prolija pero falsa.",
     ];
   }
 
   if (mode === "gradual_lateral") {
     return [
-      "No convertir una dirección válida en un salto desordenado.",
+      "No conviertas una dirección válida en un salto desordenado.",
       "La velocidad incorrecta puede arruinar una lectura correcta.",
     ];
   }
 
   return [
-    "La dirección parece plausible, pero necesita contraste con la realidad.",
+    "La dirección parece plausible, pero todavía necesita contraste con la realidad.",
   ];
 }
 

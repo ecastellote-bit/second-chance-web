@@ -23,6 +23,9 @@ type OrchestratorInput = {
   transitionAssessment: TransitionAssessment;
   plausibleDirections: EmployabilityDirection[];
   actionVectors: ActionVector[];
+  clarificationMeta?: {
+    roundsCompleted?: number;
+  };
 };
 
 function decideCommunityRouting(
@@ -143,7 +146,15 @@ function buildFallbackTrace(input: OrchestratorInput, resultType: ResultType) {
 }
 
 export function buildFinalReading(input: OrchestratorInput): FinalReading {
-  const decision = evaluateResultDecision(input);
+  const decision = evaluateResultDecision({
+    intake: input.intake,
+    signals: input.signals,
+    profiles: input.profiles,
+    transitionAssessment: input.transitionAssessment,
+    plausibleDirections: input.plausibleDirections,
+    clarificationMeta: input.clarificationMeta,
+  });
+
   const resultType = decision.resultType;
   const topProfile = input.profiles[0] ?? null;
   const secondProfile = input.profiles[1] ?? null;

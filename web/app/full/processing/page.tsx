@@ -6,11 +6,68 @@ import { useFullAnswers } from "../fullAnswersContext";
 import type { UserIntake } from "@/lib/types/intake";
 import type { FinalReading } from "@/lib/types/result";
 
+type FollowupOption = {
+  id: string;
+  label: string;
+  leansToward?: string[];
+};
+
+type FollowupQuestion = {
+  id: string;
+  round: 2 | 3;
+  ambiguityType: string;
+  kind: "open_text" | "contrast_choice" | "forced_choice" | "micro_narrative";
+  prompt: string;
+  helpText?: string;
+  options?: FollowupOption[];
+};
+
+type FollowupPack = {
+  ambiguityType: string;
+  round: 2 | 3;
+  title: string;
+  objective: string;
+  questions: FollowupQuestion[];
+};
+
+type FollowupAssessment = {
+  needsFollowupRound: boolean;
+  recommendedRound: 2 | 3 | null;
+  ambiguityType: string | null;
+  candidateProfiles: string[];
+  questionStrategy: string;
+  reason: string;
+  signalCount: number;
+  topProfileId: string | null;
+  topProfileLabel: string | null;
+  topProfileConfidence: number | null;
+  secondProfileId: string | null;
+  secondProfileLabel: string | null;
+  secondProfileConfidence: number | null;
+  confidenceGap: number | null;
+  allowForcedAdjudicationAfterRound2: boolean;
+};
+
+type FollowupOrchestratorResult = {
+  shouldAskFollowup: boolean;
+  round: 2 | 3 | null;
+  ambiguityType: string | null;
+  pack: FollowupPack | null;
+  assessment: FollowupAssessment;
+  status:
+    | "no_followup_needed"
+    | "round_ready"
+    | "no_pack_available"
+    | "round_not_allowed";
+  reason: string;
+};
+
 type AnalyzeResponse =
   | {
       ok: true;
       data: FinalReading;
       warnings?: string[];
+      followup?: FollowupOrchestratorResult | null;
     }
   | {
       ok: false;
@@ -22,7 +79,14 @@ type AnalyzeResponse =
 
 export default function FullProcessingPage() {
   const router = useRouter();
-  const { buildUserIntake, setAnalysis, isHydrated } = useFullAnswers();
+  const {
+    buildUserIntake,
+    setAnalysis,
+    setFollowup,
+    clearFollowup,
+    isHydrated,
+  } = useFullAnswers();
+
   const [errorMessage, setErrorMessage] = useState("");
   const hasStarted = useRef(false);
 
@@ -54,6 +118,14 @@ export default function FullProcessingPage() {
         }
 
         setAnalysis(result.data, result.warnings ?? []);
+
+        if (result.followup?.shouldAskFollowup && result.followup.pack) {
+          setFollowup(result.followup);
+          router.replace("/full/followup");
+          return;
+        }
+
+        clearFollowup();
         router.replace("/full/result");
       } catch (error) {
         setErrorMessage(`Error de red o de análisis: ${String(error)}`);
@@ -61,7 +133,7 @@ export default function FullProcessingPage() {
     };
 
     run();
-  }, [buildUserIntake, isHydrated, router, setAnalysis]);
+  }, [buildUserIntake, clearFollowup, isHydrated, router, setAnalysis, setFollowup]);
 
   return (
     <main className="min-h-screen bg-white text-black px-6 py-10">
@@ -98,6 +170,7 @@ export default function FullProcessingPage() {
               <li>• leyendo señales autobiográficas</li>
               <li>• estimando margen de transición</li>
               <li>• generando vectores de acción plausibles</li>
+              <li>• verificando si hace falta una ronda extra de clarificación</li>
             </ul>
           </div>
         )}

@@ -1,9 +1,12 @@
 import type { ProbableProfile } from "../types/profiles";
 import type { DetectedSignal } from "../types/signals";
+import type { HumanAffinityScore } from "../types/humanAffinity";
+import type { ProfileFamilyId, ProfileFamilyScore } from "../types/profileFamilies";
 import { normalizeConfidence } from "../utils/scoring";
+import { scoreProfileFamiliesFromAffinities } from "./profileFamilyScorer";
 
 type ProfileTemplate = {
-  id: string;
+  id: ProfileFamilyId;
   label: string;
   summary: string;
   supportingSignalKeys: string[];
@@ -305,7 +308,16 @@ function countCueHits(text: string, cues: string[]): number {
   return cues.filter((cue) => text.includes(normalizeText(cue))).length;
 }
 
-function passesHardGate(
+function buildFamilyScoreMap(
+  scores: ProfileFamilyScore[],
+): Record<string, ProfileFamilyScore> {
+  return scores.reduce<Record<string, ProfileFamilyScore>>((acc, score) => {
+    acc[score.id] = score;
+    return acc;
+  }, {});
+}
+
+function passesSignalHardGate(
   template: ProfileTemplate,
   signalMap: Record<string, number>,
   humanCueCount: number,
@@ -313,7 +325,7 @@ function passesHardGate(
   communityCueCount: number,
   executionCueCount: number,
   analyticalCueCount: number,
-  culturalCueCount: number
+  culturalCueCount: number,
 ): boolean {
   if (template.id === "diplomatic_social_connector") {
     return hasSignal(signalMap, "social_coordination") && connectorCueCount >= 2;
@@ -365,38 +377,66 @@ function passesHardGate(
   return true;
 }
 
+function passesFamilyGate(familyScore?: ProfileFamilyScore): boolean {
+  if (!familyScore) return false;
+
+  if (
+    familyScore.matchedCoreAffinities.length >= 2 &&
+    familyScore.score >= 0.18
+  ) {
+    return true;
+  }
+
+  if (familyScore.score >= 0.22 && familyScore.confidence >= 0.45) {
+    return true;
+  }
+
+  if (
+    familyScore.matchedCoreAffinities.length >= 1 &&
+    familyScore.matchedSupportingAffinities.length >= 2 &&
+    familyScore.confidence >= 0.5
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 function scoreTemplate(
   template: ProfileTemplate,
   signals: DetectedSignal[],
   signalMap: Record<string, number>,
+  familyScore: ProfileFamilyScore | undefined,
   humanCueCount: number,
   connectorCueCount: number,
   communityCueCount: number,
   executionCueCount: number,
   analyticalCueCount: number,
-  culturalCueCount: number
+  culturalCueCount: number,
 ): ScoredProfile | null {
-  if (
-    !passesHardGate(
-      template,
-      signalMap,
-      humanCueCount,
-      connectorCueCount,
-      communityCueCount,
-      executionCueCount,
-      analyticalCueCount,
-      culturalCueCount
-    )
-  ) {
+  const signalGate = passesSignalHardGate(
+    template,
+    signalMap,
+    humanCueCount,
+    connectorCueCount,
+    communityCueCount,
+    executionCueCount,
+    analyticalCueCount,
+    culturalCueCount,
+  );
+
+  const familyGate = passesFamilyGate(familyScore);
+
+  if (!signalGate && !familyGate) {
     return null;
   }
 
   const matchedSignals = signals.filter((signal) =>
-    template.supportingSignalKeys.includes(signal.key)
+    template.supportingSignalKeys.includes(signal.key),
   );
 
   const uniqueMatchedKeys = Array.from(
-    new Set(matchedSignals.map((signal) => signal.key))
+    new Set(matchedSignals.map((signal) => signal.key)),
   );
 
   const keyCoverage =
@@ -406,14 +446,39 @@ function scoreTemplate(
     matchedSignals.reduce((acc, signal) => acc + signal.weight, 0) /
     Math.max(template.supportingSignalKeys.length, 1);
 
-  const hasEnoughEvidence =
+  const hasEnoughSignalEvidence =
     uniqueMatchedKeys.length >= 2 && keyCoverage >= 0.5;
 
-  if (!hasEnoughEvidence) {
+  let adjustedScore = baseSignalScore * 0.82;
+
+  if (familyScore) {
+    adjustedScore += familyScore.score * 0.72;
+    adjustedScore += familyScore.confidence * 0.18;
+
+    if (familyScore.matchedCoreAffinities.length >= 2) {
+      adjustedScore += 0.12;
+    } else if (familyScore.matchedCoreAffinities.length === 1) {
+      adjustedScore += 0.05;
+    }
+
+    if (familyScore.matchedSupportingAffinities.length >= 2) {
+      adjustedScore += 0.05;
+    }
+
+    if (familyScore.tensionHits.length >= 2) {
+      adjustedScore -= 0.07;
+    } else if (familyScore.tensionHits.length === 1) {
+      adjustedScore -= 0.03;
+    }
+  }
+
+  if (!hasEnoughSignalEvidence && !familyGate) {
     return null;
   }
 
-  let adjustedScore = baseSignalScore;
+  if (!hasEnoughSignalEvidence && familyGate) {
+    adjustedScore += 0.05;
+  }
 
   if (template.id === "empathic_guide") {
     if (hasSignal(signalMap, "empathic_listening")) {
@@ -457,7 +522,7 @@ function scoreTemplate(
 
   if (template.id === "diplomatic_social_connector") {
     if (connectorCueCount >= 3) {
-      adjustedScore += 0.20;
+      adjustedScore += 0.2;
     }
 
     if (
@@ -499,7 +564,7 @@ function scoreTemplate(
     }
 
     if (communityCueCount >= 3) {
-      adjustedScore += 0.20;
+      adjustedScore += 0.2;
     }
 
     if (
@@ -511,7 +576,7 @@ function scoreTemplate(
     }
 
     if (communityCueCount > humanCueCount) {
-      adjustedScore += 0.10;
+      adjustedScore += 0.1;
     }
 
     if (humanCueCount >= communityCueCount + 2) {
@@ -539,7 +604,7 @@ function scoreTemplate(
     }
 
     if (executionCueCount === 0) {
-      adjustedScore -= 0.20;
+      adjustedScore -= 0.2;
     }
 
     if (analyticalCueCount >= 3 && executionCueCount < 2) {
@@ -552,7 +617,7 @@ function scoreTemplate(
       hasSignal(signalMap, "pattern_analysis") &&
       hasSignal(signalMap, "system_thinking")
     ) {
-      adjustedScore += 0.10;
+      adjustedScore += 0.1;
     }
 
     if (
@@ -619,9 +684,41 @@ function scoreTemplate(
     }
   }
 
-  const rationale = `Se apoya en señales como ${matchedSignals
-    .map((signal) => signal.label)
-    .join(", ")}.`;
+  const rationaleParts: string[] = [];
+
+  if (matchedSignals.length > 0) {
+    rationaleParts.push(
+      `Se apoya en señales como ${matchedSignals
+        .map((signal) => signal.label)
+        .join(", ")}.`,
+    );
+  }
+
+  if (familyScore) {
+    if (familyScore.matchedCoreAffinities.length > 0) {
+      rationaleParts.push(
+        `Core affinities: ${familyScore.matchedCoreAffinities.join(", ")}.`,
+      );
+    }
+
+    if (familyScore.matchedSupportingAffinities.length > 0) {
+      rationaleParts.push(
+        `Supporting affinities: ${familyScore.matchedSupportingAffinities.join(
+          ", ",
+        )}.`,
+      );
+    }
+
+    if (familyScore.tensionHits.length > 0) {
+      rationaleParts.push(
+        `Tensiones: ${familyScore.tensionHits.join(", ")}.`,
+      );
+    }
+  }
+
+  const rationale =
+    rationaleParts.join(" ") ||
+    `Se apoya en señales compatibles con ${template.label}.`;
 
   return {
     id: template.id,
@@ -638,11 +735,11 @@ function scoreTemplate(
 function resolveGuideVsConnector(
   ranked: ScoredProfile[],
   humanCueCount: number,
-  connectorCueCount: number
+  connectorCueCount: number,
 ): void {
   const guide = ranked.find((profile) => profile.id === "empathic_guide");
   const connector = ranked.find(
-    (profile) => profile.id === "diplomatic_social_connector"
+    (profile) => profile.id === "diplomatic_social_connector",
   );
 
   if (!guide || !connector) {
@@ -668,7 +765,7 @@ function resolveGuideVsConnector(
 function resolveCommunityVsGuide(
   ranked: ScoredProfile[],
   communityCueCount: number,
-  humanCueCount: number
+  humanCueCount: number,
 ): void {
   const community = ranked.find((profile) => profile.id === "community_builder");
   const guide = ranked.find((profile) => profile.id === "empathic_guide");
@@ -679,7 +776,7 @@ function resolveCommunityVsGuide(
 
   if (communityCueCount >= humanCueCount + 1) {
     community.rawScore += 0.18;
-    guide.rawScore -= 0.10;
+    guide.rawScore -= 0.1;
     community.confidence = normalizeConfidence(community.rawScore);
     guide.confidence = normalizeConfidence(guide.rawScore);
     return;
@@ -696,7 +793,7 @@ function resolveCommunityVsGuide(
 function resolveGuideVsCultural(
   ranked: ScoredProfile[],
   humanCueCount: number,
-  culturalCueCount: number
+  culturalCueCount: number,
 ): void {
   const guide = ranked.find((profile) => profile.id === "empathic_guide");
   const cultural = ranked.find((profile) => profile.id === "cultural_explorer");
@@ -724,11 +821,11 @@ function resolveGuideVsCultural(
 function resolveTechnicalVsAnalytical(
   ranked: ScoredProfile[],
   executionCueCount: number,
-  analyticalCueCount: number
+  analyticalCueCount: number,
 ): void {
   const technical = ranked.find((profile) => profile.id === "technical_builder");
   const analytical = ranked.find(
-    (profile) => profile.id === "analytical_strategist"
+    (profile) => profile.id === "analytical_strategist",
   );
 
   if (!technical || !analytical) {
@@ -737,7 +834,7 @@ function resolveTechnicalVsAnalytical(
 
   if (analyticalCueCount >= executionCueCount + 1) {
     analytical.rawScore += 0.16;
-    technical.rawScore -= 0.10;
+    technical.rawScore -= 0.1;
     analytical.confidence = normalizeConfidence(analytical.rawScore);
     technical.confidence = normalizeConfidence(technical.rawScore);
     return;
@@ -745,7 +842,7 @@ function resolveTechnicalVsAnalytical(
 
   if (executionCueCount >= analyticalCueCount + 1) {
     technical.rawScore += 0.16;
-    analytical.rawScore -= 0.10;
+    analytical.rawScore -= 0.1;
     technical.confidence = normalizeConfidence(technical.rawScore);
     analytical.confidence = normalizeConfidence(analytical.rawScore);
   }
@@ -754,10 +851,10 @@ function resolveTechnicalVsAnalytical(
 function resolveAnalyticalVsCultural(
   ranked: ScoredProfile[],
   analyticalCueCount: number,
-  culturalCueCount: number
+  culturalCueCount: number,
 ): void {
   const analytical = ranked.find(
-    (profile) => profile.id === "analytical_strategist"
+    (profile) => profile.id === "analytical_strategist",
   );
   const cultural = ranked.find((profile) => profile.id === "cultural_explorer");
 
@@ -781,7 +878,10 @@ function resolveAnalyticalVsCultural(
   }
 }
 
-export function runTDM(signals: DetectedSignal[]): ProbableProfile[] {
+export function runTDM(
+  signals: DetectedSignal[],
+  affinityScores: HumanAffinityScore[] = [],
+): ProbableProfile[] {
   const signalMap = buildSignalWeightMap(signals);
   const evidenceText = getRelevantEvidenceText(signals);
 
@@ -792,18 +892,22 @@ export function runTDM(signals: DetectedSignal[]): ProbableProfile[] {
   const analyticalCueCount = countCueHits(evidenceText, ANALYTICAL_CUES);
   const culturalCueCount = countCueHits(evidenceText, CULTURAL_CUES);
 
+  const familyScores = scoreProfileFamiliesFromAffinities(affinityScores);
+  const familyScoreMap = buildFamilyScoreMap(familyScores);
+
   const ranked = PROFILE_TEMPLATES.map((template) =>
     scoreTemplate(
       template,
       signals,
       signalMap,
+      familyScoreMap[template.id],
       humanCueCount,
       connectorCueCount,
       communityCueCount,
       executionCueCount,
       analyticalCueCount,
-      culturalCueCount
-    )
+      culturalCueCount,
+    ),
   ).filter((profile): profile is ScoredProfile => profile !== null);
 
   resolveGuideVsConnector(ranked, humanCueCount, connectorCueCount);

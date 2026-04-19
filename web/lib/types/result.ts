@@ -1,5 +1,7 @@
 import type { ProbableProfile, EmployabilityDirection } from "./profiles";
 import type { DetectedSignal } from "./signals";
+import type { EvidenceFragment } from "./evidence";
+import type { HumanAffinityScore } from "./humanAffinity";
 
 export type ResultType =
   | "clear_direction"
@@ -60,4 +62,10 @@ export interface FinalReading {
   communityRouting: CommunityRoutingRecommendation;
   finalDiagnostic?: import("./finalDiagnostic").FinalDiagnostic;
   trace?: unknown;
+  evidence?: EvidenceFragment[];
+  affinityScores?: HumanAffinityScore[];
+  topAffinities?: HumanAffinityScore[];
+  buriedCapacities?: HumanAffinityScore[];
+  likelyContributionModes?: string[];
+  likelyFlourishingConditions?: string[];
 }

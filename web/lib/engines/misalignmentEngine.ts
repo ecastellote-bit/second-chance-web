@@ -37,9 +37,10 @@ function buildInsufficientEvidenceBlock(
   const signalKeys = getSignalKeys(input.signals);
 
   return {
-    headline: "Todavía no aparece una dirección suficientemente nítida.",
+    headline:
+      "Todavía no aparece con suficiente claridad qué parte tuya está quedando mal usada.",
     explanation:
-      "Hay señales útiles, pero todavía no alcanza para decir con suficiente precisión qué parte tuya está mal usada y cuál es realmente central. Antes de empujar una dirección, conviene separar mejor lo que hacés por adaptación de lo que te sale de forma dominante.",
+      "Ya hay señales valiosas, pero todavía no alcanza para distinguir con suficiente firmeza qué capacidad es realmente central y cuál está apareciendo solo por adaptación, contexto o mezcla con otras. Antes de empujar una dirección, conviene separar mejor tu patrón dominante de tus respuestas tácticas al presente.",
     severity: "medium",
     evidenceKeys: signalKeys.slice(0, 3),
   };
@@ -62,9 +63,9 @@ export function buildCurrentMisalignment(
   if (input.resultType === "compressed_life") {
     return {
       headline:
-        "La dirección aparece, pero hoy está comprimida por contexto, urgencia o margen real insuficiente.",
+        "La dirección aparece, pero hoy está funcionando por debajo de lo que realmente podría desplegar.",
       explanation:
-        "No parece que tu capacidad dominante esté ausente. Lo que aparece es otra cosa: está viva, pero usada en modo defensivo, parcial o reactivo. El problema principal hoy no es falta total de dirección, sino falta de espacio real para desplegarla como función central.",
+        "No da la impresión de que tu capacidad dominante esté ausente. Lo que aparece es otra cosa: está viva, pero demasiado apretada por contexto, urgencia, cansancio o margen insuficiente. El problema principal hoy no es falta de patrón, sino falta de espacio real para que ese patrón deje de operar en modo defensivo y pase a ocupar un lugar más central.",
       severity: "high",
       evidenceKeys: pickEvidenceKeys(signalKeys, [
         "social_coordination",
@@ -78,9 +79,9 @@ export function buildCurrentMisalignment(
   if (profileId === "analytical_strategist") {
     return {
       headline:
-        "Tu capacidad de lectura y criterio aparece usada por debajo de lo que podría valer.",
+        "Tu capacidad de leer, comparar y orientar decisiones hoy parece usada por debajo de su verdadero nivel.",
       explanation:
-        "Tu parte más fuerte no parece estar en ejecutar sin pausa, sino en leer estructura, comparar escenarios y orientar decisiones. Cuando eso queda absorbido por urgencias, tareas reactivas o resolución inmediata, tu valor real se usa de forma parcial. El desajuste no está en que no rindas: está en que rendís en un plano más bajo que tu capacidad dominante.",
+        "Tu valor más alto no aparece en correr detrás de urgencias ni en resolver todo en modo inmediato. Aparece cuando podés leer estructura, comparar escenarios y mostrar con claridad qué conviene hacer. El desajuste está en que esa capacidad termina absorbida por tareas más reactivas, más cortas o más tácticas. No parece que estés fuera de eje por falta de talento, sino porque tu mejor nivel está siendo usado demasiado abajo.",
       severity:
         hasCompressionNarrative || manyRestrictions ? "high" : "medium",
       evidenceKeys: pickEvidenceKeys(signalKeys, [
@@ -94,9 +95,9 @@ export function buildCurrentMisalignment(
   if (profileId === "technical_builder") {
     return {
       headline:
-        "Tu capacidad de resolver, ordenar y hacer funcionar cosas puede estar atrapada en modo incendio.",
+        "Tu capacidad de resolver y ordenar puede estar atrapada en puro sostén, cuando podría estar mejor usada en mejora real.",
       explanation:
-        "Tu patrón dominante es operativo y transformador, pero cuando toda tu energía se va en apagar urgencias o sostener funcionamiento mínimo, esa capacidad se degrada. El problema no es falta de potencia, sino uso reactivo de una capacidad que rendiría mucho más en contextos con algo más de diseño y continuidad.",
+        "Tu patrón dominante no parece roto. Lo que aparece es un uso demasiado reactivo de una capacidad que rendiría mucho más en contextos con más continuidad, diseño y margen de mejora. Cuando toda tu energía se va en apagar incendios o sostener funcionamiento mínimo, seguís rindiendo, sí, pero en una versión más desgastante y más pobre de tu valor real.",
       severity:
         hasCompressionNarrative || manyRestrictions ? "high" : "medium",
       evidenceKeys: pickEvidenceKeys(signalKeys, [
@@ -110,9 +111,9 @@ export function buildCurrentMisalignment(
   if (profileId === "diplomatic_social_connector") {
     return {
       headline:
-        "Tu capacidad de articular actores y ordenar acuerdos hoy puede estar usada demasiado en modo táctico.",
+        "Tu capacidad de articular personas y ordenar acuerdos puede estar reducida a apagar tensiones en vez de ocupar una función más visible.",
       explanation:
-        "Tu valor aparece cuando leés intereses, conectás partes y sostenés funcionamiento entre actores distintos. El desajuste aparece cuando esa capacidad queda reducida a apagar tensiones, cuidar bordes o sostener equilibrios sin poder ocupar una función más clara y visible. No parece una falta de dirección, sino una dirección usada con margen demasiado corto.",
+        "Tu valor aparece cuando leés actores, entendés intereses cruzados y hacés que distintas partes puedan convivir, coordinarse o avanzar sin romperse. El desajuste aparece cuando esa capacidad queda usada solo para sostener bordes, apagar fricciones o evitar choques, sin llegar a expresarse como función central. No parece una dirección equivocada: parece una dirección válida, pero usada con demasiado margen corto.",
       severity:
         hasCompressionNarrative || manyRestrictions ? "high" : "medium",
       evidenceKeys: pickEvidenceKeys(signalKeys, [
@@ -126,9 +127,9 @@ export function buildCurrentMisalignment(
   if (profileId === "community_builder") {
     return {
       headline:
-        "Tu capacidad de sostener comunidad puede estar quedando como trabajo invisible.",
+        "Tu capacidad de sostener comunidad puede estar quedando escondida detrás de tareas que parecen menores, pero no lo son.",
       explanation:
-        "Tu diferencial aparece en pertenencia, circulación, clima y continuidad grupal. El desajuste aparece cuando eso se vuelve sostén silencioso, tarea difusa o trabajo emocional no reconocido, en lugar de una función clara donde esa capacidad sea central y visible.",
+        "Tu diferencial aparece en clima, continuidad, pertenencia, circulación y vida grupal. El desajuste aparece cuando todo eso queda reducido a sostén invisible, trabajo difuso o función emocional poco reconocida. En vez de ser leído como una capacidad central, termina pareciendo algo que simplemente “hacés bien” al costado. El problema no es falta de valor: es que ese valor todavía no está ocupando un lugar suficientemente claro y nombrado.",
       severity:
         hasCompressionNarrative || manyRestrictions ? "high" : "medium",
       evidenceKeys: pickEvidenceKeys(signalKeys, [
@@ -143,9 +144,9 @@ export function buildCurrentMisalignment(
   if (profileId === "empathic_guide") {
     return {
       headline:
-        "Tu capacidad de acompañar y dar claridad humana puede estar dispersa o subcanalizada.",
+        "Tu capacidad de acompañar, escuchar y traer claridad humana puede estar demasiado dispersa o mal canalizada.",
       explanation:
-        "Tu valor aparece en la escucha profunda y en la capacidad de ayudar a otros a entender lo que viven. El desajuste aparece cuando esa capacidad queda absorbida por funciones generales, tareas operativas o ayuda informal sin una dirección propia reconocible. No es que no esté: está, pero todavía demasiado desordenada o periférica.",
+        "Tu valor aparece cuando ayudás a otra persona a entender mejor lo que vive, ordenar lo confuso y salir de cierto enredo interno. El desajuste aparece cuando esa capacidad queda absorbida por tareas generales, ayuda informal, funciones operativas o sostén sin nombre. No parece que esa parte tuya esté ausente. Parece que todavía no encontró una forma lo bastante clara, visible y propia para desplegarse con todo su peso.",
       severity:
         hasCompressionNarrative || manyRestrictions ? "high" : "medium",
       evidenceKeys: pickEvidenceKeys(signalKeys, [
@@ -159,9 +160,9 @@ export function buildCurrentMisalignment(
   if (profileId === "cultural_explorer") {
     return {
       headline:
-        "Tu curiosidad profunda y tu capacidad de relacionar contextos pueden estar vivas, pero todavía poco convertidas en dirección visible.",
+        "Tu curiosidad profunda sigue viva, pero todavía no terminó de convertirse en una dirección que se vea desde afuera.",
       explanation:
-        "Tu patrón dominante aparece en la exploración, la lectura y la conexión entre ideas, autores o procesos. El desajuste aparece cuando eso queda como consumo, acumulación o interés sostenido sin convertirse en una trayectoria reconocible. No es una falta de riqueza interna; es una dificultad para transformar esa riqueza en línea clara.",
+        "Tu patrón dominante aparece en la exploración, la lectura y la relación entre ideas, procesos, autores o contextos. El desajuste aparece cuando toda esa riqueza interna queda como interés sostenido, consumo exigente o acumulación de comprensión sin forma visible. No parece una falta de mundo interno. Lo que aparece es una dificultad para convertir ese caudal en una línea clara, reconocible y aprovechable.",
       severity:
         hasCompressionNarrative || manyRestrictions ? "high" : "medium",
       evidenceKeys: pickEvidenceKeys(signalKeys, [
@@ -175,9 +176,9 @@ export function buildCurrentMisalignment(
   if (profileId === "creative_storyteller") {
     return {
       headline:
-        "Tu capacidad narrativa puede estar funcionando, pero en formatos demasiado utilitarios o ajenos a tu eje real.",
+        "Tu capacidad narrativa puede estar viva, pero usada en formatos demasiado utilitarios para todo lo que realmente podría dar.",
       explanation:
-        "Tu diferencial aparece cuando escribís, editás, nombrás y volvés comunicable algo que sin vos quedaría disperso. El desajuste aparece cuando esa capacidad queda usada solo de forma funcional, comercial o secundaria, sin darle lugar a su potencia real de voz, mensaje y construcción de relato.",
+        "Tu diferencial aparece cuando escribís, nombrás, editás y volvés comunicable algo que sin vos quedaría disperso. El desajuste aparece cuando esa capacidad queda puesta al servicio de tareas funcionales, mensajes secundarios o formatos demasiado estrechos para su potencia real. No parece que falte voz. Lo que aparece es una voz usada en escala menor, o al servicio de fines que no terminan de aprovecharla.",
       severity:
         hasCompressionNarrative || manyRestrictions ? "high" : "medium",
       evidenceKeys: pickEvidenceKeys(signalKeys, [
@@ -192,7 +193,7 @@ export function buildCurrentMisalignment(
     headline:
       "Hay una capacidad real, pero todavía no está ocupando el lugar que podría ocupar.",
     explanation:
-      "Las señales ya permiten ver un patrón dominante, pero también muestran que hoy esa capacidad no se está desplegando del todo como función central. El desajuste no parece estar en ausencia de talento, sino en contexto, canalización o uso parcial.",
+      "Las señales ya permiten ver un patrón dominante, pero también muestran que hoy esa capacidad no se está desplegando del todo como función central. El problema no parece estar en ausencia de valor, sino en contexto, canalización, escala o uso parcial de lo que mejor te sale.",
     severity: hasCompressionNarrative || manyRestrictions ? "high" : "medium",
     evidenceKeys: signalKeys.slice(0, 3),
   };

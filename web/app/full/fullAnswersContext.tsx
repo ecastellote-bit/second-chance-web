@@ -17,6 +17,8 @@ import type {
   UserIntake,
 } from "@/lib/types/intake";
 import type { FinalReading } from "@/lib/types/result";
+import type { FollowupOrchestratorResult } from "@/lib/engines/followupOrchestrator";
+import type { AmbiguityType, FollowupRound } from "@/lib/types/followup";
 
 type ProfileState = {
   age: string;
@@ -60,14 +62,40 @@ type AnalysisState = {
   warnings: string[];
 };
 
+type FollowupAnswerValue = string | string[];
+
+type FollowupCompletedRound = {
+  round: 2 | 3;
+  ambiguityType: AmbiguityType | null;
+  answers: Record<string, FollowupAnswerValue>;
+};
+
+type FollowupState = {
+  current: FollowupOrchestratorResult | null;
+  answers: Record<string, FollowupAnswerValue>;
+  completedRounds: FollowupCompletedRound[];
+};
+
+type ClarificationMetaPayload = {
+  roundsCompleted: number;
+  requestedRound?: FollowupRound;
+  lockedAmbiguityType?: AmbiguityType | null;
+};
+
+type FullFlowAnalyzePayload = UserIntake & {
+  clarificationMeta?: ClarificationMetaPayload;
+};
+
 type PersistedPayload = {
   state: FullFlowState;
   analysis: AnalysisState;
+  followup: FollowupState;
 };
 
 type FullAnswersContextValue = {
   state: FullFlowState;
   analysis: AnalysisState;
+  followup: FollowupState;
   isHydrated: boolean;
   updateProfile: <K extends keyof ProfileState>(
     field: K,
@@ -81,13 +109,20 @@ type FullAnswersContextValue = {
     field: K,
     value: NarrativeState[K]
   ) => void;
-  buildUserIntake: () => UserIntake;
+  buildUserIntake: () => FullFlowAnalyzePayload;
   setAnalysis: (result: FinalReading | null, warnings?: string[]) => void;
   clearAnalysis: () => void;
+  setFollowup: (followup: FollowupOrchestratorResult | null) => void;
+  clearFollowup: () => void;
+  updateFollowupAnswer: (
+    questionId: string,
+    value: FollowupAnswerValue
+  ) => void;
+  commitFollowupRound: () => void;
   resetFlow: () => void;
 };
 
-const STORAGE_KEY = "second-chance-full-flow-v1";
+const STORAGE_KEY = "second-chance-full-flow-v2";
 
 const initialState: FullFlowState = {
   profile: {
@@ -125,6 +160,12 @@ const initialAnalysis: AnalysisState = {
   warnings: [],
 };
 
+const initialFollowup: FollowupState = {
+  current: null,
+  answers: {},
+  completedRounds: [],
+};
+
 const FullAnswersContext = createContext<FullAnswersContextValue | null>(null);
 
 function splitList(text: string): string[] {
@@ -138,16 +179,61 @@ function safeParsePersistedPayload(raw: string): PersistedPayload | null {
   try {
     const parsed = JSON.parse(raw) as PersistedPayload;
     if (!parsed || typeof parsed !== "object") return null;
-    if (!parsed.state || !parsed.analysis) return null;
+    if (!parsed.state || !parsed.analysis || !parsed.followup) return null;
     return parsed;
   } catch {
     return null;
   }
 }
 
+function hasMeaningfulValue(value: FollowupAnswerValue | undefined): boolean {
+  if (Array.isArray(value)) {
+    return value.some((item) => item.trim().length > 0);
+  }
+
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function formatFollowupAnswersForNarrative(
+  followup: FollowupState
+): string {
+  const sections: string[] = [];
+
+  for (const round of followup.completedRounds) {
+    const lines = Object.entries(round.answers)
+      .filter(([, value]) => hasMeaningfulValue(value))
+      .map(([questionId, value]) => {
+        const formatted = Array.isArray(value) ? value.join(" | ") : value;
+        return `${questionId}: ${formatted}`;
+      });
+
+    if (lines.length > 0) {
+      sections.push(
+        `Ronda ${round.round} (${round.ambiguityType ?? "sin_ambiguedad"}):\n${lines.join("\n")}`
+      );
+    }
+  }
+
+  const pendingLines = Object.entries(followup.answers)
+    .filter(([, value]) => hasMeaningfulValue(value))
+    .map(([questionId, value]) => {
+      const formatted = Array.isArray(value) ? value.join(" | ") : value;
+      return `${questionId}: ${formatted}`;
+    });
+
+  if (pendingLines.length > 0 && followup.current?.round) {
+    sections.push(
+      `Ronda ${followup.current.round} (${followup.current.ambiguityType ?? "sin_ambiguedad"}):\n${pendingLines.join("\n")}`
+    );
+  }
+
+  return sections.join("\n\n").trim();
+}
+
 export function FullAnswersProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<FullFlowState>(initialState);
   const [analysis, setAnalysisState] = useState<AnalysisState>(initialAnalysis);
+  const [followup, setFollowupState] = useState<FollowupState>(initialFollowup);
   const [isHydrated, setIsHydrated] = useState(false);
   const hasLoadedFromStorage = useRef(false);
 
@@ -160,6 +246,7 @@ export function FullAnswersProvider({ children }: { children: ReactNode }) {
       if (parsed) {
         setState(parsed.state);
         setAnalysisState(parsed.analysis);
+        setFollowupState(parsed.followup);
       }
     }
 
@@ -173,10 +260,11 @@ export function FullAnswersProvider({ children }: { children: ReactNode }) {
     const payload: PersistedPayload = {
       state,
       analysis,
+      followup,
     };
 
     window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  }, [state, analysis, isHydrated]);
+  }, [state, analysis, followup, isHydrated]);
 
   const updateProfile: FullAnswersContextValue["updateProfile"] = (
     field,
@@ -217,7 +305,48 @@ export function FullAnswersProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const buildUserIntake = (): UserIntake => {
+  const buildUserIntake = (): FullFlowAnalyzePayload => {
+    const followupText = formatFollowupAnswersForNarrative(followup);
+
+    const mergedAdditionalContext = [
+      state.narrative.additionalContext.trim(),
+      followupText
+        ? `Evidencia adicional de rondas de clarificación:\n${followupText}`
+        : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n")
+      .trim();
+
+    const committedRounds = followup.completedRounds.map((item) => item.round);
+    const currentRound = followup.current?.round ?? 0;
+
+    const highestObservedRound = Math.max(
+      0,
+      ...committedRounds,
+      currentRound
+    );
+
+    const roundsCompleted =
+      highestObservedRound >= 3 ? 2 : highestObservedRound >= 2 ? 1 : 0;
+
+    const lastCompletedRound =
+      followup.completedRounds.length > 0
+        ? followup.completedRounds[followup.completedRounds.length - 1]
+        : undefined;
+
+    const clarificationMeta: ClarificationMetaPayload | undefined =
+      followup.current || roundsCompleted > 0
+        ? {
+            roundsCompleted,
+            requestedRound: followup.current?.round ?? undefined,
+            lockedAmbiguityType:
+              followup.current?.ambiguityType ??
+              lastCompletedRound?.ambiguityType ??
+              null,
+          }
+        : undefined;
+
     return {
       profile: {
         age: state.profile.age ? Number(state.profile.age) : null,
@@ -247,8 +376,9 @@ export function FullAnswersProvider({ children }: { children: ReactNode }) {
         naturalSocialRoles: state.narrative.naturalSocialRoles,
         lossesOrRenunciations: state.narrative.lossesOrRenunciations,
         whatFeelsCompressedNow: state.narrative.whatFeelsCompressedNow,
-        additionalContext: state.narrative.additionalContext,
+        additionalContext: mergedAdditionalContext,
       },
+      clarificationMeta,
     };
   };
 
@@ -260,9 +390,60 @@ export function FullAnswersProvider({ children }: { children: ReactNode }) {
     setAnalysisState(initialAnalysis);
   };
 
+  const setFollowup = (nextFollowup: FollowupOrchestratorResult | null) => {
+    setFollowupState((prev) => ({
+      ...prev,
+      current: nextFollowup,
+      answers: {},
+    }));
+  };
+
+  const clearFollowup = () => {
+    setFollowupState(initialFollowup);
+  };
+
+  const updateFollowupAnswer = (
+    questionId: string,
+    value: FollowupAnswerValue
+  ) => {
+    setFollowupState((prev) => ({
+      ...prev,
+      answers: {
+        ...prev.answers,
+        [questionId]: value,
+      },
+    }));
+  };
+
+  const commitFollowupRound = () => {
+    setFollowupState((prev) => {
+      if (!prev.current) return prev;
+
+      const hasAnyAnswer = Object.values(prev.answers).some((value) =>
+        hasMeaningfulValue(value)
+      );
+
+      if (!hasAnyAnswer) return prev;
+
+      return {
+        ...prev,
+        completedRounds: [
+          ...prev.completedRounds,
+          {
+            round: prev.current.round ?? 2,
+            ambiguityType: prev.current.ambiguityType ?? null,
+            answers: prev.answers,
+          },
+        ],
+        answers: {},
+      };
+    });
+  };
+
   const resetFlow = () => {
     setState(initialState);
     setAnalysisState(initialAnalysis);
+    setFollowupState(initialFollowup);
     window.sessionStorage.removeItem(STORAGE_KEY);
   };
 
@@ -270,6 +451,7 @@ export function FullAnswersProvider({ children }: { children: ReactNode }) {
     () => ({
       state,
       analysis,
+      followup,
       isHydrated,
       updateProfile,
       updateCurrentContext,
@@ -277,9 +459,13 @@ export function FullAnswersProvider({ children }: { children: ReactNode }) {
       buildUserIntake,
       setAnalysis,
       clearAnalysis,
+      setFollowup,
+      clearFollowup,
+      updateFollowupAnswer,
+      commitFollowupRound,
       resetFlow,
     }),
-    [state, analysis, isHydrated]
+    [state, analysis, followup, isHydrated]
   );
 
   return (

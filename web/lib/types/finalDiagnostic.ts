@@ -40,7 +40,12 @@ type BaseDiagnosticBlock = {
   warnings?: string[];
 };
 
-export type ValueGenerationBlock = BaseDiagnosticBlock;
+export type ValueGenerationBlock = BaseDiagnosticBlock & {
+  headline: string;
+  explanation?: string;
+  body?: string;
+  description?: string;
+};
 export type MisalignmentBlock = BaseDiagnosticBlock;
 export type WorkContextBlock = BaseDiagnosticBlock;
 export type MisreadRiskBlock = BaseDiagnosticBlock;

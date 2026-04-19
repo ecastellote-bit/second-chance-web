@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { EVALUATION_CASES } from "@/lib/testing/evaluationCases";
+import { HUMAN_LANGUAGE_CASES } from "@/lib/testing/humanLanguageCases";
 
 type DirectionItem =
   | string
@@ -45,6 +45,45 @@ type FinalDiagnosticPayload = {
   nextMove?: GenericBlock;
 };
 
+type AffinityScore = {
+  id: string;
+  score: number;
+  confidence: number;
+  status: "expressed" | "latent" | "buried" | "blocked" | "compensatory";
+  evidenceCount: number;
+  evidenceSources: Array<"intake" | "cvme" | "followup" | "behavioral_note">;
+  rationale: string[];
+};
+
+type ProfileFamilyScore = {
+  id?: string;
+  familyId?: string;
+  label: string;
+  summary: string;
+  score: number;
+  confidence: number;
+  matchedCoreAffinities: string[];
+  matchedSupportingAffinities: string[];
+  tensionHits: string[];
+  dominantAffinityIds?: string[];
+  subtypeCandidates: string[];
+  misreadAs: string[];
+  rationale: string[];
+};
+
+type EvidenceFragment = {
+  id: string;
+  source: "intake" | "cvme" | "followup" | "behavioral_note";
+  text: string;
+  tags?: string[];
+  valence?: "positive" | "negative" | "ambivalent";
+  temporalWeight?: "childhood" | "past" | "recent" | "current";
+  intensity?: 1 | 2 | 3;
+  repetition?: number;
+  externalRecognition?: boolean;
+  sacrificedFor?: boolean;
+};
+
 type AnalyzeSuccess = {
   resultType?: string;
   corePattern?: string;
@@ -62,6 +101,13 @@ type AnalyzeSuccess = {
     cierre?: string;
   };
   finalDiagnostic?: FinalDiagnosticPayload;
+  evidence?: EvidenceFragment[];
+  affinityScores?: AffinityScore[];
+  familyScores?: ProfileFamilyScore[];
+  topAffinities?: AffinityScore[];
+  buriedCapacities?: AffinityScore[];
+  likelyContributionModes?: string[];
+  likelyFlourishingConditions?: string[];
   trace?: unknown;
   diagnosticTrace?: unknown;
   debugTrace?: unknown;
@@ -70,12 +116,31 @@ type AnalyzeSuccess = {
   };
 };
 
+type AffinityBridgePayload = {
+  evidence?: EvidenceFragment[];
+  affinityScores?: AffinityScore[];
+  familyScores?: ProfileFamilyScore[];
+  topAffinities?: AffinityScore[];
+  buriedCapacities?: AffinityScore[];
+  likelyContributionModes?: string[];
+  likelyFlourishingConditions?: string[];
+};
+
 type AnalyzeResponse =
   | {
       ok: true;
       data: AnalyzeSuccess;
       trace?: unknown;
       warnings?: string[];
+      followup?: unknown;
+      affinityBridge?: AffinityBridgePayload;
+      familyScores?: ProfileFamilyScore[];
+      evidence?: EvidenceFragment[];
+      affinityScores?: AffinityScore[];
+      topAffinities?: AffinityScore[];
+      buriedCapacities?: AffinityScore[];
+      likelyContributionModes?: string[];
+      likelyFlourishingConditions?: string[];
     }
   | {
       ok: false;
@@ -83,6 +148,14 @@ type AnalyzeResponse =
       detail?: string;
       missingFields?: string[];
       warnings?: string[];
+      affinityBridge?: AffinityBridgePayload;
+      familyScores?: ProfileFamilyScore[];
+      evidence?: EvidenceFragment[];
+      affinityScores?: AffinityScore[];
+      topAffinities?: AffinityScore[];
+      buriedCapacities?: AffinityScore[];
+      likelyContributionModes?: string[];
+      likelyFlourishingConditions?: string[];
     };
 
 function directionLabel(direction: DirectionItem): string {
@@ -117,6 +190,62 @@ function extractTrace(result: AnalyzeResponse | null): unknown {
     result.trace ??
     null
   );
+}
+
+function resolveFamilyScoreId(family: ProfileFamilyScore): string {
+  return family.familyId ?? family.id ?? "unknown_family";
+}
+
+function getAffinityDebug(result: AnalyzeResponse | null) {
+  const empty = {
+    evidence: [] as EvidenceFragment[],
+    affinityScores: [] as AffinityScore[],
+    familyScores: [] as ProfileFamilyScore[],
+    topAffinities: [] as AffinityScore[],
+    buriedCapacities: [] as AffinityScore[],
+    likelyContributionModes: [] as string[],
+    likelyFlourishingConditions: [] as string[],
+  };
+
+  if (!result) return empty;
+
+  const bridge = result.affinityBridge ?? {};
+  const data = result.ok ? result.data : null;
+
+  return {
+    evidence:
+      result.evidence ?? data?.evidence ?? bridge.evidence ?? empty.evidence,
+    affinityScores:
+      result.affinityScores ??
+      data?.affinityScores ??
+      bridge.affinityScores ??
+      empty.affinityScores,
+    familyScores:
+      result.familyScores ??
+      data?.familyScores ??
+      bridge.familyScores ??
+      empty.familyScores,
+    topAffinities:
+      result.topAffinities ??
+      data?.topAffinities ??
+      bridge.topAffinities ??
+      empty.topAffinities,
+    buriedCapacities:
+      result.buriedCapacities ??
+      data?.buriedCapacities ??
+      bridge.buriedCapacities ??
+      empty.buriedCapacities,
+    likelyContributionModes:
+      result.likelyContributionModes ??
+      data?.likelyContributionModes ??
+      bridge.likelyContributionModes ??
+      empty.likelyContributionModes,
+    likelyFlourishingConditions:
+      result.likelyFlourishingConditions ??
+      data?.likelyFlourishingConditions ??
+      bridge.likelyFlourishingConditions ??
+      empty.likelyFlourishingConditions,
+  };
 }
 
 function normalizePayload(payload: any) {
@@ -222,6 +351,23 @@ function extractList(block?: GenericBlock | null): string[] {
   return [];
 }
 
+function renderStatusLabel(status: AffinityScore["status"]): string {
+  switch (status) {
+    case "expressed":
+      return "expresada";
+    case "latent":
+      return "latente";
+    case "buried":
+      return "enterrada";
+    case "blocked":
+      return "bloqueada";
+    case "compensatory":
+      return "compensatoria";
+    default:
+      return status;
+  }
+}
+
 function BlockCard({
   title,
   block,
@@ -295,16 +441,48 @@ function BlockCard({
   );
 }
 
+function AffinityCard({ affinity }: { affinity: AffinityScore }) {
+  return (
+    <div className="rounded-2xl border p-4 space-y-2">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium">{affinity.id}</p>
+          <p className="text-xs text-neutral-500">
+            {renderStatusLabel(affinity.status)}
+          </p>
+        </div>
+        <div className="text-right text-xs text-neutral-600">
+          <p>score: {affinity.score.toFixed(2)}</p>
+          <p>conf: {affinity.confidence.toFixed(2)}</p>
+        </div>
+      </div>
+
+      <p className="text-xs text-neutral-600">
+        evidencias: {affinity.evidenceCount} · fuentes:{" "}
+        {affinity.evidenceSources.join(", ")}
+      </p>
+
+      {affinity.rationale?.length ? (
+        <ul className="list-disc pl-5 text-xs text-neutral-700 space-y-1">
+          {affinity.rationale.slice(0, 2).map((item, index) => (
+            <li key={`${affinity.id}-${index}`}>{item}</li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
 export default function LabPage() {
   const [selectedCaseId, setSelectedCaseId] = useState(
-    EVALUATION_CASES[0]?.id ?? "",
+    HUMAN_LANGUAGE_CASES[0]?.id ?? "",
   );
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
 
   const selectedCase = useMemo(
     () =>
-      EVALUATION_CASES.find((testCase) => testCase.id === selectedCaseId) ?? null,
+      HUMAN_LANGUAGE_CASES.find((testCase) => testCase.id === selectedCaseId) ?? null,
     [selectedCaseId],
   );
 
@@ -324,11 +502,7 @@ export default function LabPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          caseId: selectedCase.id,
-          intake: normalizedPayload,
-          payload: normalizedPayload,
-        }),
+        body: JSON.stringify(normalizedPayload),
       });
 
       const json = (await response.json()) as AnalyzeResponse;
@@ -358,6 +532,15 @@ export default function LabPage() {
   const resolvedTrace = extractTrace(result);
   const finalDiagnostic = result && result.ok ? result.data.finalDiagnostic : null;
   const profileSnapshot = finalDiagnostic?.profileSnapshot ?? null;
+  const affinityDebug = getAffinityDebug(result);
+
+  const topAffinities = affinityDebug.topAffinities;
+  const buriedCapacities = affinityDebug.buriedCapacities;
+  const likelyContributionModes = affinityDebug.likelyContributionModes;
+  const likelyFlourishingConditions = affinityDebug.likelyFlourishingConditions;
+  const evidence = affinityDebug.evidence;
+  const affinityScores = affinityDebug.affinityScores;
+  const familyScores = affinityDebug.familyScores;
 
   return (
     <main className="mx-auto max-w-7xl p-6 space-y-6">
@@ -380,7 +563,7 @@ export default function LabPage() {
             value={selectedCaseId}
             onChange={(event) => setSelectedCaseId(event.target.value)}
           >
-            {EVALUATION_CASES.map((testCase) => (
+            {HUMAN_LANGUAGE_CASES.map((testCase) => (
               <option key={testCase.id} value={testCase.id}>
                 {testCase.label}
               </option>
@@ -485,6 +668,15 @@ export default function LabPage() {
                   {finalDiagnostic.functionalSubtype}
                 </p>
               ) : null}
+              <p>
+                <strong>Top affinities:</strong> {topAffinities.length}
+              </p>
+              <p>
+                <strong>Buried capacities:</strong> {buriedCapacities.length}
+              </p>
+              <p>
+                <strong>Family scores:</strong> {familyScores.length}
+              </p>
             </div>
           ) : (
             <div className="space-y-2 text-sm text-red-800">
@@ -574,10 +766,217 @@ export default function LabPage() {
             </div>
           </section>
 
+          <section className="rounded-2xl border p-5 space-y-4">
+            <h2 className="text-xl font-semibold">Human Affinities bridge</h2>
+
+            <div className="grid gap-5 lg:grid-cols-2">
+              <div className="rounded-2xl border p-5 space-y-3">
+                <h3 className="text-base font-medium">Top affinities</h3>
+                {topAffinities.length > 0 ? (
+                  <div className="space-y-3">
+                    {topAffinities.map((affinity) => (
+                      <AffinityCard key={affinity.id} affinity={affinity} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-neutral-700">
+                    Todavía no hay afinidades dominantes visibles.
+                  </p>
+                )}
+              </div>
+
+              <div className="rounded-2xl border p-5 space-y-3">
+                <h3 className="text-base font-medium">Buried capacities</h3>
+                {buriedCapacities.length > 0 ? (
+                  <div className="space-y-3">
+                    {buriedCapacities.map((affinity) => (
+                      <AffinityCard key={affinity.id} affinity={affinity} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-neutral-700">
+                    Todavía no aparecen capacidades enterradas claras.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-5 lg:grid-cols-2">
+              <div className="rounded-2xl border p-5 space-y-3">
+                <h3 className="text-base font-medium">Likely contribution modes</h3>
+                {likelyContributionModes.length > 0 ? (
+                  <ul className="list-disc pl-5 text-sm text-neutral-700 space-y-1">
+                    {likelyContributionModes.map((mode, index) => (
+                      <li key={`${mode}-${index}`}>{mode}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-neutral-700">
+                    Todavía no hay modos de contribución claros.
+                  </p>
+                )}
+              </div>
+
+              <div className="rounded-2xl border p-5 space-y-3">
+                <h3 className="text-base font-medium">
+                  Likely flourishing conditions
+                </h3>
+                {likelyFlourishingConditions.length > 0 ? (
+                  <ul className="list-disc pl-5 text-sm text-neutral-700 space-y-1">
+                    {likelyFlourishingConditions.map((condition, index) => (
+                      <li key={`${condition}-${index}`}>{condition}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-neutral-700">
+                    Todavía no hay condiciones de florecimiento claras.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <section className="rounded-2xl border p-5 space-y-3">
+              <h3 className="text-base font-medium">Evidence fragments</h3>
+              {evidence.length > 0 ? (
+                <div className="space-y-3">
+                  {evidence.map((fragment) => (
+                    <div
+                      key={fragment.id}
+                      className="rounded-xl border border-neutral-200 p-4 space-y-1"
+                    >
+                      <p className="text-sm font-medium">{fragment.id}</p>
+                      <p className="text-xs text-neutral-500">
+                        {fragment.source} · {fragment.temporalWeight ?? "n/a"} ·{" "}
+                        {fragment.valence ?? "n/a"} · intensity{" "}
+                        {fragment.intensity ?? "n/a"}
+                      </p>
+                      <p className="text-sm text-neutral-700">{fragment.text}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-neutral-700">
+                  Todavía no hay evidence fragments.
+                </p>
+              )}
+            </section>
+          </section>
+
+          <section className="rounded-2xl border p-5 space-y-4">
+            <h2 className="text-xl font-semibold">Family scores</h2>
+
+            {familyScores.length > 0 ? (
+              <div className="space-y-4">
+                {familyScores.map((family, index) => {
+                  const familyId = resolveFamilyScoreId(family);
+
+                  return (
+                    <div
+                      key={`${familyId}-${index}`}
+                      className="rounded-2xl border p-5 space-y-3"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-base font-medium">
+                            #{index + 1} · {family.label}
+                          </p>
+                          <p className="text-sm text-neutral-600">{familyId}</p>
+                        </div>
+
+                        <div className="text-right text-sm text-neutral-700">
+                          <p>
+                            <strong>score:</strong> {family.score.toFixed(2)}
+                          </p>
+                          <p>
+                            <strong>confidence:</strong>{" "}
+                            {family.confidence.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <p className="text-sm text-neutral-700">{family.summary}</p>
+
+                      {family.matchedCoreAffinities.length > 0 ? (
+                        <p className="text-sm text-neutral-700">
+                          <strong>Core affinities:</strong>{" "}
+                          {family.matchedCoreAffinities.join(", ")}
+                        </p>
+                      ) : null}
+
+                      {family.matchedSupportingAffinities.length > 0 ? (
+                        <p className="text-sm text-neutral-700">
+                          <strong>Supporting affinities:</strong>{" "}
+                          {family.matchedSupportingAffinities.join(", ")}
+                        </p>
+                      ) : null}
+
+                      {family.tensionHits.length > 0 ? (
+                        <p className="text-sm text-neutral-700">
+                          <strong>Tension hits:</strong>{" "}
+                          {family.tensionHits.join(", ")}
+                        </p>
+                      ) : null}
+
+                      {family.dominantAffinityIds &&
+                      family.dominantAffinityIds.length > 0 ? (
+                        <p className="text-sm text-neutral-700">
+                          <strong>Dominant affinities:</strong>{" "}
+                          {family.dominantAffinityIds.join(", ")}
+                        </p>
+                      ) : null}
+
+                      {family.subtypeCandidates.length > 0 ? (
+                        <p className="text-sm text-neutral-700">
+                          <strong>Subtype candidates:</strong>{" "}
+                          {family.subtypeCandidates.join(", ")}
+                        </p>
+                      ) : null}
+
+                      {family.misreadAs.length > 0 ? (
+                        <p className="text-sm text-neutral-700">
+                          <strong>Misread as:</strong>{" "}
+                          {family.misreadAs.join(", ")}
+                        </p>
+                      ) : null}
+
+                      {family.rationale.length > 0 ? (
+                        <ul className="list-disc pl-5 text-sm text-neutral-700 space-y-1">
+                          {family.rationale.slice(0, 3).map((item, rationaleIndex) => (
+                            <li key={`${familyId}-rationale-${rationaleIndex}`}>
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-neutral-700">
+                Todavía no hay family scores visibles.
+              </p>
+            )}
+          </section>
+
           <section className="rounded-2xl border p-5 space-y-3">
             <h2 className="text-lg font-medium">JSON de finalDiagnostic</h2>
             <pre className="whitespace-pre-wrap break-words text-xs text-neutral-700 font-sans">
               {formatUnknown(finalDiagnostic)}
+            </pre>
+          </section>
+
+          <section className="rounded-2xl border p-5 space-y-3">
+            <h2 className="text-lg font-medium">JSON de affinityScores</h2>
+            <pre className="whitespace-pre-wrap break-words text-xs text-neutral-700 font-sans">
+              {formatUnknown(affinityScores)}
+            </pre>
+          </section>
+
+          <section className="rounded-2xl border p-5 space-y-3">
+            <h2 className="text-lg font-medium">JSON de familyScores</h2>
+            <pre className="whitespace-pre-wrap break-words text-xs text-neutral-700 font-sans">
+              {formatUnknown(familyScores)}
             </pre>
           </section>
         </>

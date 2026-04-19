@@ -1,5 +1,6 @@
 import type { UserIntake } from "../types/intake";
 import type { FinalReading } from "../types/result";
+import type { FollowupOrchestratorResult } from "./followupOrchestrator";
 import { normalizeUserIntake, validateUserIntake } from "./intakeEngine";
 import { runCVME } from "./cvmeEngine";
 import { runTDM } from "./tdmEngine";
@@ -7,12 +8,14 @@ import { runLTE } from "./lteEngine";
 import { runSEL } from "./selEngine";
 import { runAVE } from "./aveEngine";
 import { buildFinalReading } from "./resultOrchestrator";
-import { buildFinalDiagnostic } from "./finalDiagnosticComposer";
+import { buildFollowupOrchestration } from "./followupOrchestrator";
+import { runAffinityPipelineBridge } from "./affinityPipelineBridge";
 
 export type PipelineSuccess = {
   ok: true;
   data: FinalReading;
   warnings: string[];
+  followup: FollowupOrchestratorResult | null;
 };
 
 export type PipelineFailure = {
@@ -38,7 +41,8 @@ export function runAnalysisPipeline(
   }
 
   const signals = runCVME(intake);
-  const profiles = runTDM(signals);
+  const affinityBridge = runAffinityPipelineBridge({ intake });
+  const profiles = runTDM(signals, affinityBridge.affinityScores);
   const transitionAssessment = runLTE(intake);
   const plausibleDirections = runSEL(profiles);
   const actionVectors = runAVE(plausibleDirections, transitionAssessment);
@@ -52,24 +56,20 @@ export function runAnalysisPipeline(
     actionVectors,
   });
 
-  const finalDiagnostic = buildFinalDiagnostic({
-    intake,
-    signals,
-    profiles,
-    plausibleDirections,
-    transitionAssessment,
-    actionVectors,
-    resultType: finalReading.resultType,
-  } as any);
-
-  const enrichedFinalReading = {
-    ...finalReading,
-    finalDiagnostic,
-  };
+  const followup =
+    finalReading.resultType === "insufficient_evidence"
+      ? buildFollowupOrchestration({
+          resultType: finalReading.resultType,
+          profiles,
+          signals,
+          transitionAssessment,
+        })
+      : null;
 
   return {
     ok: true,
-    data: enrichedFinalReading,
+    data: finalReading,
     warnings: validation.warnings,
+    followup,
   };
 }
