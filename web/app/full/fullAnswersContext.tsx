@@ -318,17 +318,12 @@ export function FullAnswersProvider({ children }: { children: ReactNode }) {
       .join("\n\n")
       .trim();
 
-    const committedRounds = followup.completedRounds.map((item) => item.round);
-    const currentRound = followup.current?.round ?? 0;
+    const completedRoundNumbers = followup.completedRounds.map((item) => item.round);
 
-    const highestObservedRound = Math.max(
-      0,
-      ...committedRounds,
-      currentRound
-    );
+    const highestCompletedRound = Math.max(0, ...completedRoundNumbers);
 
     const roundsCompleted =
-      highestObservedRound >= 3 ? 2 : highestObservedRound >= 2 ? 1 : 0;
+      highestCompletedRound >= 3 ? 2 : highestCompletedRound >= 2 ? 1 : 0;
 
     const lastCompletedRound =
       followup.completedRounds.length > 0
@@ -432,9 +427,10 @@ export function FullAnswersProvider({ children }: { children: ReactNode }) {
           {
             round: prev.current.round ?? 2,
             ambiguityType: prev.current.ambiguityType ?? null,
-            answers: prev.answers,
+            answers: { ...prev.answers },
           },
         ],
+        current: null,
         answers: {},
       };
     });

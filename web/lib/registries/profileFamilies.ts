@@ -138,6 +138,8 @@ export const PROFILE_FAMILIES: ProfileFamilyDefinition[] = [
       "public_expression",
       "editorial_framing",
       "performance_presence",
+      "editorial_framing",
+      "aesthetic_sensitivity",
     ],
     tensionAffinities: [
       "practical_execution",
@@ -185,13 +187,13 @@ export const PROFILE_FAMILIES: ProfileFamilyDefinition[] = [
         "Construye voz pública, interpreta asuntos colectivos y ordena agenda para una audiencia.",
       coreAffinities: [
         "public_expression",
-        "editorial_framing",
       ],
       supportingAffinities: [
         "narrative_creation",
         "audience_activation",
         "agenda_detection",
         "performance_presence",
+        "editorial_framing",
       ],
       tensionAffinities: ["care_orientation", "technical_assembly"],
       subtypeCandidates: [

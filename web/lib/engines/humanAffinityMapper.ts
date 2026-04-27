@@ -493,6 +493,33 @@ const PUBLIC_POSTURE_CUES = [
   "audiencia",
 ];
 
+// --------------------------------------------------
+// Frontier: Public Communicator vs Creative Storyteller
+// --------------------------------------------------
+
+const PUBLIC_FRONT_CUES = [
+  "poner la cara",
+  "poner el cuerpo",
+  "salir al frente",
+  "dar la cara",
+  "tomar la palabra",
+  "fijar postura",
+  "tomar postura",
+  "decirlo claro",
+  "decirlo de frente",
+  "intervenir públicamente",
+  "intervención pública",
+  "voz pública",
+  "postura pública",
+  "lectura pública",
+  "meterse en la conversación pública",
+  "salir a decir",
+  "instalar tema",
+  "marcar agenda",
+  "encuadrar el tema para otros",
+  "decir las cosas de una forma que pegue",
+];
+
 const NARRATIVE_FORM_CUES = [
   "volverlo texto",
   "volverlo relato",
@@ -504,10 +531,69 @@ const NARRATIVE_FORM_CUES = [
   "escena",
   "forma verbal",
   "voz propia",
-  "nombro",
-  "nombrar",
+  "tono",
+  "ángulo",
+  "angulo",
+  "encontrando el ángulo",
+  "encontrando el angulo",
   "editar",
+  "edito",
+  "edición",
+  "edicion",
+  "escritura",
   "escribir",
+  "narrar",
+  "narro",
+  "relato",
+  "texto",
+  "síntesis narrativa",
+  "sintesis narrativa",
+  "acomodar ideas",
+  "darle forma verbal",
+];
+
+const PUBLIC_SUPPRESSOR_CUES = [
+  "no quiero estar yo al frente",
+  "no quiero poner la cara",
+  "no quiero poner el cuerpo",
+  "sin frente público",
+  "sin frente publico",
+  "sin poner la cara",
+  "sin poner el cuerpo",
+  "prefiero editar",
+  "me interesa más darle forma que ocupar la voz",
+  "me interesa mas darle forma que ocupar la voz",
+  "no sé si quiero estar yo al frente",
+  "no se si quiero estar yo al frente",
+  "no quiero una exposición improvisada",
+  "no quiero una exposicion improvisada",
+  "no como frente principal",
+  "aparece lateral",
+  "aparece de a ratos",
+];
+
+const CREATIVE_SUPPRESSOR_CUES = [
+  "no me sale quedarme tibio",
+  "cuando veo qué está en juego",
+  "cuando veo que está en juego",
+  "cuando veo que esta en juego",
+  "fijar postura",
+  "capacidad de fijar postura",
+  "lectura pública",
+  "lectura publica",
+  "postura pública",
+  "postura publica",
+  "voz pública",
+  "voz publica",
+  "salir a decir",
+  "decirlo claro",
+  "tomar la palabra",
+  "intervención pública",
+  "intervencion publica",
+  "meterse en la conversación pública",
+  "meterse en la conversacion publica",
+  "instalar tema",
+  "marcar agenda",
 ];
 
 const AFFINITY_PHRASE_BANKS: Record<string, string[]> = {
@@ -1484,6 +1570,26 @@ export function mapEvidenceToHumanAffinities(
     normalizedText: normalizeText(fragment.text),
   }));
 
+  const normalizedText = normalizedEvidence
+  .map((fragment) => fragment.normalizedText)
+  .join(" | ");
+
+const hasCreativeFormSurface = NARRATIVE_FORM_CUES.some((cue) =>
+  normalizedText.includes(normalizeText(cue))
+);
+
+const hasPublicFrontSurface = PUBLIC_FRONT_CUES.some((cue) =>
+  normalizedText.includes(normalizeText(cue))
+);
+
+const hasPublicSuppressionSurface = PUBLIC_SUPPRESSOR_CUES.some((cue) =>
+  normalizedText.includes(normalizeText(cue))
+);
+
+const hasCreativeSuppressionSurface = CREATIVE_SUPPRESSOR_CUES.some((cue) =>
+  normalizedText.includes(normalizeText(cue))
+);
+
   const results: HumanAffinityScore[] = [];
 
   for (const affinity of HUMAN_AFFINITIES) {
@@ -1686,8 +1792,103 @@ export function mapEvidenceToHumanAffinities(
       aggregateCues,
     );
 
+    let contrastiveMultiplier = 1.12;
+
+    if (hasCreativeFormSurface && !hasPublicFrontSurface) {
+      if (String(affinity.id) === "narrative_creation") {
+        contrastiveMultiplier *= 1.18;
+        rationale.push(
+          "creative_form_without_public_front boosts narrative_creation"
+        );
+      }
+    
+      if (String(affinity.id) === "aesthetic_sensitivity") {
+        contrastiveMultiplier *= 1.12;
+        rationale.push(
+          "creative_form_without_public_front boosts aesthetic_sensitivity"
+        );
+      }
+    
+      if (String(affinity.id) === "public_expression") {
+        contrastiveMultiplier *= 0.92;
+        rationale.push(
+          "creative_form_without_public_front dampens public_expression"
+        );
+      }
+    
+      if (String(affinity.id) === "editorial_framing") {
+        contrastiveMultiplier *= 0.78;
+        rationale.push(
+          "creative_form_without_public_front dampens editorial_framing"
+        );
+      }
+    }
+
+    // Contraste central:
+// Creative Storyteller vs Public Communicator
+
+if (affinity.id === "narrative_creation") {
+  if (hasCreativeFormSurface && hasPublicSuppressionSurface) {
+    rawScore += 0.22;
+    rationale.push(
+      "Contraste narrativo: aparece forma/edición/tono con supresión explícita del frente público."
+    );
+  } else if (hasCreativeFormSurface && !hasPublicFrontSurface) {
+    rawScore += 0.14;
+    rationale.push(
+      "Superficie creativa: aparece trabajo de relato/forma sin marca de escenario público."
+    );
+  }
+}
+
+if (affinity.id === "aesthetic_sensitivity") {
+  if (hasCreativeFormSurface && hasPublicSuppressionSurface) {
+    rawScore += 0.12;
+    rationale.push(
+      "Sensibilidad formal: aparece afinidad por tono/forma con rechazo del frente público."
+    );
+  } else if (hasCreativeFormSurface && !hasPublicFrontSurface) {
+    rawScore += 0.08;
+    rationale.push(
+      "Sensibilidad formal: aparece trabajo de forma sin orientación central a exposición pública."
+    );
+  }
+}
+
+if (affinity.id === "public_expression") {
+  if (hasPublicFrontSurface) {
+    rawScore += 0.22;
+    rationale.push(
+      "Superficie pública: aparecen postura, voz pública, intervención o deseo de decir hacia otros."
+    );
+  }
+
+  if (hasPublicSuppressionSurface) {
+    rawScore = Math.max(0, rawScore - 0.18);
+    rationale.push(
+      "Supresor público: el texto niega explícitamente querer frente, cara o exposición pública."
+    );
+  }
+}
+
+if (affinity.id === "editorial_framing") {
+  if (hasPublicFrontSurface) {
+    rawScore += 0.14;
+    rationale.push(
+      "Encuadre público: aparece organizar tema, marcar agenda o encuadrar para audiencia."
+    );
+  }
+
+  if (hasCreativeFormSurface && hasPublicSuppressionSurface) {
+    rawScore = Math.max(0, rawScore - 0.06 + 0.05);
+    rationale.push(
+      "Ajuste editorial: hay trabajo de forma, pero no como vocación central de frente público."
+    );
+  }
+}
+
     const score = clamp(
-      (rawScore * aggregatePenalty) /
+      (rawScore * aggregatePenalty * contrastiveMultiplier),
         Math.max(evidenceCount + (distinctTagCount >= 2 ? 0 : 0.5), 1),
     );
 

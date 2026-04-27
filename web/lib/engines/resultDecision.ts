@@ -8,6 +8,14 @@ type ClarificationMeta = {
   roundsCompleted?: number;
 };
 
+type FamilyScoreLike = {
+  label?: string;
+  familyLabel?: string;
+  family?: string;
+  score?: number;
+  confidence?: number;
+};
+
 export type ResultDecisionInput = {
   intake: UserIntake;
   signals: DetectedSignal[];
@@ -15,6 +23,7 @@ export type ResultDecisionInput = {
   transitionAssessment: TransitionAssessment;
   plausibleDirections: EmployabilityDirection[];
   clarificationMeta?: ClarificationMeta;
+  familyScores?: FamilyScoreLike[];
 };
 
 function normalizeText(text: string): string {
@@ -31,6 +40,28 @@ function normalizeRoundsCompleted(value: unknown): number {
   return 1;
 }
 
+function getFamilyDecisionView(familyScores?: FamilyScoreLike[]) {
+  const top = familyScores?.[0];
+  const second = familyScores?.[1];
+
+  return {
+    topFamilyLabel: top?.familyLabel ?? top?.label ?? top?.family ?? null,
+    topFamilyScore:
+      typeof top?.score === "number" && Number.isFinite(top.score) ? top.score : 0,
+    topFamilyConfidence:
+      typeof top?.confidence === "number" && Number.isFinite(top.confidence)
+        ? top.confidence
+        : 0,
+    secondFamilyLabel: second?.familyLabel ?? second?.label ?? second?.family ?? null,
+    secondFamilyScore:
+      typeof second?.score === "number" && Number.isFinite(second.score) ? second.score : 0,
+    secondFamilyConfidence:
+      typeof second?.confidence === "number" && Number.isFinite(second.confidence)
+        ? second.confidence
+        : 0,
+  };
+}
+
 export function evaluateResultDecision(
   input: ResultDecisionInput
 ): { resultType: ResultType; trace: DiagnosticTrace } {
@@ -41,12 +72,42 @@ export function evaluateResultDecision(
   const topConfidence = topProfile?.confidence ?? 0;
   const secondConfidence = secondProfile?.confidence ?? 0;
 
-  const rawCompressionText =
-    input.intake.narrative.whatFeelsCompressedNow?.trim() ?? "";
+  const familyView = getFamilyDecisionView(input.familyScores);
 
-  const normalizedCompressionText = normalizeText(rawCompressionText);
+  const useFamilyDecisionLayer =
+    !!familyView.topFamilyLabel &&
+    (familyView.topFamilyScore > 0 || familyView.topFamilyConfidence > 0);
 
-  const hasCompressionNarrative = rawCompressionText.length > 0;
+  const hasAnyTopSurface =
+    !!topProfile ||
+    useFamilyDecisionLayer ||
+    familyView.topFamilyScore > 0 ||
+    familyView.topFamilyConfidence > 0;
+
+  const hasStrongEnoughTopProfile = topConfidence >= 0.55;
+  const hasVeryStrongTopProfile = topConfidence >= 0.85;
+
+  const hasStrongEnoughTopFamily =
+    familyView.topFamilyScore >= 0.45 || familyView.topFamilyConfidence >= 0.6;
+
+  const hasVeryStrongTopFamily =
+    familyView.topFamilyScore >= 0.62 || familyView.topFamilyConfidence >= 0.8;
+
+  const topLayerStrongEnough = useFamilyDecisionLayer
+    ? hasStrongEnoughTopFamily
+    : hasStrongEnoughTopProfile;
+
+  const compressionSurface = [
+    input.intake.narrative.whatFeelsCompressedNow ?? "",
+    input.intake.currentContext.currentSituation ?? "",
+    ...(input.intake.currentContext.restrictions ?? []),
+    input.intake.narrative.lossesOrRenunciations ?? "",
+    input.intake.narrative.additionalContext ?? "",
+  ]
+    .join(" ")
+    .trim();
+
+  const normalizedCompressionText = normalizeText(compressionSurface);
 
   const HARD_COMPRESSION_MARKERS = [
     "solo de forma defensiva",
@@ -66,6 +127,39 @@ export function evaluateResultDecision(
     "evitar rupturas",
     "reactivo",
     "urgencias",
+    "apagar lo urgente",
+    "modo bombero",
+    "no en algo propio",
+    "poco margen mental",
+    "casi no puedo usar mi mejor criterio",
+    "piloto automatico",
+    "piloto automático",
+    "me drena",
+    "que no explote nada",
+    "para que no explote nada",
+    "tomado por obligaciones",
+    "bastante tomado por obligaciones",
+    "se va en apagar roces",
+    "bajar tensiones",
+    "evitar choques",
+    "en modo defensivo",
+  ];
+
+  const SOFT_COMPRESSION_MARKERS = [
+    "aparece de a ratos",
+    "no como eje",
+    "no como eje principal",
+    "no como frente principal",
+    "aparece lateral",
+    "aparece de costado",
+    "medio arrumbada",
+    "no esta muerta",
+    "no está muerta",
+    "no estoy destruido",
+    "no estoy roto",
+    "hay algo apagado",
+    "no estoy mudo ni apagado del todo",
+    "no estoy apagado del todo",
   ];
 
   const MANAGEABLE_COMPRESSION_MARKERS = [
@@ -86,18 +180,31 @@ export function evaluateResultDecision(
     normalizedCompressionText.includes(normalizeText(marker))
   );
 
-  const hasManageableCompressionNarrative =
-    MANAGEABLE_COMPRESSION_MARKERS.some((marker) =>
-      normalizedCompressionText.includes(normalizeText(marker))
-    );
+  const hasSoftCompressionNarrative = SOFT_COMPRESSION_MARKERS.some((marker) =>
+    normalizedCompressionText.includes(normalizeText(marker))
+  );
 
-  const minimalMargin =
-    input.transitionAssessment.transitionMargin === "minimal";
+  const hasManageableCompressionNarrative = MANAGEABLE_COMPRESSION_MARKERS.some(
+    (marker) => normalizedCompressionText.includes(normalizeText(marker))
+  );
+
+  const hasCompressionNarrative =
+    hasHardCompressionNarrative ||
+    hasSoftCompressionNarrative ||
+    hasManageableCompressionNarrative;
+
+  const minimalMargin = input.transitionAssessment.transitionMargin === "minimal";
+
+  const hasHardCompressionPressure =
+    hasCompressionNarrative &&
+    hasHardCompressionNarrative &&
+    !hasManageableCompressionNarrative &&
+    !hasSoftCompressionNarrative;
+
+  const compressionPushesToCompressedLife =
+    minimalMargin || hasHardCompressionPressure;
 
   const hasPlausibleDirections = input.plausibleDirections.length > 0;
-  const hasStrongEnoughTopProfile = topConfidence >= 0.55;
-
-  const hasVeryStrongTopProfile = topConfidence >= 0.85;
   const hasRobustEvidence = signalCount >= 5;
 
   const roundsCompleted = normalizeRoundsCompleted(
@@ -109,23 +216,13 @@ export function evaluateResultDecision(
   let decisionReason: DecisionReasonCode;
   let resultTypePreview: ResultType;
 
-  if (!topProfile) {
+  if (!hasAnyTopSurface) {
     decisionReason = "NO_TOP_PROFILE";
     resultTypePreview = "insufficient_evidence";
   } else if (signalCount < 2) {
     decisionReason = "TOO_FEW_SIGNALS";
     resultTypePreview = "insufficient_evidence";
-  } else if (
-    hasStrongEnoughTopProfile &&
-    (
-      minimalMargin ||
-      (
-        hasCompressionNarrative &&
-        hasHardCompressionNarrative &&
-        !hasManageableCompressionNarrative
-      )
-    )
-  ) {
+  } else if (topLayerStrongEnough && compressionPushesToCompressedLife) {
     decisionReason = minimalMargin
       ? "MINIMAL_MARGIN_WITH_COMPRESSION"
       : "CLEAR_PROFILE_UNDER_COMPRESSION";
@@ -133,20 +230,39 @@ export function evaluateResultDecision(
   } else if (!hasPlausibleDirections) {
     decisionReason = "NO_PLAUSIBLE_DIRECTIONS";
     resultTypePreview = "insufficient_evidence";
-  } else if (!hasStrongEnoughTopProfile) {
+  } else if (!topLayerStrongEnough) {
     decisionReason = "LOW_TOP_CONFIDENCE";
     resultTypePreview = "insufficient_evidence";
   } else {
-    const secondTooClose =
+    const profileSecondTooClose =
       !!secondProfile &&
       topConfidence > 0 &&
       secondConfidence / topConfidence >= 0.995;
 
-    const allowClearDespiteCloseSecond =
-      !!secondProfile &&
-      hasVeryStrongTopProfile &&
-      hasRobustEvidence &&
-      hasPlausibleDirections;
+    const familySecondTooClose =
+      useFamilyDecisionLayer &&
+      familyView.secondFamilyScore > 0 &&
+      familyView.topFamilyScore > 0 &&
+      familyView.secondFamilyScore / familyView.topFamilyScore >= 0.92;
+
+    const familyDominanceGap =
+      familyView.topFamilyScore - familyView.secondFamilyScore;
+
+    const familyClearlyAhead =
+      useFamilyDecisionLayer &&
+      hasStrongEnoughTopFamily &&
+      familyDominanceGap >= 0.08;
+
+    const secondTooClose = useFamilyDecisionLayer
+      ? familySecondTooClose && !familyClearlyAhead
+      : profileSecondTooClose;
+
+    const allowClearDespiteCloseSecond = useFamilyDecisionLayer
+      ? familyClearlyAhead || (hasVeryStrongTopFamily && hasPlausibleDirections)
+      : !!secondProfile &&
+        hasVeryStrongTopProfile &&
+        hasRobustEvidence &&
+        hasPlausibleDirections;
 
     if (secondTooClose && !allowClearDespiteCloseSecond) {
       decisionReason = "SECOND_PROFILE_TOO_CLOSE";
@@ -157,38 +273,68 @@ export function evaluateResultDecision(
     }
   }
 
-  /**
-   * Regla dura:
-   * si ya se completaron Ronda 2 y Ronda 3,
-   * el sistema no puede seguir devolviendo insufficient_evidence.
-   */
   if (
     resultTypePreview === "insufficient_evidence" &&
     forceAdjudication &&
-    topProfile
+    hasAnyTopSurface
   ) {
     const canForceClear =
       hasPlausibleDirections &&
-      (hasStrongEnoughTopProfile || (topConfidence >= 0.45 && signalCount >= 4));
+      (topLayerStrongEnough ||
+        (topConfidence >= 0.45 && signalCount >= 4) ||
+        (familyView.topFamilyScore >= 0.4 && signalCount >= 4));
 
     if (canForceClear) {
       decisionReason = "FORCED_CLEAR_AFTER_CLARIFICATION";
       resultTypePreview = "clear_direction";
+    } else if (topLayerStrongEnough && compressionPushesToCompressedLife) {
+      decisionReason = minimalMargin
+        ? "MINIMAL_MARGIN_WITH_COMPRESSION"
+        : "CLEAR_PROFILE_UNDER_COMPRESSION";
+      resultTypePreview = "compressed_life";
     } else {
       decisionReason = "FORCED_COMPRESSED_AFTER_CLARIFICATION";
       resultTypePreview = "compressed_life";
     }
   }
 
+  const traceTopLabel = useFamilyDecisionLayer
+    ? familyView.topFamilyLabel
+    : topProfile?.label ?? familyView.topFamilyLabel ?? null;
+
+  const traceTopConfidence = useFamilyDecisionLayer
+    ? familyView.topFamilyConfidence > 0
+      ? familyView.topFamilyConfidence
+      : familyView.topFamilyScore > 0
+        ? familyView.topFamilyScore
+        : null
+    : topProfile?.confidence ??
+      (familyView.topFamilyConfidence > 0 ? familyView.topFamilyConfidence : null);
+
+  const traceSecondLabel = useFamilyDecisionLayer
+    ? familyView.secondFamilyLabel
+    : secondProfile?.label ?? familyView.secondFamilyLabel ?? null;
+
+  const traceSecondConfidence = useFamilyDecisionLayer
+    ? familyView.secondFamilyConfidence > 0
+      ? familyView.secondFamilyConfidence
+      : familyView.secondFamilyScore > 0
+        ? familyView.secondFamilyScore
+        : null
+    : secondProfile?.confidence ??
+      (familyView.secondFamilyConfidence > 0
+        ? familyView.secondFamilyConfidence
+        : null);
+
   return {
     resultType: resultTypePreview,
     trace: {
       signalCount,
       signalKeys: input.signals.map((signal) => signal.key),
-      topProfileLabel: topProfile?.label ?? null,
-      topProfileConfidence: topProfile?.confidence ?? null,
-      secondProfileLabel: secondProfile?.label ?? null,
-      secondProfileConfidence: secondProfile?.confidence ?? null,
+      topProfileLabel: traceTopLabel,
+      topProfileConfidence: traceTopConfidence,
+      secondProfileLabel: traceSecondLabel,
+      secondProfileConfidence: traceSecondConfidence,
       plausibleDirectionLabels: input.plausibleDirections.map(
         (direction) => direction.label
       ),

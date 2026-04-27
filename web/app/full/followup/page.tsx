@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { flushSync } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useFullAnswers } from "../fullAnswersContext";
 
@@ -62,9 +63,7 @@ type FollowupOrchestratorResult = {
 
 type FollowupAnswerValue = string | string[];
 
-function isTextQuestion(
-  kind: FollowupQuestion["kind"],
-): boolean {
+function isTextQuestion(kind: FollowupQuestion["kind"]): boolean {
   return kind === "open_text" || kind === "micro_narrative";
 }
 
@@ -163,12 +162,13 @@ export default function FullFollowupPage() {
   } = useFullAnswers();
 
   const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentFollowup = followup.current as FollowupOrchestratorResult | null;
   const pack = currentFollowup?.pack ?? null;
 
   useEffect(() => {
-    if (!isHydrated) return;
+    if (!isHydrated || isSubmitting) return;
 
     if (!pack) {
       if (analysis.result) {
@@ -178,7 +178,7 @@ export default function FullFollowupPage() {
 
       router.replace("/full");
     }
-  }, [analysis.result, isHydrated, pack, router]);
+  }, [analysis.result, isHydrated, isSubmitting, pack, router]);
 
   const unansweredQuestions = useMemo(() => {
     if (!pack) return [];
@@ -189,7 +189,7 @@ export default function FullFollowupPage() {
   }, [followup.answers, pack]);
 
   const handleContinue = () => {
-    if (!pack) return;
+    if (!pack || isSubmitting) return;
 
     if (unansweredQuestions.length > 0) {
       setErrorMessage(
@@ -199,17 +199,24 @@ export default function FullFollowupPage() {
     }
 
     setErrorMessage("");
-    commitFollowupRound();
-    clearAnalysis();
-    router.push("/full/processing");
+    setIsSubmitting(true);
+
+    flushSync(() => {
+      commitFollowupRound();
+      clearAnalysis();
+    });
+
+    router.replace("/full/processing");
   };
 
-  if (!isHydrated || !pack) {
+  if (!isHydrated || isSubmitting || !pack) {
     return (
       <main className="min-h-screen bg-white text-black px-6 py-10">
         <div className="max-w-3xl mx-auto">
           <div className="rounded-xl border border-neutral-200 p-5 text-sm text-neutral-700">
-            Preparando ronda de clarificación...
+            {isSubmitting
+              ? "Procesando nueva lectura..."
+              : "Preparando ronda de clarificación..."}
           </div>
         </div>
       </main>
@@ -229,9 +236,7 @@ export default function FullFollowupPage() {
 
         <div className="rounded-2xl border border-neutral-200 p-5 space-y-3">
           <p className="text-sm font-medium">Por qué te estamos preguntando esto</p>
-          <p className="text-sm text-neutral-700">
-            {currentFollowup?.reason}
-          </p>
+          <p className="text-sm text-neutral-700">{currentFollowup?.reason}</p>
 
           {currentFollowup?.assessment?.candidateProfiles?.length ? (
             <p className="text-sm text-neutral-700">
@@ -263,17 +268,22 @@ export default function FullFollowupPage() {
 
         <div className="flex gap-3">
           <button
-            onClick={() => router.push("/full/step-5")}
-            className="px-4 py-2 rounded-md border border-neutral-300 text-sm"
+            onClick={() => {
+              if (isSubmitting) return;
+              router.push("/full/step-5");
+            }}
+            disabled={isSubmitting}
+            className="px-4 py-2 rounded-md border border-neutral-300 text-sm disabled:opacity-50"
           >
             Volver a revisión
           </button>
 
           <button
             onClick={handleContinue}
-            className="px-4 py-2 rounded-md border border-black text-sm"
+            disabled={isSubmitting}
+            className="px-4 py-2 rounded-md border border-black text-sm disabled:opacity-50"
           >
-            Continuar con la nueva lectura
+            {isSubmitting ? "Procesando..." : "Continuar con la nueva lectura"}
           </button>
         </div>
       </div>

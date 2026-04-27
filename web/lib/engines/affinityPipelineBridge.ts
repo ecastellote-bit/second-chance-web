@@ -28,7 +28,11 @@ export type AffinityPipelineBridgeResult = {
 
 function uniqueStrings(values: string[]): string[] {
   return Array.from(
-    new Set(values.map((value) => value.trim()).filter(Boolean)),
+    new Set(
+      values
+        .map((value) => value.trim())
+        .filter((value) => value.length > 0),
+    ),
   );
 }
 
@@ -48,6 +52,7 @@ function selectTopAffinities(
     .filter((score) => {
       if (score.status === "expressed" && score.score >= 0.34) return true;
       if (score.status === "buried" && score.score >= 0.32) return true;
+
       if (
         score.status === "latent" &&
         score.score >= 0.3 &&
@@ -55,6 +60,16 @@ function selectTopAffinities(
       ) {
         return true;
       }
+
+      /**
+       * Caso importante:
+       * si una afinidad aparece con score fuerte aunque su status todavía
+       * no haya quedado perfectamente clasificado, no la escondemos.
+       * Esto ayuda a detectar señales técnicas/prácticas o de aprendizaje
+       * sin inflar artificialmente ninguna familia.
+       */
+      if (score.score >= 0.42 && score.confidence >= 0.45) return true;
+
       return false;
     })
     .slice(0, limit);
@@ -88,17 +103,24 @@ function collectFlourishingConditions(
   topAffinities: HumanAffinityScore[],
   buriedCapacities: HumanAffinityScore[],
 ): string[] {
-  const topConditions = topAffinities.flatMap((score) => {
+  const source = [...topAffinities, ...buriedCapacities];
+
+  const conditions = source.flatMap((score) => {
     const definition = HUMAN_AFFINITY_MAP[score.id as HumanAffinityId];
     return definition?.relatedFlourishingConditions ?? [];
   });
 
-  const buriedConditions = buriedCapacities.flatMap((score) => {
-    const definition = HUMAN_AFFINITY_MAP[score.id as HumanAffinityId];
-    return definition?.relatedFlourishingConditions ?? [];
-  });
+  return uniqueStrings(conditions).slice(0, 8);
+}
 
-  return uniqueStrings([...topConditions, ...buriedConditions]).slice(0, 8);
+function sanitizeFamilyScores(
+  familyScores: ProfileFamilyScore[],
+): ProfileFamilyScore[] {
+  return [...familyScores].sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    if (b.confidence !== a.confidence) return b.confidence - a.confidence;
+    return a.label.localeCompare(b.label);
+  });
 }
 
 export function runAffinityPipelineBridge(
@@ -109,10 +131,9 @@ export function runAffinityPipelineBridge(
   const evidence = [...intakeEvidence, ...extraEvidence];
 
   const affinityScores = mapEvidenceToHumanAffinities({ evidence });
-  const familyScores = scoreProfileFamiliesFromAffinities(affinityScores);
-
-console.log("AFFINITY SCORES IDS:", affinityScores.map((a) => a.id));
-console.log("FAMILY SCORES:", familyScores);
+  const familyScores = sanitizeFamilyScores(
+    scoreProfileFamiliesFromAffinities(affinityScores),
+  );
 
   const topAffinities = selectTopAffinities(
     affinityScores,

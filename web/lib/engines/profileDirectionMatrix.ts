@@ -261,8 +261,209 @@ export const PROFILE_DIRECTION_MATRIX: Record<string, EmployabilityDirection[]> 
   ],
 };
 
+export const FAMILY_DIRECTION_MATRIX: Record<string, EmployabilityDirection[]> = {
+  diplomatic_social_connector: PROFILE_DIRECTION_MATRIX.diplomatic_social_connector,
+  community_builder: PROFILE_DIRECTION_MATRIX.community_builder,
+  analytical_strategist: PROFILE_DIRECTION_MATRIX.analytical_strategist,
+  creative_storyteller: PROFILE_DIRECTION_MATRIX.creative_storyteller,
+  technical_builder: PROFILE_DIRECTION_MATRIX.technical_builder,
+  cultural_explorer: PROFILE_DIRECTION_MATRIX.cultural_explorer,
+  empathic_guide: PROFILE_DIRECTION_MATRIX.empathic_guide,
+
+  public_communicator: [
+    {
+      id: "public_affairs_communication",
+      ecosystem: "public_affairs_communication",
+      label: "Public Affairs Communication",
+      whyItFits:
+        "Convierte lectura de asuntos colectivos, postura y voz pública en comunicación orientada a audiencia e intervención.",
+      signalWeights: {
+        opportunity_detection: 1.15,
+        narrative_creation: 0.95,
+        system_thinking: 0.55,
+        cultural_curiosity: 0.35,
+        pattern_analysis: 0.2,
+        practical_organizing: 0.1,
+        social_coordination: 0.1,
+        empathic_listening: 0.05,
+      },
+    },
+    {
+      id: "editorial_voice",
+      ecosystem: "editorial_voice",
+      label: "Editorial Voice",
+      whyItFits:
+        "Aprovecha claridad discursiva, encuadre y toma de palabra para construir agenda y postura pública.",
+      signalWeights: {
+        narrative_creation: 1.05,
+        opportunity_detection: 1.0,
+        system_thinking: 0.5,
+        cultural_curiosity: 0.3,
+        pattern_analysis: 0.2,
+        practical_organizing: 0.05,
+        social_coordination: 0.05,
+        empathic_listening: 0.05,
+      },
+    },
+  ],
+
+  institutional_operator: [
+    {
+      id: "institutional_operations",
+      ecosystem: "institutional_operations",
+      label: "Institutional Operations",
+      whyItFits:
+        "Se apoya en lectura de reglas, estructura formal, autoridades y criterio para moverse dentro de sistemas sin chocar de más.",
+      signalWeights: {
+        system_thinking: 1.75,
+        pattern_analysis: 1.2,
+        practical_organizing: 0.75,
+        social_coordination: 0.2,
+        opportunity_detection: 0.15,
+        cultural_curiosity: 0.1,
+        narrative_creation: 0.05,
+        empathic_listening: 0.05,
+      },
+    },
+    {
+      id: "policy_program_interface",
+      ecosystem: "policy_program_interface",
+      label: "Policy / Program Interface",
+      whyItFits:
+        "Traduce estructura, secuencia, pasos formales y criterio institucional en operación concreta y navegación ordenada.",
+      signalWeights: {
+        system_thinking: 1.7,
+        pattern_analysis: 1.1,
+        practical_organizing: 0.85,
+        social_coordination: 0.2,
+        opportunity_detection: 0.1,
+        cultural_curiosity: 0.1,
+        narrative_creation: 0.05,
+        empathic_listening: 0.05,
+      },
+    },
+  ],
+
+  commercial_connector: [
+    {
+      id: "business_development",
+      ecosystem: "business_development",
+      label: "Business Development",
+      whyItFits:
+        "Conecta personas, necesidades, oportunidad y negociación en movimiento comercial o relacional.",
+      signalWeights: {
+        opportunity_detection: 1.35,
+        social_coordination: 1.15,
+        practical_organizing: 0.95,
+        system_thinking: 0.55,
+        pattern_analysis: 0.25,
+        narrative_creation: 0.05,
+        cultural_curiosity: 0.05,
+        empathic_listening: 0.1,
+      },
+    },
+    {
+      id: "partner_growth",
+      ecosystem: "partner_growth",
+      label: "Partner Growth",
+      whyItFits:
+        "Aprovecha articulación, detección de valor y lectura relacional para abrir y sostener oportunidades de crecimiento.",
+      signalWeights: {
+        opportunity_detection: 1.3,
+        social_coordination: 1.1,
+        practical_organizing: 0.9,
+        system_thinking: 0.5,
+        pattern_analysis: 0.2,
+        narrative_creation: 0.05,
+        cultural_curiosity: 0.05,
+        empathic_listening: 0.1,
+      },
+    },
+  ],
+
+  educator_interpreter: [
+    {
+      id: "learning_experience",
+      ecosystem: "learning_experience",
+      label: "Learning Experience",
+      whyItFits:
+        "Traduce complejidad para que otros comprendan, aprendan y se orienten mejor.",
+      signalWeights: {
+        narrative_creation: 0.95,
+        cultural_curiosity: 0.75,
+        system_thinking: 0.7,
+        pattern_analysis: 0.55,
+        empathic_listening: 0.35,
+        practical_organizing: 0.15,
+        social_coordination: 0.1,
+        opportunity_detection: 0.05,
+      },
+    },
+    {
+      id: "knowledge_translation",
+      ecosystem: "knowledge_translation",
+      label: "Knowledge Translation",
+      whyItFits:
+        "Convierte ideas, conceptos y complejidad en claridad útil para otros, sin depender de protagonismo público fuerte.",
+      signalWeights: {
+        narrative_creation: 0.9,
+        cultural_curiosity: 0.8,
+        system_thinking: 0.75,
+        pattern_analysis: 0.5,
+        empathic_listening: 0.3,
+        practical_organizing: 0.1,
+        social_coordination: 0.05,
+        opportunity_detection: 0.05,
+      },
+    },
+  ],
+
+  system_designer: [
+    {
+      id: "systems_design",
+      ecosystem: "systems_design",
+      label: "Systems Design",
+      whyItFits:
+        "Diseña marcos, secuencias y lógica de funcionamiento para que un sistema opere mejor de punta a punta.",
+      signalWeights: {
+        system_thinking: 1.8,
+        pattern_analysis: 1.25,
+        practical_organizing: 0.85,
+        opportunity_detection: 0.25,
+        cultural_curiosity: 0.1,
+        narrative_creation: 0.05,
+        social_coordination: 0.05,
+        empathic_listening: 0.05,
+      },
+    },
+    {
+      id: "process_architecture",
+      ecosystem: "process_architecture",
+      label: "Process Architecture",
+      whyItFits:
+        "Ordena estructura, proceso y criterio operativo cuando la intención es bajar un modelo a funcionamiento real.",
+      signalWeights: {
+        system_thinking: 1.75,
+        pattern_analysis: 1.15,
+        practical_organizing: 0.95,
+        opportunity_detection: 0.2,
+        cultural_curiosity: 0.1,
+        narrative_creation: 0.05,
+        social_coordination: 0.05,
+        empathic_listening: 0.05,
+      },
+    },
+  ],
+};
+
 export function getDirectionsForProfile(
   profileId: string,
 ): EmployabilityDirection[] {
   return PROFILE_DIRECTION_MATRIX[profileId] ?? [];
+}
+
+export function getDirectionsForFamily(
+  familyId: string,
+): EmployabilityDirection[] {
+  return FAMILY_DIRECTION_MATRIX[familyId] ?? [];
 }

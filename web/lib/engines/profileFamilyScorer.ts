@@ -12,6 +12,73 @@ type WeightedAffinity = {
   raw: HumanAffinityScore;
 };
 
+type CalibrationResult = {
+  score: number;
+  confidence: number;
+  hasEnoughCore: boolean;
+  notes: string[];
+};
+
+const TECHNICAL_CONCRETE_MARKERS = [
+  "technical",
+  "builder",
+  "build",
+  "building",
+  "material",
+  "manual",
+  "practical",
+  "repair",
+  "fix",
+  "function",
+  "functional",
+  "implementation",
+  "implementer",
+  "execution",
+  "operation",
+  "operational",
+  "tool",
+  "mechanic",
+  "mechanical",
+  "electric",
+  "electrical",
+  "electronic",
+  "craft",
+  "making",
+  "construction",
+  "hands",
+];
+
+const ABSTRACT_SYSTEM_MARKERS = [
+  "system",
+  "system_ordering",
+  "structural",
+  "structure",
+  "pattern",
+  "strategy",
+  "strategic",
+  "architect",
+  "architecture",
+  "analytical",
+  "model",
+  "framework",
+  "criteria",
+  "design",
+];
+
+const EXPRESSIVE_MARKERS = [
+  "narrative",
+  "story",
+  "storytelling",
+  "aesthetic",
+  "editorial",
+  "expression",
+  "expressive",
+  "voice",
+  "writing",
+  "creative",
+  "symbolic",
+];
+
 function clamp(value: number, min = 0, max = 1): number {
   return Math.max(min, Math.min(max, value));
 }
@@ -45,6 +112,7 @@ function scoreAffinity(affinity: HumanAffinityScore): number {
   const base = affinity.score;
   const statusFactor = statusMultiplier(affinity.status);
   const confidenceFactor = 0.65 + affinity.confidence * 0.35;
+
   const weighted =
     base * statusFactor * confidenceFactor + evidenceBonus(affinity.evidenceCount);
 
@@ -100,6 +168,149 @@ function sortWeightedAffinities(items: WeightedAffinity[]): WeightedAffinity[] {
   });
 }
 
+function affinityIdIncludes(
+  item: WeightedAffinity,
+  markers: string[],
+): boolean {
+  const id = String(item.id).toLowerCase();
+  return markers.some((marker) => id.includes(marker));
+}
+
+function matchingSignalItems(
+  items: WeightedAffinity[],
+  markers: string[],
+): WeightedAffinity[] {
+  return items.filter((item) => affinityIdIncludes(item, markers));
+}
+
+function signalStrength(
+  items: WeightedAffinity[],
+  markers: string[],
+): number {
+  const matches = matchingSignalItems(items, markers);
+  return average(matches.map((item) => item.weightedScore));
+}
+
+function signalCount(
+  items: WeightedAffinity[],
+  markers: string[],
+): number {
+  return matchingSignalItems(items, markers).length;
+}
+
+function applyFamilyCalibration(params: {
+  familyId: string;
+  core: WeightedAffinity[];
+  supporting: WeightedAffinity[];
+  baseScore: number;
+  baseConfidence: number;
+  hasEnoughCore: boolean;
+}): CalibrationResult {
+  let score = params.baseScore;
+  let confidence = params.baseConfidence;
+  let hasEnoughCore = params.hasEnoughCore;
+  const notes: string[] = [];
+
+  const all = [...params.core, ...params.supporting];
+
+  const technicalConcreteStrength = signalStrength(
+    all,
+    TECHNICAL_CONCRETE_MARKERS,
+  );
+  const technicalConcreteCount = signalCount(all, TECHNICAL_CONCRETE_MARKERS);
+
+  const abstractSystemStrength = signalStrength(all, ABSTRACT_SYSTEM_MARKERS);
+  const abstractSystemCount = signalCount(all, ABSTRACT_SYSTEM_MARKERS);
+
+  const expressiveStrength = signalStrength(all, EXPRESSIVE_MARKERS);
+  const expressiveCount = signalCount(all, EXPRESSIVE_MARKERS);
+
+  /**
+   * Regla anti-cebado:
+   * Technical Builder no sube por una palabra aislada.
+   * Necesita combinación: varias señales técnicas/concretas con fuerza suficiente.
+   */
+  if (params.familyId === "technical_builder") {
+    const hasConcreteTechnicalCluster =
+      technicalConcreteCount >= 2 && technicalConcreteStrength >= 0.26;
+
+    const hasStrongConcreteTechnicalCluster =
+      technicalConcreteCount >= 3 && technicalConcreteStrength >= 0.32;
+
+    if (hasConcreteTechnicalCluster) {
+      score += 0.06;
+      confidence += 0.03;
+      notes.push(
+        "Ajuste contrastivo: aparecen varias señales de ejecución técnica/concreta; Technical Builder gana peso sin depender de una palabra aislada.",
+      );
+    }
+
+    if (hasStrongConcreteTechnicalCluster) {
+      score += 0.05;
+      confidence += 0.04;
+      hasEnoughCore = true;
+      notes.push(
+        "Ajuste de cobertura: el cluster técnico-concreto es suficientemente fuerte para evitar que la familia quede relegada sólo por falta de coincidencia exacta en afinidades núcleo.",
+      );
+    }
+  }
+
+  /**
+   * System Designer debe ganar cuando hay diseño/estructura/criterio.
+   * Pero si el caso trae mucha evidencia concreta de ejecución técnica,
+   * no debe absorber automáticamente el caso sólo por system_ordering.
+   */
+  if (params.familyId === "system_designer") {
+    const concreteOutweighsAbstract =
+      technicalConcreteCount >= 2 &&
+      technicalConcreteStrength > abstractSystemStrength + 0.04;
+
+    const abstractIsThin =
+      abstractSystemCount <= 1 || abstractSystemStrength < 0.26;
+
+    if (concreteOutweighsAbstract && abstractIsThin) {
+      score -= 0.06;
+      confidence -= 0.03;
+      notes.push(
+        "Ajuste contrastivo: la evidencia concreta/técnica supera a la evidencia abstracta de diseño sistémico; System Designer no debe absorber automáticamente el caso.",
+      );
+    }
+  }
+
+  /**
+   * Control para familias expresivas:
+   * si una familia creativa/comunicacional aparece con fuerza,
+   * debe estar respaldada por varias señales expresivas reales,
+   * no por una sola superficie narrativa.
+   */
+  if (
+    params.familyId === "creative_storyteller" ||
+    params.familyId === "public_communicator"
+  ) {
+    const expressiveEvidenceIsThin =
+      expressiveCount <= 1 || expressiveStrength < 0.24;
+
+    const technicalEvidenceIsStronger =
+      technicalConcreteCount >= 2 &&
+      technicalConcreteStrength > expressiveStrength + 0.06;
+
+    if (expressiveEvidenceIsThin && technicalEvidenceIsStronger) {
+      score -= 0.07;
+      confidence -= 0.04;
+      notes.push(
+        "Ajuste anti-sobreactura expresiva: la evidencia narrativa/comunicacional es débil frente a señales técnicas/concretas.",
+      );
+    }
+  }
+
+  return {
+    score: clamp(score),
+    confidence: clamp(confidence),
+    hasEnoughCore,
+    notes,
+  };
+}
+
 function buildRationale(params: {
   label: string;
   core: WeightedAffinity[];
@@ -108,6 +319,7 @@ function buildRationale(params: {
   score: number;
   confidence: number;
   hasEnoughCore: boolean;
+  calibrationNotes: string[];
 }): string[] {
   const lines: string[] = [];
 
@@ -137,9 +349,13 @@ function buildRationale(params: {
     );
   }
 
+  if (params.calibrationNotes.length > 0) {
+    lines.push(...params.calibrationNotes);
+  }
+
   if (!params.hasEnoughCore) {
     lines.push(
-      "Cobertura núcleo insuficiente para adjudicación fuerte; la familia queda visible solo para auditoría comparativa.",
+      "Cobertura núcleo insuficiente para adjudicación fuerte; la familia queda visible principalmente para auditoría comparativa.",
     );
   }
 
@@ -158,26 +374,24 @@ export function scoreProfileFamiliesFromAffinities(
   const affinityMap = buildAffinityMap(affinityScores);
 
   const familyScores = PROFILE_FAMILIES.map((family): ProfileFamilyScore => {
-    const core = collectAffinities(family.coreAffinities, affinityMap, 0.18);
+    const coreAffinities = family.coreAffinities ?? [];
+    const supportingAffinities = family.supportingAffinities ?? [];
+    const tensionAffinities = family.tensionAffinities ?? [];
+
+    const core = collectAffinities(coreAffinities, affinityMap, 0.18);
     const supporting = collectAffinities(
-      family.supportingAffinities,
+      supportingAffinities,
       affinityMap,
       0.14,
     );
-    const tensions = collectAffinities(
-      family.tensionAffinities ?? [],
-      affinityMap,
-      0.16,
-    );
+    const tensions = collectAffinities(tensionAffinities, affinityMap, 0.16);
 
     const coreCoverage =
-      family.coreAffinities.length > 0
-        ? core.length / family.coreAffinities.length
-        : 0;
+      coreAffinities.length > 0 ? core.length / coreAffinities.length : 0;
 
     const supportingCoverage =
-      family.supportingAffinities.length > 0
-        ? supporting.length / family.supportingAffinities.length
+      supportingAffinities.length > 0
+        ? supporting.length / supportingAffinities.length
         : 0;
 
     const coreStrength = average(core.map((item) => item.weightedScore));
@@ -186,39 +400,12 @@ export function scoreProfileFamiliesFromAffinities(
     );
     const tensionStrength = average(tensions.map((item) => item.weightedScore));
 
-    const hasEnoughCore =
+    let hasEnoughCore =
       core.length >= 1 &&
       (coreCoverage >= 0.33 ||
         coreStrength >= 0.24 ||
         core.some((item) => item.raw.status === "expressed") ||
         core.some((item) => item.raw.status === "buried"));
-
-    console.log("FAMILY DEBUG", {
-      family: family.id,
-      expectedCore: family.coreAffinities,
-      expectedSupporting: family.supportingAffinities,
-      matchedCore: core.map((item) => ({
-        id: item.id,
-        status: item.raw.status,
-        weightedScore: Number(item.weightedScore.toFixed(2)),
-      })),
-      matchedSupporting: supporting.map((item) => ({
-        id: item.id,
-        status: item.raw.status,
-        weightedScore: Number(item.weightedScore.toFixed(2)),
-      })),
-      tensionHits: tensions.map((item) => ({
-        id: item.id,
-        status: item.raw.status,
-        weightedScore: Number(item.weightedScore.toFixed(2)),
-      })),
-      coreCoverage: Number(coreCoverage.toFixed(2)),
-      supportingCoverage: Number(supportingCoverage.toFixed(2)),
-      coreStrength: Number(coreStrength.toFixed(2)),
-      supportingStrength: Number(supportingStrength.toFixed(2)),
-      tensionStrength: Number(tensionStrength.toFixed(2)),
-      hasEnoughCore,
-    });
 
     let score =
       coreStrength * 0.56 +
@@ -266,8 +453,23 @@ export function scoreProfileFamiliesFromAffinities(
         evidenceDensity * 0.1,
     );
 
-    // No borramos familias débiles: las dejamos visibles para ranking/auditoría.
-    // Solo las penalizamos para que no ganen injustamente.
+    const calibration = applyFamilyCalibration({
+      familyId: String(family.id),
+      core,
+      supporting,
+      baseScore: score,
+      baseConfidence: confidence,
+      hasEnoughCore,
+    });
+
+    score = calibration.score;
+    confidence = calibration.confidence;
+    hasEnoughCore = calibration.hasEnoughCore;
+
+    /**
+     * No borramos familias débiles: las dejamos visibles para ranking/auditoría.
+     * Pero si no tienen cobertura suficiente, no deben ganar por accidente.
+     */
     if (!hasEnoughCore) {
       score = clamp(score - 0.18);
       confidence = clamp(confidence - 0.22);
@@ -281,6 +483,7 @@ export function scoreProfileFamiliesFromAffinities(
       score,
       confidence,
       hasEnoughCore,
+      calibrationNotes: calibration.notes,
     });
 
     return {

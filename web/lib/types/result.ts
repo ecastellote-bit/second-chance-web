@@ -50,6 +50,7 @@ export interface SummaryForUser {
 
 export interface FinalReading {
   resultType: ResultType;
+  familyScores?: unknown[]; 
   corePattern: string;
   dominantTension: string;
   currentCost: string;

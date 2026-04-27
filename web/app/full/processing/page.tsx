@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFullAnswers } from "../fullAnswersContext";
-import type { UserIntake } from "@/lib/types/intake";
 import type { FinalReading } from "@/lib/types/result";
 
 type FollowupOption = {
@@ -97,7 +96,7 @@ export default function FullProcessingPage() {
 
     const run = async () => {
       try {
-        const payload: UserIntake = buildUserIntake();
+        const payload = buildUserIntake();
 
         const res = await fetch("/api/analyze", {
           method: "POST",
