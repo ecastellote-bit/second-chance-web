@@ -150,6 +150,12 @@ function safeArray<T>(value: T[] | undefined | null): T[] {
   return Array.isArray(value) ? value : [];
 }
 
+function uniqueStrings(values: string[]): string[] {
+  return Array.from(
+    new Set(values.filter((value) => typeof value === "string" && value.trim())),
+  );
+}
+
 function getFamilyLabel(family: FamilyScoreForView): string {
   return (
     family.label ??
@@ -309,7 +315,6 @@ function buildSourceInputSnapshot(fullAnswersContext: unknown): unknown {
     state: context.state ?? null,
     followup: context.followup ?? null,
     isHydrated: context.isHydrated ?? null,
-
     fallbackContext:
       typeof context.state === "undefined" ? fullAnswersContext : undefined,
   });
@@ -343,7 +348,12 @@ async function copyTextToClipboard(text: string): Promise<void> {
 function buildHeadline(params: {
   resultType?: string;
   isFrontierReading: boolean;
+  isConflictReading: boolean;
 }): string {
+  if (params.isConflictReading) {
+    return "La lectura detecta una contradicción diagnóstica que conviene revisar";
+  }
+
   if (params.resultType === "insufficient_evidence") {
     return "Todavía no hay evidencia suficiente para cerrar una dirección";
   }
@@ -362,7 +372,12 @@ function buildHeadline(params: {
 function buildDirectionLabel(params: {
   resultType?: string;
   isFrontierReading: boolean;
+  isConflictReading: boolean;
 }): string {
+  if (params.isConflictReading) {
+    return "Lectura principal bajo revisión";
+  }
+
   if (params.resultType === "insufficient_evidence") {
     return "Estado de la lectura";
   }
@@ -377,9 +392,17 @@ function buildDirectionLabel(params: {
 function buildMainExplanation(params: {
   resultType?: string;
   isFrontierReading: boolean;
+  isConflictReading: boolean;
   dominantTension?: string;
   diagnosticSummary?: string;
 }): string {
+  if (params.isConflictReading) {
+    return (
+      params.dominantTension ??
+      "La lectura principal trae señales fuertes, pero al contrastarla con los jueces, la memoria de casos y la extracción quirúrgica aparece una tensión que conviene revisar antes de cerrar una sentencia."
+    );
+  }
+
   if (params.diagnosticSummary) {
     return params.diagnosticSummary;
   }
@@ -501,6 +524,25 @@ export default function ResultPage() {
 
   const experienceDistillation = getExperienceDistillation(rawResult);
 
+  const diagnosticVerdictKey = normalizeForComparison(
+    diagnosticReview?.finalVerdict,
+  );
+
+  const distillationVerdictKey = normalizeForComparison(
+    experienceDistillation?.verdict,
+  );
+
+  const distillationUseKey = normalizeForComparison(
+    experienceDistillation?.recommendedLearningUse,
+  );
+
+  const isConflictReading =
+    diagnosticVerdictKey.includes("conflict") ||
+    Boolean(diagnosticReview?.shouldRequestHumanReview) ||
+    distillationVerdictKey.includes("requires human review") ||
+    distillationVerdictKey.includes("human review") ||
+    distillationUseKey.includes("misread warning");
+
   const effectiveLearningRedFlag =
     experienceDistillation?.shouldRaiseRedFlag ??
     learningSignal?.shouldRaiseRedFlag ??
@@ -518,12 +560,12 @@ export default function ResultPage() {
     experienceDistillation?.contextualMarkers,
   );
 
-  const distillationWarnings = [
+  const distillationWarnings = uniqueStrings([
     ...safeArray(experienceDistillation?.misreadWarnings),
     ...safeArray(experienceDistillation?.warnings),
-  ];
+  ]);
 
-  const distillationNotes = safeArray(experienceDistillation?.notes);
+  const distillationNotes = uniqueStrings(safeArray(experienceDistillation?.notes));
 
   const similarCases: SimilarCaseForView[] = Array.isArray(rawResult.similarCases)
     ? rawResult.similarCases
@@ -540,16 +582,19 @@ export default function ResultPage() {
   const headline = buildHeadline({
     resultType: rawResult.resultType,
     isFrontierReading,
+    isConflictReading,
   });
 
   const directionLabel = buildDirectionLabel({
     resultType: rawResult.resultType,
     isFrontierReading,
+    isConflictReading,
   });
 
   const explanation = buildMainExplanation({
     resultType: rawResult.resultType,
     isFrontierReading,
+    isConflictReading,
     dominantTension: rawResult.dominantTension,
     diagnosticSummary: rawResult.summaryForUser?.diagnostico,
   });
@@ -597,6 +642,68 @@ export default function ResultPage() {
             </p>
           )}
         </div>
+
+        {/* CONTRADICCIÓN DIAGNÓSTICA */}
+        {isConflictReading && (
+          <div className="border border-red-300 bg-red-50 rounded-xl p-6 space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm uppercase tracking-wide text-red-700">
+                Contradicción diagnóstica
+              </p>
+
+              <h3 className="text-lg font-medium">
+                El sistema recomienda revisar antes de cerrar
+              </h3>
+
+              <p className="text-sm text-neutral-700 leading-6">
+                Hay señales fuertes, pero las capas de auditoría no están
+                completamente alineadas. Este caso no debe tomarse como sentencia
+                automática: conviene usarlo como caso de revisión, contraste y
+                aprendizaje controlado.
+              </p>
+            </div>
+
+            <div className="space-y-2 text-sm">
+              {diagnosticReview?.finalVerdict && (
+                <p>
+                  Veredicto de jueces:{" "}
+                  <strong>{normalizeLabel(diagnosticReview.finalVerdict)}</strong>
+                </p>
+              )}
+
+              {diagnosticReview?.recommendedPrimaryFamily && (
+                <p>
+                  Familia sugerida por jueces:{" "}
+                  <strong>
+                    {normalizeLabel(diagnosticReview.recommendedPrimaryFamily)}
+                  </strong>
+                </p>
+              )}
+
+              {safeArray(diagnosticReview?.recommendedFrontier).length > 0 && (
+                <p>
+                  Frontera sugerida por jueces:{" "}
+                  <strong>
+                    {safeArray(diagnosticReview?.recommendedFrontier)
+                      .map((family) => normalizeLabel(family))
+                      .join(" / ")}
+                  </strong>
+                </p>
+              )}
+
+              {experienceDistillation?.recommendedLearningUse && (
+                <p>
+                  Uso recomendado por extracción quirúrgica:{" "}
+                  <strong>
+                    {normalizeLabel(
+                      experienceDistillation.recommendedLearningUse,
+                    )}
+                  </strong>
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* RANKING REAL */}
         {visibleFamilyScores.length > 0 && (
@@ -1199,6 +1306,7 @@ export default function ResultPage() {
                   diagnosticReview,
                   experienceDistillation,
                   effectiveLearningRedFlag,
+                  isConflictReading,
                   summaryForUser: rawResult.summaryForUser ?? null,
                   trace: rawResult.trace ?? null,
                 },
