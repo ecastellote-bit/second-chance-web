@@ -2,6 +2,14 @@
 
 import { useFullAnswers } from "../fullAnswersContext";
 
+type TextItemForView =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | Record<string, unknown>;
+
 type FamilyScoreForView = {
   id?: string;
   familyId?: string;
@@ -11,7 +19,7 @@ type FamilyScoreForView = {
   summary?: string;
   score?: number;
   confidence?: number;
-  rationale?: string[];
+  rationale?: TextItemForView[];
 };
 
 type SimilarCaseForView = {
@@ -48,7 +56,7 @@ type DiagnosticJudgeFindingForView = {
   family?: string;
   confidence?: number;
   reason?: string;
-  evidence?: string[];
+  evidence?: TextItemForView[];
 };
 
 type DiagnosticReviewForView = {
@@ -73,11 +81,11 @@ type ExtractedLearningLessonForView = {
   secondaryFamily?: string;
   strength?: number;
   lesson?: string;
-  conditions?: string[];
-  positiveMarkers?: string[];
-  negativeMarkers?: string[];
+  conditions?: TextItemForView[];
+  positiveMarkers?: TextItemForView[];
+  negativeMarkers?: TextItemForView[];
   contextualMarkers?: ContextualMarkerForView[];
-  misreadWarnings?: string[];
+  misreadWarnings?: TextItemForView[];
   requiresHumanApproval?: boolean;
 };
 
@@ -95,9 +103,42 @@ type ExperienceDistillationForView = {
   distilledLessons?: ExtractedLearningLessonForView[];
 
   contextualMarkers?: ContextualMarkerForView[];
-  misreadWarnings?: string[];
-  warnings?: string[];
-  notes?: string[];
+  misreadWarnings?: TextItemForView[];
+  warnings?: TextItemForView[];
+  notes?: TextItemForView[];
+};
+
+type ContextualForceForView = {
+  type?: string;
+  label?: string;
+  family?: string;
+  families?: string[];
+  strength?: number;
+  evidence?: TextItemForView[];
+  interpretation?: TextItemForView;
+  reason?: TextItemForView;
+};
+
+type ContextualSituationReviewForView = {
+  verdict?: string;
+  recommendedUse?: string;
+  dominantContext?: string;
+  contextSummary?: string;
+  summary?: string;
+
+  suggestedPrimaryFamily?: string;
+  suggestedFrontier?: string[];
+  shouldAdjustDiagnosis?: boolean;
+  shouldOpenFrontier?: boolean;
+  shouldRequestHumanReview?: boolean;
+
+  forces?: ContextualForceForView[];
+  contextualForces?: ContextualForceForView[];
+
+  activationHints?: TextItemForView[];
+  suggestedThemes?: TextItemForView[];
+  warnings?: TextItemForView[];
+  notes?: TextItemForView[];
 };
 
 type FamilyRaceForView = {
@@ -139,6 +180,10 @@ type ResultForView = {
   diagnosticSurgery?: ExperienceDistillationForView | null;
   learningDistillation?: ExperienceDistillationForView | null;
 
+  contextualSituationReview?: ContextualSituationReviewForView | null;
+  contextualReview?: ContextualSituationReviewForView | null;
+  situationReview?: ContextualSituationReviewForView | null;
+
   summaryForUser?: SummaryForUserForView;
 
   trace?: {
@@ -150,10 +195,90 @@ function safeArray<T>(value: T[] | undefined | null): T[] {
   return Array.isArray(value) ? value : [];
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function uniqueStrings(values: string[]): string[] {
   return Array.from(
-    new Set(values.filter((value) => typeof value === "string" && value.trim())),
+    new Set(
+      values
+        .filter((value) => typeof value === "string")
+        .map((value) => value.trim())
+        .filter(Boolean),
+    ),
   );
+}
+
+function itemToText(value: TextItemForView): string {
+  if (value === null || typeof value === "undefined") return "";
+
+  if (typeof value === "string") return value.trim();
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? String(value) : "";
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "Sí" : "No";
+  }
+
+  if (isRecord(value)) {
+    const path = value.path;
+    const fit = value.fit;
+    const reason = value.reason;
+
+    if (
+      typeof path === "string" ||
+      typeof fit === "string" ||
+      typeof reason === "string"
+    ) {
+      return uniqueStrings([
+        typeof path === "string" ? path : "",
+        typeof fit === "string" ? fit : "",
+        typeof reason === "string" ? reason : "",
+      ]).join(" — ");
+    }
+
+    const primaryKeys = [
+      "text",
+      "label",
+      "title",
+      "summary",
+      "value",
+      "theme",
+      "name",
+      "description",
+    ];
+
+    const secondaryKeys = ["reason", "interpretation", "fit", "note"];
+
+    const primary = primaryKeys
+      .map((key) => value[key])
+      .find((item) => typeof item === "string" && item.trim().length > 0);
+
+    const secondary = secondaryKeys
+      .map((key) => value[key])
+      .filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+
+    if (typeof primary === "string") {
+      const pieces = uniqueStrings([primary, ...secondary]);
+      return pieces.join(" — ");
+    }
+
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return "";
+    }
+  }
+
+  return String(value);
+}
+
+function toTextItems(value: unknown): string[] {
+  const items = Array.isArray(value) ? value : value ? [value] : [];
+  return uniqueStrings(items.map((item) => itemToText(item as TextItemForView)));
 }
 
 function getFamilyLabel(family: FamilyScoreForView): string {
@@ -238,6 +363,17 @@ function getExperienceDistillation(
     rawResult.diagnosticExperienceDistillation ??
     rawResult.diagnosticSurgery ??
     rawResult.learningDistillation ??
+    null
+  );
+}
+
+function getContextualSituationReview(
+  rawResult: ResultForView,
+): ContextualSituationReviewForView | null {
+  return (
+    rawResult.contextualSituationReview ??
+    rawResult.contextualReview ??
+    rawResult.situationReview ??
     null
   );
 }
@@ -491,12 +627,68 @@ export default function ResultPage() {
       : sortedFamilyScores.slice(0, 5);
 
   const familyRace = rawResult.trace?.familyRace ?? null;
-
   const mainDirectionParts = getDirectionParts(mainDirection);
 
-  const isFrontierReading =
+  const rawFrontierReading =
     Boolean(familyRace?.shouldAvoidSingleClearClaim) ||
     mainDirectionParts.length > 1;
+
+  const learningSignal: LearningSignalForView | null =
+    rawResult.learningSignal ?? null;
+
+  const diagnosticReview: DiagnosticReviewForView | null =
+    rawResult.diagnosticReview ?? rawResult.diagnosticJudgeReview ?? null;
+
+  const experienceDistillation = getExperienceDistillation(rawResult);
+  const contextualSituationReview = getContextualSituationReview(rawResult);
+
+  const contextualForces = [
+    ...safeArray(contextualSituationReview?.forces),
+    ...safeArray(contextualSituationReview?.contextualForces),
+  ];
+
+  const contextualActivationHints = toTextItems(
+    contextualSituationReview?.activationHints,
+  );
+
+  const contextualSuggestedThemes = toTextItems(
+    contextualSituationReview?.suggestedThemes,
+  );
+
+  const contextualWarnings = toTextItems(contextualSituationReview?.warnings);
+  const contextualNotes = toTextItems(contextualSituationReview?.notes);
+
+  const diagnosticVerdictKey = normalizeForComparison(
+    diagnosticReview?.finalVerdict,
+  );
+
+  const distillationUseKey = normalizeForComparison(
+    experienceDistillation?.recommendedLearningUse,
+  );
+
+  const contextualVerdictKey = normalizeForComparison(
+    contextualSituationReview?.verdict,
+  );
+
+  const contextualUseKey = normalizeForComparison(
+    contextualSituationReview?.recommendedUse,
+  );
+
+  const isConflictReading =
+    diagnosticVerdictKey === "conflict" ||
+    distillationUseKey === "misread warning" ||
+    contextualVerdictKey === "conflict" ||
+    contextualUseKey === "misread warning";
+
+  const isFrontierSupportReading =
+    !isConflictReading &&
+    (diagnosticVerdictKey === "frontier" ||
+      distillationUseKey === "frontier support" ||
+      contextualVerdictKey === "frontier" ||
+      contextualUseKey === "frontier support" ||
+      rawFrontierReading);
+
+  const displayFrontierReading = isFrontierSupportReading || rawFrontierReading;
 
   const mainDirectionKeys = new Set(
     [
@@ -516,33 +708,6 @@ export default function ResultPage() {
     })
     .slice(0, 2);
 
-  const learningSignal: LearningSignalForView | null =
-    rawResult.learningSignal ?? null;
-
-  const diagnosticReview: DiagnosticReviewForView | null =
-    rawResult.diagnosticReview ?? rawResult.diagnosticJudgeReview ?? null;
-
-  const experienceDistillation = getExperienceDistillation(rawResult);
-
-  const diagnosticVerdictKey = normalizeForComparison(
-    diagnosticReview?.finalVerdict,
-  );
-
-  const distillationVerdictKey = normalizeForComparison(
-    experienceDistillation?.verdict,
-  );
-
-  const distillationUseKey = normalizeForComparison(
-    experienceDistillation?.recommendedLearningUse,
-  );
-
-  const isConflictReading =
-    diagnosticVerdictKey.includes("conflict") ||
-    Boolean(diagnosticReview?.shouldRequestHumanReview) ||
-    distillationVerdictKey.includes("requires human review") ||
-    distillationVerdictKey.includes("human review") ||
-    distillationUseKey.includes("misread warning");
-
   const effectiveLearningRedFlag =
     experienceDistillation?.shouldRaiseRedFlag ??
     learningSignal?.shouldRaiseRedFlag ??
@@ -561,11 +726,13 @@ export default function ResultPage() {
   );
 
   const distillationWarnings = uniqueStrings([
-    ...safeArray(experienceDistillation?.misreadWarnings),
-    ...safeArray(experienceDistillation?.warnings),
+    ...toTextItems(experienceDistillation?.misreadWarnings),
+    ...toTextItems(experienceDistillation?.warnings),
   ]);
 
-  const distillationNotes = uniqueStrings(safeArray(experienceDistillation?.notes));
+  const distillationNotes = uniqueStrings(
+    toTextItems(experienceDistillation?.notes),
+  );
 
   const similarCases: SimilarCaseForView[] = Array.isArray(rawResult.similarCases)
     ? rawResult.similarCases
@@ -581,19 +748,19 @@ export default function ResultPage() {
 
   const headline = buildHeadline({
     resultType: rawResult.resultType,
-    isFrontierReading,
+    isFrontierReading: displayFrontierReading,
     isConflictReading,
   });
 
   const directionLabel = buildDirectionLabel({
     resultType: rawResult.resultType,
-    isFrontierReading,
+    isFrontierReading: displayFrontierReading,
     isConflictReading,
   });
 
   const explanation = buildMainExplanation({
     resultType: rawResult.resultType,
-    isFrontierReading,
+    isFrontierReading: displayFrontierReading,
     isConflictReading,
     dominantTension: rawResult.dominantTension,
     diagnosticSummary: rawResult.summaryForUser?.diagnostico,
@@ -605,7 +772,7 @@ export default function ResultPage() {
     rawResult.currentCost ??
     "Hoy parte de esta capacidad no está desplegada como podría, porque gran parte de tu energía está en sostener lo inmediato.";
 
-  const secondaryDirectionText = isFrontierReading
+  const secondaryDirectionText = displayFrontierReading
     ? "También aparece como línea posible, aunque con menos fuerza que la frontera principal."
     : "También aparece como línea posible, aunque con menos fuerza que la dirección principal.";
 
@@ -634,13 +801,15 @@ export default function ResultPage() {
 
           <p className="text-sm text-neutral-700 leading-6">{explanation}</p>
 
-          {isFrontierReading && familyRace?.topLabel && familyRace?.secondLabel && (
-            <p className="text-sm text-neutral-600 leading-6">
-              La diferencia entre <strong>{familyRace.topLabel}</strong> y{" "}
-              <strong>{familyRace.secondLabel}</strong> es suficientemente chica
-              como para no cerrar esta lectura como una sentencia única.
-            </p>
-          )}
+          {displayFrontierReading &&
+            familyRace?.topLabel &&
+            familyRace?.secondLabel && (
+              <p className="text-sm text-neutral-600 leading-6">
+                La diferencia entre <strong>{familyRace.topLabel}</strong> y{" "}
+                <strong>{familyRace.secondLabel}</strong> es suficientemente
+                chica como para no cerrar esta lectura como una sentencia única.
+              </p>
+            )}
         </div>
 
         {/* CONTRADICCIÓN DIAGNÓSTICA */}
@@ -698,6 +867,15 @@ export default function ResultPage() {
                     {normalizeLabel(
                       experienceDistillation.recommendedLearningUse,
                     )}
+                  </strong>
+                </p>
+              )}
+
+              {contextualSituationReview?.recommendedUse && (
+                <p>
+                  Uso recomendado por juez contextual:{" "}
+                  <strong>
+                    {normalizeLabel(contextualSituationReview.recommendedUse)}
                   </strong>
                 </p>
               )}
@@ -978,9 +1156,9 @@ export default function ResultPage() {
                       </p>
                     )}
 
-                    {safeArray(finding.evidence).length > 0 && (
+                    {toTextItems(finding.evidence).length > 0 && (
                       <ul className="list-disc pl-5 text-sm text-neutral-700 space-y-1">
-                        {safeArray(finding.evidence)
+                        {toTextItems(finding.evidence)
                           .slice(0, 4)
                           .map((item, itemIndex) => (
                             <li
@@ -995,6 +1173,216 @@ export default function ResultPage() {
                     )}
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* JUEZ CONTEXTUAL DE SITUACIÓN */}
+        {contextualSituationReview && (
+          <div className="border border-violet-300 bg-violet-50 rounded-xl p-6 space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm uppercase tracking-wide text-violet-700">
+                Juez contextual de situación
+              </p>
+
+              <h3 className="text-lg font-medium">
+                Lectura del conjunto del caso
+              </h3>
+
+              <p className="text-sm text-neutral-700 leading-6">
+                Esta capa mira el caso desde arriba: situación actual, contexto
+                vital, fuerzas personales, restricciones, dirección probable y
+                riesgo de mala lectura si se toman sólo palabras aisladas.
+              </p>
+            </div>
+
+            <div className="space-y-2 text-sm">
+              <p>
+                Veredicto contextual:{" "}
+                <strong>
+                  {normalizeLabel(contextualSituationReview.verdict)}
+                </strong>
+              </p>
+
+              {contextualSituationReview.recommendedUse && (
+                <p>
+                  Uso recomendado:{" "}
+                  <strong>
+                    {normalizeLabel(contextualSituationReview.recommendedUse)}
+                  </strong>
+                </p>
+              )}
+
+              {contextualSituationReview.dominantContext && (
+                <p>
+                  Contexto dominante:{" "}
+                  <strong>
+                    {normalizeLabel(contextualSituationReview.dominantContext)}
+                  </strong>
+                </p>
+              )}
+
+              {contextualSituationReview.suggestedPrimaryFamily && (
+                <p>
+                  Familia sugerida por contexto:{" "}
+                  <strong>
+                    {normalizeLabel(
+                      contextualSituationReview.suggestedPrimaryFamily,
+                    )}
+                  </strong>
+                </p>
+              )}
+
+              {safeArray(contextualSituationReview.suggestedFrontier).length >
+                0 && (
+                <p>
+                  Frontera contextual sugerida:{" "}
+                  <strong>
+                    {safeArray(contextualSituationReview.suggestedFrontier)
+                      .map((family) => normalizeLabel(family))
+                      .join(" / ")}
+                  </strong>
+                </p>
+              )}
+
+              <p>
+                ¿Sugiere ajustar diagnóstico?:{" "}
+                <strong>
+                  {contextualSituationReview.shouldAdjustDiagnosis
+                    ? "Sí"
+                    : "No"}
+                </strong>
+              </p>
+
+              <p>
+                ¿Sugiere abrir frontera?:{" "}
+                <strong>
+                  {contextualSituationReview.shouldOpenFrontier ? "Sí" : "No"}
+                </strong>
+              </p>
+
+              <p>
+                ¿Sugiere revisión humana?:{" "}
+                <strong>
+                  {contextualSituationReview.shouldRequestHumanReview
+                    ? "Sí"
+                    : "No"}
+                </strong>
+              </p>
+
+              {(contextualSituationReview.contextSummary ||
+                contextualSituationReview.summary) && (
+                <p className="text-neutral-700 leading-6">
+                  {contextualSituationReview.contextSummary ??
+                    contextualSituationReview.summary}
+                </p>
+              )}
+            </div>
+
+            {contextualForces.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="font-medium">Fuerzas contextuales detectadas</h4>
+
+                {contextualForces.slice(0, 5).map((force, index) => (
+                  <div
+                    key={`${force.type ?? force.label ?? "force"}-${index}`}
+                    className="bg-white border border-violet-100 rounded-lg p-4 space-y-2"
+                  >
+                    <div className="flex justify-between gap-4 text-sm">
+                      <p className="font-medium">
+                        {normalizeLabel(force.label ?? force.type)}
+                      </p>
+
+                      <p className="text-neutral-500">
+                        Fuerza: {formatPercent(force.strength)}
+                      </p>
+                    </div>
+
+                    {safeArray(force.families).length > 0 && (
+                      <p className="text-sm text-neutral-700">
+                        Familias asociadas:{" "}
+                        <strong>
+                          {safeArray(force.families)
+                            .map((family) => normalizeLabel(family))
+                            .join(" / ")}
+                        </strong>
+                      </p>
+                    )}
+
+                    {!safeArray(force.families).length && force.family && (
+                      <p className="text-sm text-neutral-700">
+                        Familia asociada:{" "}
+                        <strong>{normalizeLabel(force.family)}</strong>
+                      </p>
+                    )}
+
+                    {(force.interpretation || force.reason) && (
+                      <p className="text-sm text-neutral-700 leading-6">
+                        {itemToText(
+                          (force.interpretation ??
+                            force.reason) as TextItemForView,
+                        )}
+                      </p>
+                    )}
+
+                    {toTextItems(force.evidence).length > 0 && (
+                      <ul className="list-disc pl-5 text-sm text-neutral-700 space-y-1">
+                        {toTextItems(force.evidence)
+                          .slice(0, 4)
+                          .map((item, itemIndex) => (
+                            <li key={`context-force-${index}-${itemIndex}`}>
+                              {item}
+                            </li>
+                          ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {contextualActivationHints.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-medium">Pistas para activación</h4>
+                <ul className="list-disc pl-5 text-sm text-neutral-700 space-y-1">
+                  {contextualActivationHints.slice(0, 5).map((hint, index) => (
+                    <li key={`context-activation-${index}`}>{hint}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {contextualSuggestedThemes.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-medium">Temáticas que podrían calzar</h4>
+                <ul className="list-disc pl-5 text-sm text-neutral-700 space-y-1">
+                  {contextualSuggestedThemes.slice(0, 5).map((theme, index) => (
+                    <li key={`context-theme-${index}`}>{theme}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {contextualWarnings.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-medium">Advertencias contextuales</h4>
+                <ul className="list-disc pl-5 text-sm text-neutral-700 space-y-1">
+                  {contextualWarnings.slice(0, 5).map((warning, index) => (
+                    <li key={`context-warning-${index}`}>{warning}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {contextualNotes.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-medium">Notas internas</h4>
+                <ul className="list-disc pl-5 text-sm text-neutral-700 space-y-1">
+                  {contextualNotes.slice(0, 5).map((note, index) => (
+                    <li key={`context-note-${index}`}>{note}</li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
@@ -1077,113 +1465,126 @@ export default function ResultPage() {
               <div className="space-y-3">
                 <h4 className="font-medium">Lecciones extraídas</h4>
 
-                {extractedLessons.map((lesson, index) => (
-                  <div
-                    key={`${lesson.type ?? "lesson"}-${index}`}
-                    className="bg-white border border-emerald-100 rounded-lg p-4 space-y-3"
-                  >
-                    <div className="flex justify-between gap-4 text-sm">
-                      <p className="font-medium">
-                        {normalizeLabel(lesson.type)}
-                      </p>
+                {extractedLessons.map((lesson, index) => {
+                  const lessonConditions = toTextItems(lesson.conditions);
+                  const lessonPositiveMarkers = toTextItems(
+                    lesson.positiveMarkers,
+                  );
+                  const lessonNegativeMarkers = toTextItems(
+                    lesson.negativeMarkers,
+                  );
+                  const lessonWarnings = toTextItems(lesson.misreadWarnings);
 
-                      <p className="text-neutral-500">
-                        Fuerza: {formatPercent(lesson.strength)}
-                      </p>
-                    </div>
+                  return (
+                    <div
+                      key={`${lesson.type ?? "lesson"}-${index}`}
+                      className="bg-white border border-emerald-100 rounded-lg p-4 space-y-3"
+                    >
+                      <div className="flex justify-between gap-4 text-sm">
+                        <p className="font-medium">
+                          {normalizeLabel(lesson.type)}
+                        </p>
 
-                    {safeArray(lesson.families).length > 0 && (
-                      <p className="text-sm text-neutral-700">
-                        Familias:{" "}
-                        <strong>
-                          {safeArray(lesson.families)
-                            .map((family) => normalizeLabel(family))
-                            .join(" / ")}
-                        </strong>
-                      </p>
-                    )}
+                        <p className="text-neutral-500">
+                          Fuerza: {formatPercent(lesson.strength)}
+                        </p>
+                      </div>
 
-                    {!safeArray(lesson.families).length &&
-                      (lesson.primaryFamily || lesson.secondaryFamily) && (
+                      {safeArray(lesson.families).length > 0 && (
                         <p className="text-sm text-neutral-700">
                           Familias:{" "}
                           <strong>
-                            {[lesson.primaryFamily, lesson.secondaryFamily]
-                              .filter(Boolean)
+                            {safeArray(lesson.families)
                               .map((family) => normalizeLabel(family))
                               .join(" / ")}
                           </strong>
                         </p>
                       )}
 
-                    {lesson.lesson && (
-                      <p className="text-sm text-neutral-700 leading-6">
-                        {lesson.lesson}
-                      </p>
-                    )}
+                      {!safeArray(lesson.families).length &&
+                        (lesson.primaryFamily || lesson.secondaryFamily) && (
+                          <p className="text-sm text-neutral-700">
+                            Familias:{" "}
+                            <strong>
+                              {[lesson.primaryFamily, lesson.secondaryFamily]
+                                .filter(Boolean)
+                                .map((family) => normalizeLabel(family))
+                                .join(" / ")}
+                            </strong>
+                          </p>
+                        )}
 
-                    {safeArray(lesson.conditions).length > 0 && (
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">Condiciones</p>
-                        <ul className="list-disc pl-5 text-sm text-neutral-700 space-y-1">
-                          {safeArray(lesson.conditions)
-                            .slice(0, 5)
-                            .map((item, itemIndex) => (
-                              <li key={`lesson-condition-${index}-${itemIndex}`}>
-                                {item}
-                              </li>
-                            ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {safeArray(lesson.positiveMarkers).length > 0 && (
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">
-                          Marcadores positivos
-                        </p>
+                      {lesson.lesson && (
                         <p className="text-sm text-neutral-700 leading-6">
-                          {safeArray(lesson.positiveMarkers).join(", ")}
+                          {lesson.lesson}
                         </p>
-                      </div>
-                    )}
+                      )}
 
-                    {safeArray(lesson.negativeMarkers).length > 0 && (
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">
-                          Marcadores que limitan la lectura
-                        </p>
+                      {lessonConditions.length > 0 && (
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">Condiciones</p>
+                          <ul className="list-disc pl-5 text-sm text-neutral-700 space-y-1">
+                            {lessonConditions
+                              .slice(0, 5)
+                              .map((item, itemIndex) => (
+                                <li
+                                  key={`lesson-condition-${index}-${itemIndex}`}
+                                >
+                                  {item}
+                                </li>
+                              ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {lessonPositiveMarkers.length > 0 && (
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">
+                            Marcadores positivos
+                          </p>
+                          <p className="text-sm text-neutral-700 leading-6">
+                            {lessonPositiveMarkers.join(", ")}
+                          </p>
+                        </div>
+                      )}
+
+                      {lessonNegativeMarkers.length > 0 && (
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">
+                            Marcadores que limitan la lectura
+                          </p>
+                          <p className="text-sm text-neutral-700 leading-6">
+                            {lessonNegativeMarkers.join(", ")}
+                          </p>
+                        </div>
+                      )}
+
+                      {lessonWarnings.length > 0 && (
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">
+                            Riesgos de mala lectura
+                          </p>
+                          <ul className="list-disc pl-5 text-sm text-neutral-700 space-y-1">
+                            {lessonWarnings
+                              .slice(0, 4)
+                              .map((item, itemIndex) => (
+                                <li key={`lesson-warning-${index}-${itemIndex}`}>
+                                  {item}
+                                </li>
+                              ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {lesson.requiresHumanApproval && (
                         <p className="text-sm text-neutral-700 leading-6">
-                          {safeArray(lesson.negativeMarkers).join(", ")}
+                          Esta lección requiere aprobación humana antes de
+                          convertirse en aprendizaje estable.
                         </p>
-                      </div>
-                    )}
-
-                    {safeArray(lesson.misreadWarnings).length > 0 && (
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">
-                          Riesgos de mala lectura
-                        </p>
-                        <ul className="list-disc pl-5 text-sm text-neutral-700 space-y-1">
-                          {safeArray(lesson.misreadWarnings)
-                            .slice(0, 4)
-                            .map((item, itemIndex) => (
-                              <li key={`lesson-warning-${index}-${itemIndex}`}>
-                                {item}
-                              </li>
-                            ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {lesson.requiresHumanApproval && (
-                      <p className="text-sm text-neutral-700 leading-6">
-                        Esta lección requiere aprobación humana antes de
-                        convertirse en aprendizaje estable.
-                      </p>
-                    )}
-                  </div>
-                ))}
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -1305,8 +1706,10 @@ export default function ResultPage() {
                   similarCases,
                   diagnosticReview,
                   experienceDistillation,
+                  contextualSituationReview,
                   effectiveLearningRedFlag,
                   isConflictReading,
+                  isFrontierSupportReading,
                   summaryForUser: rawResult.summaryForUser ?? null,
                   trace: rawResult.trace ?? null,
                 },

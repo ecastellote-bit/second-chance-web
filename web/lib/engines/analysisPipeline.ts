@@ -17,6 +17,7 @@ import {
 } from "./similarCaseEngine";
 import { runDiagnosticJudgeEngine } from "./diagnosticJudgeEngine";
 import { runDiagnosticExperienceDistiller } from "./diagnosticExperienceDistiller";
+import { runContextualSituationJudge } from "./contextualSituationJudge";
 
 type ClarificationMetaPayload = {
   roundsCompleted?: number;
@@ -184,6 +185,17 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
     diagnosticReview,
   });
 
+  const contextualSituationReview = runContextualSituationJudge({
+    intake,
+    finalReading,
+    familyScores: affinityBridge.familyScores ?? [],
+    affinityScores: affinityBridge.affinityScores ?? [],
+    similarCases,
+    learningSignal,
+    diagnosticReview,
+    experienceDistillation: experienceDistillation,
+  });
+
   /**
    * Puente explícito hacia frontend.
    *
@@ -209,6 +221,7 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
     diagnosticReview,
     diagnosticJudgeReview: diagnosticReview,
     experienceDistillation,
+    contextualSituationReview,
   } as unknown as FinalReading;
 
   const followup =
