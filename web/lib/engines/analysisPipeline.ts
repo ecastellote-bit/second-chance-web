@@ -18,6 +18,8 @@ import {
 import { runDiagnosticJudgeEngine } from "./diagnosticJudgeEngine";
 import { runDiagnosticExperienceDistiller } from "./diagnosticExperienceDistiller";
 import { runContextualSituationJudge } from "./contextualSituationJudge";
+import { ensureDiagnosticLearningTrace } from "./diagnosticLearningTrace";
+import { buildDiagnosticCaseStatistics } from "./diagnosticCaseStatistics";
 
 type ClarificationMetaPayload = {
   roundsCompleted?: number;
@@ -80,7 +82,10 @@ function uniqueTextLines(lines: string[]): string[] {
   });
 }
 
-function buildLearningInputText(rawInput: PipelineInput, intake: UserIntake): string {
+function buildLearningInputText(
+  rawInput: PipelineInput,
+  intake: UserIntake,
+): string {
   /**
    * Importante:
    * usamos rawInput + intake normalizado.
@@ -175,7 +180,7 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
    * - advertencia de mala lectura
    * - marcador contextual
    */
-  const experienceDistillation = runDiagnosticExperienceDistiller({
+  const rawExperienceDistillation = runDiagnosticExperienceDistiller({
     sourceInput: {
       rawInput,
       intake,
@@ -185,6 +190,16 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
     diagnosticReview,
   });
 
+  /**
+   * Capa 4: juez contextual de situación.
+   *
+   * Mira el caso desde arriba:
+   * - situación vital
+   * - restricciones
+   * - activos
+   * - fuerzas contextuales
+   * - riesgo de mala lectura por palabras aisladas
+   */
   const contextualSituationReview = runContextualSituationJudge({
     intake,
     finalReading,
@@ -193,7 +208,46 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
     similarCases,
     learningSignal,
     diagnosticReview,
-    experienceDistillation: experienceDistillation,
+    experienceDistillation: rawExperienceDistillation,
+  });
+
+  /**
+   * Capa 5: huella obligatoria de aprendizaje.
+   *
+   * Garantiza que todo caso deje al menos:
+   * - traza de calibración
+   * - tipo de huella
+   * - fuerza de influencia
+   * - enseñanza mínima
+   * - familias involucradas
+   *
+   * Regla madre:
+   * guardar ampliamente, influir selectivamente.
+   */
+  const experienceDistillation = ensureDiagnosticLearningTrace(
+    rawExperienceDistillation,
+    {
+      finalReading,
+      diagnosticReview,
+      contextualSituationReview,
+      similarCases,
+      learningSignal,
+    },
+  );
+
+  const diagnosticCaseStatistics = buildDiagnosticCaseStatistics({
+    sourceInput: {
+      rawInput,
+      intake,
+    },
+    finalReading,
+    familyScores: affinityBridge.familyScores ?? [],
+    affinityScores: affinityBridge.affinityScores ?? [],
+    similarCases,
+    learningSignal,
+    diagnosticReview,
+    experienceDistillation,
+    contextualSituationReview,
   });
 
   /**
@@ -206,6 +260,7 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
    * - similarCases
    * - diagnosticReview
    * - experienceDistillation
+   * - contextualSituationReview
    */
   const finalReadingWithDiagnosticBridge = {
     ...finalReading,
@@ -216,12 +271,21 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
     likelyContributionModes: affinityBridge.likelyContributionModes ?? [],
     likelyFlourishingConditions:
       affinityBridge.likelyFlourishingConditions ?? [],
+
     learningSignal,
     similarCases,
+
     diagnosticReview,
     diagnosticJudgeReview: diagnosticReview,
+
     experienceDistillation,
+    diagnosticExperienceDistillation: experienceDistillation,
+    diagnosticSurgery: experienceDistillation,
+    learningDistillation: experienceDistillation,
+
     contextualSituationReview,
+    contextualSituationJudge: contextualSituationReview,
+    contextualReview: contextualSituationReview,
   } as unknown as FinalReading;
 
   const followup =

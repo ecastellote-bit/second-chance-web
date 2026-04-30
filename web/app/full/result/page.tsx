@@ -89,6 +89,18 @@ type ExtractedLearningLessonForView = {
   requiresHumanApproval?: boolean;
 };
 
+type DiagnosticLearningTraceForView = {
+  shouldStoreTrace?: boolean;
+  learningTier?: string;
+  shouldInfluenceFutureCases?: boolean;
+  influenceStrength?: number;
+  lesson?: string;
+  whyNotStronger?: string;
+  familiesInvolved?: string[];
+  riskPrevented?: string;
+  requiresHumanApproval?: boolean;
+};
+
 type ExperienceDistillationForView = {
   verdict?: string;
   recommendedLearningUse?: string;
@@ -106,10 +118,18 @@ type ExperienceDistillationForView = {
   misreadWarnings?: TextItemForView[];
   warnings?: TextItemForView[];
   notes?: TextItemForView[];
+
+  learningTrace?: DiagnosticLearningTraceForView;
+  shouldStoreTrace?: boolean;
+  learningTier?: string;
+  shouldInfluenceFutureCases?: boolean;
+  influenceStrength?: number;
+  whyNotStronger?: string;
 };
 
 type ContextualForceForView = {
   type?: string;
+  kind?: string;
   label?: string;
   family?: string;
   families?: string[];
@@ -138,6 +158,39 @@ type ContextualSituationReviewForView = {
   activationHints?: TextItemForView[];
   suggestedThemes?: TextItemForView[];
   warnings?: TextItemForView[];
+  notes?: TextItemForView[];
+};
+
+type DiagnosticCaseStatisticsForView = {
+  caseId?: string;
+  createdAt?: string;
+  resultType?: string;
+  primaryFamily?: string;
+  dominantFamily?: string;
+  suggestedPrimaryFamily?: string;
+
+  topFamilies?: TextItemForView[];
+  frontierFamilies?: string[];
+  involvedFamilies?: string[];
+
+  contextualForces?: TextItemForView[];
+  strongestContextualForces?: TextItemForView[];
+
+  learningTraceType?: string;
+  learningFootprintType?: string;
+  shouldStore?: boolean;
+  shouldInfluenceFutureCases?: boolean;
+  influenceStrength?: number;
+
+  compressionDetected?: boolean;
+  humanReviewSuggested?: boolean;
+  frontierDetected?: boolean;
+  conflictDetected?: boolean;
+
+  statisticalTags?: string[];
+  tags?: string[];
+
+  summary?: string;
   notes?: TextItemForView[];
 };
 
@@ -183,6 +236,10 @@ type ResultForView = {
   contextualSituationReview?: ContextualSituationReviewForView | null;
   contextualReview?: ContextualSituationReviewForView | null;
   situationReview?: ContextualSituationReviewForView | null;
+
+  diagnosticCaseStatistics?: DiagnosticCaseStatisticsForView | null;
+  caseStatistics?: DiagnosticCaseStatisticsForView | null;
+  statisticalTrace?: DiagnosticCaseStatisticsForView | null;
 
   summaryForUser?: SummaryForUserForView;
 
@@ -249,6 +306,11 @@ function itemToText(value: TextItemForView): string {
       "theme",
       "name",
       "description",
+      "family",
+      "familyId",
+      "id",
+      "kind",
+      "type",
     ];
 
     const secondaryKeys = ["reason", "interpretation", "fit", "note"];
@@ -259,7 +321,10 @@ function itemToText(value: TextItemForView): string {
 
     const secondary = secondaryKeys
       .map((key) => value[key])
-      .filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+      .filter(
+        (item): item is string =>
+          typeof item === "string" && item.trim().length > 0,
+      );
 
     if (typeof primary === "string") {
       const pieces = uniqueStrings([primary, ...secondary]);
@@ -378,6 +443,17 @@ function getContextualSituationReview(
   );
 }
 
+function getDiagnosticCaseStatistics(
+  rawResult: ResultForView,
+): DiagnosticCaseStatisticsForView | null {
+  return (
+    rawResult.diagnosticCaseStatistics ??
+    rawResult.caseStatistics ??
+    rawResult.statisticalTrace ??
+    null
+  );
+}
+
 function getExtractedLessons(
   experienceDistillation: ExperienceDistillationForView | null,
 ): ExtractedLearningLessonForView[] {
@@ -390,6 +466,33 @@ function getExtractedLessons(
   if (lessons.length > 0) return lessons;
 
   return safeArray(experienceDistillation.distilledLessons);
+}
+
+function getLearningTrace(
+  experienceDistillation: ExperienceDistillationForView | null,
+): DiagnosticLearningTraceForView | null {
+  if (!experienceDistillation) return null;
+
+  if (experienceDistillation.learningTrace) {
+    return experienceDistillation.learningTrace;
+  }
+
+  return {
+    shouldStoreTrace: true,
+    learningTier: experienceDistillation.learningTier ?? "calibration_only",
+    shouldInfluenceFutureCases:
+      experienceDistillation.shouldInfluenceFutureCases ?? false,
+    influenceStrength: experienceDistillation.influenceStrength ?? 0,
+    whyNotStronger:
+      experienceDistillation.whyNotStronger ??
+      experienceDistillation.summary ??
+      "El caso todavía no deja una enseñanza suficientemente limpia para influir en futuros diagnósticos.",
+    lesson:
+      "El caso debe dejar al menos una traza mínima de calibración, aunque no influya todavía en futuros diagnósticos.",
+    riskPrevented:
+      "Evitar que una corrida diagnóstica pase por el sistema sin dejar registro útil.",
+    requiresHumanApproval: false,
+  };
 }
 
 function toSerializableSnapshot(value: unknown): unknown {
@@ -589,6 +692,95 @@ function buildAssistedHypothesis(params: {
   };
 }
 
+function buildFallbackDiagnosticCaseStatistics(params: {
+  rawResult: ResultForView;
+  displayedMainDirection: string;
+  familyScores: FamilyScoreForView[];
+  frontierParts: string[];
+  contextualSituationReview: ContextualSituationReviewForView | null;
+  contextualForces: ContextualForceForView[];
+  learningTrace: DiagnosticLearningTraceForView | null;
+  isConflictReading: boolean;
+  displayFrontierReading: boolean;
+  isCompressed: boolean;
+  diagnosticReview: DiagnosticReviewForView | null;
+}): DiagnosticCaseStatisticsForView {
+  const topFamilies = params.familyScores
+    .slice(0, 5)
+    .map((family) => {
+      const label = getFamilyLabel(family);
+      const score = formatPercent(getFamilyScore(family));
+      return `${label}: ${score}`;
+    });
+
+  const contextualForceLabels = params.contextualForces
+    .slice(0, 6)
+    .map((force) => force.label ?? force.kind ?? force.type ?? "")
+    .filter(Boolean);
+
+  const involvedFamilies = uniqueStrings([
+    params.rawResult.corePattern ?? "",
+    params.displayedMainDirection,
+    ...params.frontierParts,
+    params.contextualSituationReview?.suggestedPrimaryFamily ?? "",
+    ...safeArray(params.contextualSituationReview?.suggestedFrontier),
+    ...safeArray(params.learningTrace?.familiesInvolved),
+    ...params.familyScores.slice(0, 3).map((family) => getFamilyLabel(family)),
+  ]);
+
+  const tags = uniqueStrings([
+    params.rawResult.resultType ?? "",
+    params.displayFrontierReading ? "frontier_detected" : "",
+    params.isConflictReading ? "conflict_detected" : "",
+    params.isCompressed ? "compression_detected" : "",
+    params.learningTrace?.learningTier ?? "",
+    params.contextualSituationReview?.dominantContext ?? "",
+    params.diagnosticReview?.finalVerdict ?? "",
+  ]);
+
+  return {
+    createdAt: new Date().toISOString(),
+    resultType: params.rawResult.resultType,
+    primaryFamily: params.displayedMainDirection,
+    dominantFamily: params.rawResult.corePattern,
+    suggestedPrimaryFamily:
+      params.contextualSituationReview?.suggestedPrimaryFamily,
+
+    topFamilies,
+    frontierFamilies: params.frontierParts,
+    involvedFamilies,
+
+    contextualForces: contextualForceLabels,
+    strongestContextualForces: contextualForceLabels.slice(0, 3),
+
+    learningTraceType: params.learningTrace?.learningTier ?? "calibration_only",
+    learningFootprintType:
+      params.learningTrace?.learningTier ?? "calibration_only",
+    shouldStore: params.learningTrace?.shouldStoreTrace ?? true,
+    shouldInfluenceFutureCases:
+      params.learningTrace?.shouldInfluenceFutureCases ?? false,
+    influenceStrength: params.learningTrace?.influenceStrength ?? 0,
+
+    compressionDetected: params.isCompressed,
+    humanReviewSuggested:
+      params.contextualSituationReview?.shouldRequestHumanReview ??
+      params.diagnosticReview?.shouldRequestHumanReview ??
+      false,
+    frontierDetected: params.displayFrontierReading,
+    conflictDetected: params.isConflictReading,
+
+    statisticalTags: tags,
+    tags,
+
+    summary:
+      "Traza estadística derivada para que esta corrida deje registro agregable aunque todavía no exista una traza persistida perfecta desde backend.",
+    notes: [
+      "Esta traza sirve para contar patrones, fronteras, familias involucradas, señales contextuales y huella de aprendizaje.",
+      "No decide el diagnóstico. Alimenta memoria estadística y auditoría futura.",
+    ],
+  };
+}
+
 export default function ResultPage() {
   const fullAnswersContext = useFullAnswers();
   const { analysis } = fullAnswersContext;
@@ -617,21 +809,15 @@ export default function ResultPage() {
     },
   );
 
-  const usefulFamilyScores = sortedFamilyScores.filter(
-    (family) => getFamilyScore(family) > 0 || getFamilyConfidence(family) > 0,
-  );
+  const usefulFamilyScores = sortedFamilyScores.filter((family) => {
+    const score = getFamilyScore(family);
+    return score >= 0.05;
+  });
 
-  const visibleFamilyScores =
-    usefulFamilyScores.length > 0
-      ? usefulFamilyScores.slice(0, 5)
-      : sortedFamilyScores.slice(0, 5);
+  const visibleFamilyScores = usefulFamilyScores.slice(0, 5);
 
   const familyRace = rawResult.trace?.familyRace ?? null;
   const mainDirectionParts = getDirectionParts(mainDirection);
-
-  const rawFrontierReading =
-    Boolean(familyRace?.shouldAvoidSingleClearClaim) ||
-    mainDirectionParts.length > 1;
 
   const learningSignal: LearningSignalForView | null =
     rawResult.learningSignal ?? null;
@@ -641,6 +827,28 @@ export default function ResultPage() {
 
   const experienceDistillation = getExperienceDistillation(rawResult);
   const contextualSituationReview = getContextualSituationReview(rawResult);
+  const learningTrace = getLearningTrace(experienceDistillation);
+  const rawDiagnosticCaseStatistics = getDiagnosticCaseStatistics(rawResult);
+
+  const familyRaceFrontierParts =
+    familyRace?.topLabel && familyRace?.secondLabel
+      ? [familyRace.topLabel, familyRace.secondLabel]
+      : [];
+
+  const contextualFrontierParts = safeArray(
+    contextualSituationReview?.suggestedFrontier,
+  );
+
+  const frontierParts =
+    mainDirectionParts.length > 1
+      ? mainDirectionParts
+      : familyRaceFrontierParts.length >= 2
+        ? familyRaceFrontierParts
+        : contextualFrontierParts.length >= 2
+          ? contextualFrontierParts
+          : [];
+
+  const hasDisplayableFrontier = frontierParts.length >= 2;
 
   const contextualForces = [
     ...safeArray(contextualSituationReview?.forces),
@@ -686,13 +894,19 @@ export default function ResultPage() {
       distillationUseKey === "frontier support" ||
       contextualVerdictKey === "frontier" ||
       contextualUseKey === "frontier support" ||
-      rawFrontierReading);
+      Boolean(familyRace?.shouldAvoidSingleClearClaim));
 
-  const displayFrontierReading = isFrontierSupportReading || rawFrontierReading;
+  const displayFrontierReading =
+    isFrontierSupportReading && hasDisplayableFrontier;
+
+  const displayedMainDirection = displayFrontierReading
+    ? frontierParts.join(" / ")
+    : mainDirection;
 
   const mainDirectionKeys = new Set(
     [
       ...mainDirectionParts,
+      ...frontierParts,
       familyRace?.topLabel ?? "",
       familyRace?.secondLabel ?? "",
     ].map((part) => normalizeForComparison(part)),
@@ -701,10 +915,13 @@ export default function ResultPage() {
   const secondaryDirections = sortedFamilyScores
     .filter((family) => {
       const label = normalizeForComparison(getFamilyLabel(family));
+      const score = getFamilyScore(family);
+
       if (!label) return false;
       if (mainDirectionKeys.has(label)) return false;
+      if (score < 0.05) return false;
 
-      return getFamilyScore(family) > 0 || getFamilyConfidence(family) > 0;
+      return true;
     })
     .slice(0, 2);
 
@@ -768,6 +985,22 @@ export default function ResultPage() {
 
   const isCompressed = rawResult.resultType === "compressed_life";
 
+  const diagnosticCaseStatistics =
+    rawDiagnosticCaseStatistics ??
+    buildFallbackDiagnosticCaseStatistics({
+      rawResult,
+      displayedMainDirection,
+      familyScores: visibleFamilyScores,
+      frontierParts,
+      contextualSituationReview,
+      contextualForces,
+      learningTrace,
+      isConflictReading,
+      displayFrontierReading,
+      isCompressed,
+      diagnosticReview,
+    });
+
   const compressionText =
     rawResult.currentCost ??
     "Hoy parte de esta capacidad no está desplegada como podría, porque gran parte de tu energía está en sostener lo inmediato.";
@@ -797,7 +1030,7 @@ export default function ResultPage() {
         <div className="border border-neutral-200 rounded-xl p-6 space-y-3">
           <p className="text-sm text-neutral-500">{directionLabel}</p>
 
-          <h2 className="text-2xl font-semibold">{mainDirection}</h2>
+          <h2 className="text-2xl font-semibold">{displayedMainDirection}</h2>
 
           <p className="text-sm text-neutral-700 leading-6">{explanation}</p>
 
@@ -830,55 +1063,6 @@ export default function ResultPage() {
                 automática: conviene usarlo como caso de revisión, contraste y
                 aprendizaje controlado.
               </p>
-            </div>
-
-            <div className="space-y-2 text-sm">
-              {diagnosticReview?.finalVerdict && (
-                <p>
-                  Veredicto de jueces:{" "}
-                  <strong>{normalizeLabel(diagnosticReview.finalVerdict)}</strong>
-                </p>
-              )}
-
-              {diagnosticReview?.recommendedPrimaryFamily && (
-                <p>
-                  Familia sugerida por jueces:{" "}
-                  <strong>
-                    {normalizeLabel(diagnosticReview.recommendedPrimaryFamily)}
-                  </strong>
-                </p>
-              )}
-
-              {safeArray(diagnosticReview?.recommendedFrontier).length > 0 && (
-                <p>
-                  Frontera sugerida por jueces:{" "}
-                  <strong>
-                    {safeArray(diagnosticReview?.recommendedFrontier)
-                      .map((family) => normalizeLabel(family))
-                      .join(" / ")}
-                  </strong>
-                </p>
-              )}
-
-              {experienceDistillation?.recommendedLearningUse && (
-                <p>
-                  Uso recomendado por extracción quirúrgica:{" "}
-                  <strong>
-                    {normalizeLabel(
-                      experienceDistillation.recommendedLearningUse,
-                    )}
-                  </strong>
-                </p>
-              )}
-
-              {contextualSituationReview?.recommendedUse && (
-                <p>
-                  Uso recomendado por juez contextual:{" "}
-                  <strong>
-                    {normalizeLabel(contextualSituationReview.recommendedUse)}
-                  </strong>
-                </p>
-              )}
             </div>
           </div>
         )}
@@ -982,46 +1166,7 @@ export default function ResultPage() {
                 Advertencia: {learningSignal.warning}
               </p>
             )}
-
-            {learningSignal?.warning &&
-              !effectiveLearningRedFlag &&
-              experienceDistillation && (
-                <p className="text-neutral-700 leading-6">
-                  Observación: la memoria detectó una posible tensión, pero la
-                  extracción quirúrgica no la sostiene como red flag fuerte.
-                </p>
-              )}
           </div>
-
-          {assistedHypothesis && effectiveLearningRedFlag && (
-            <div className="border border-blue-400 bg-white rounded-lg p-4 space-y-2">
-              <p className="text-sm uppercase tracking-wide text-blue-700">
-                Hipótesis asistida por aprendizaje
-              </p>
-
-              <h4 className="text-lg font-semibold">
-                {normalizeLabel(assistedHypothesis.family)}
-              </h4>
-
-              <p className="text-sm text-neutral-700 leading-6">
-                {assistedHypothesis.reason}
-              </p>
-
-              <p className="text-sm text-neutral-600">
-                Confianza asistida:{" "}
-                {formatPercent(assistedHypothesis.confidence)}
-                {" · "}
-                Basada en {assistedHypothesis.basedOnCases} casos similares.
-              </p>
-
-              <p className="text-sm text-neutral-700 leading-6">
-                Esto no reemplaza automáticamente el diagnóstico principal, pero
-                funciona como una señal fuerte de revisión. Si el sistema
-                principal se desvía, esta capa ayuda a no perder una dirección
-                humana evidente.
-              </p>
-            </div>
-          )}
 
           {similarCases.length > 0 && (
             <div className="space-y-3">
@@ -1223,17 +1368,6 @@ export default function ResultPage() {
                 </p>
               )}
 
-              {contextualSituationReview.suggestedPrimaryFamily && (
-                <p>
-                  Familia sugerida por contexto:{" "}
-                  <strong>
-                    {normalizeLabel(
-                      contextualSituationReview.suggestedPrimaryFamily,
-                    )}
-                  </strong>
-                </p>
-              )}
-
               {safeArray(contextualSituationReview.suggestedFrontier).length >
                 0 && (
                 <p>
@@ -1247,7 +1381,7 @@ export default function ResultPage() {
               )}
 
               <p>
-                ¿Sugiere ajustar diagnóstico?:{" "}
+                Sugiere ajustar diagnóstico:{" "}
                 <strong>
                   {contextualSituationReview.shouldAdjustDiagnosis
                     ? "Sí"
@@ -1256,14 +1390,14 @@ export default function ResultPage() {
               </p>
 
               <p>
-                ¿Sugiere abrir frontera?:{" "}
+                Sugiere abrir frontera:{" "}
                 <strong>
                   {contextualSituationReview.shouldOpenFrontier ? "Sí" : "No"}
                 </strong>
               </p>
 
               <p>
-                ¿Sugiere revisión humana?:{" "}
+                Sugiere revisión humana:{" "}
                 <strong>
                   {contextualSituationReview.shouldRequestHumanReview
                     ? "Sí"
@@ -1286,36 +1420,20 @@ export default function ResultPage() {
 
                 {contextualForces.slice(0, 5).map((force, index) => (
                   <div
-                    key={`${force.type ?? force.label ?? "force"}-${index}`}
+                    key={`${
+                      force.kind ?? force.type ?? force.label ?? "force"
+                    }-${index}`}
                     className="bg-white border border-violet-100 rounded-lg p-4 space-y-2"
                   >
                     <div className="flex justify-between gap-4 text-sm">
                       <p className="font-medium">
-                        {normalizeLabel(force.label ?? force.type)}
+                        {normalizeLabel(force.label ?? force.kind ?? force.type)}
                       </p>
 
                       <p className="text-neutral-500">
                         Fuerza: {formatPercent(force.strength)}
                       </p>
                     </div>
-
-                    {safeArray(force.families).length > 0 && (
-                      <p className="text-sm text-neutral-700">
-                        Familias asociadas:{" "}
-                        <strong>
-                          {safeArray(force.families)
-                            .map((family) => normalizeLabel(family))
-                            .join(" / ")}
-                        </strong>
-                      </p>
-                    )}
-
-                    {!safeArray(force.families).length && force.family && (
-                      <p className="text-sm text-neutral-700">
-                        Familia asociada:{" "}
-                        <strong>{normalizeLabel(force.family)}</strong>
-                      </p>
-                    )}
 
                     {(force.interpretation || force.reason) && (
                       <p className="text-sm text-neutral-700 leading-6">
@@ -1382,6 +1500,217 @@ export default function ResultPage() {
                   {contextualNotes.slice(0, 5).map((note, index) => (
                     <li key={`context-note-${index}`}>{note}</li>
                   ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TRAZA ESTADÍSTICA DEL CASO */}
+        {diagnosticCaseStatistics && (
+          <div className="border border-slate-300 bg-slate-50 rounded-xl p-6 space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm uppercase tracking-wide text-slate-700">
+                Traza estadística del caso
+              </p>
+
+              <h3 className="text-lg font-medium">
+                Qué valor estadístico deja esta corrida
+              </h3>
+
+              <p className="text-sm text-neutral-700 leading-6">
+                Esta capa no decide el diagnóstico. Guarda información agregable
+                para detectar patrones, fronteras frecuentes, tensiones
+                repetidas, familias más confundidas y señales útiles a escala.
+              </p>
+            </div>
+
+            <div className="space-y-2 text-sm">
+              {diagnosticCaseStatistics.resultType && (
+                <p>
+                  Tipo de resultado:{" "}
+                  <strong>
+                    {normalizeLabel(diagnosticCaseStatistics.resultType)}
+                  </strong>
+                </p>
+              )}
+
+              {(diagnosticCaseStatistics.primaryFamily ||
+                diagnosticCaseStatistics.dominantFamily ||
+                diagnosticCaseStatistics.suggestedPrimaryFamily) && (
+                <p>
+                  Familia principal estadística:{" "}
+                  <strong>
+                    {normalizeLabel(
+                      diagnosticCaseStatistics.primaryFamily ??
+                        diagnosticCaseStatistics.dominantFamily ??
+                        diagnosticCaseStatistics.suggestedPrimaryFamily,
+                    )}
+                  </strong>
+                </p>
+              )}
+
+              {(diagnosticCaseStatistics.learningTraceType ||
+                diagnosticCaseStatistics.learningFootprintType) && (
+                <p>
+                  Tipo de huella:{" "}
+                  <strong>
+                    {normalizeLabel(
+                      diagnosticCaseStatistics.learningTraceType ??
+                        diagnosticCaseStatistics.learningFootprintType,
+                    )}
+                  </strong>
+                </p>
+              )}
+
+              {typeof diagnosticCaseStatistics.shouldStore === "boolean" && (
+                <p>
+                  ¿Debe guardarse?:{" "}
+                  <strong>
+                    {diagnosticCaseStatistics.shouldStore ? "Sí" : "No"}
+                  </strong>
+                </p>
+              )}
+
+              {typeof diagnosticCaseStatistics.shouldInfluenceFutureCases ===
+                "boolean" && (
+                <p>
+                  ¿Influye en futuros casos?:{" "}
+                  <strong>
+                    {diagnosticCaseStatistics.shouldInfluenceFutureCases
+                      ? "Sí"
+                      : "No"}
+                  </strong>
+                </p>
+              )}
+
+              {typeof diagnosticCaseStatistics.influenceStrength ===
+                "number" && (
+                <p>
+                  Fuerza de influencia:{" "}
+                  <strong>
+                    {formatPercent(diagnosticCaseStatistics.influenceStrength)}
+                  </strong>
+                </p>
+              )}
+
+              {typeof diagnosticCaseStatistics.frontierDetected ===
+                "boolean" && (
+                <p>
+                  Frontera detectada:{" "}
+                  <strong>
+                    {diagnosticCaseStatistics.frontierDetected ? "Sí" : "No"}
+                  </strong>
+                </p>
+              )}
+
+              {typeof diagnosticCaseStatistics.conflictDetected ===
+                "boolean" && (
+                <p>
+                  Conflicto detectado:{" "}
+                  <strong>
+                    {diagnosticCaseStatistics.conflictDetected ? "Sí" : "No"}
+                  </strong>
+                </p>
+              )}
+
+              {typeof diagnosticCaseStatistics.compressionDetected ===
+                "boolean" && (
+                <p>
+                  Compresión detectada:{" "}
+                  <strong>
+                    {diagnosticCaseStatistics.compressionDetected ? "Sí" : "No"}
+                  </strong>
+                </p>
+              )}
+
+              {typeof diagnosticCaseStatistics.humanReviewSuggested ===
+                "boolean" && (
+                <p>
+                  Revisión humana sugerida:{" "}
+                  <strong>
+                    {diagnosticCaseStatistics.humanReviewSuggested
+                      ? "Sí"
+                      : "No"}
+                  </strong>
+                </p>
+              )}
+
+              {diagnosticCaseStatistics.summary && (
+                <p className="text-neutral-700 leading-6">
+                  {diagnosticCaseStatistics.summary}
+                </p>
+              )}
+            </div>
+
+            {safeArray(diagnosticCaseStatistics.frontierFamilies).length > 0 && (
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Familias en frontera</p>
+                <p className="text-sm text-neutral-700 leading-6">
+                  {safeArray(diagnosticCaseStatistics.frontierFamilies)
+                    .map((family) => normalizeLabel(family))
+                    .join(" / ")}
+                </p>
+              </div>
+            )}
+
+            {toTextItems(diagnosticCaseStatistics.topFamilies).length > 0 && (
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Familias superiores</p>
+                <ul className="list-disc pl-5 text-sm text-neutral-700 space-y-1">
+                  {toTextItems(diagnosticCaseStatistics.topFamilies)
+                    .slice(0, 5)
+                    .map((item, index) => (
+                      <li key={`statistics-top-family-${index}`}>{item}</li>
+                    ))}
+                </ul>
+              </div>
+            )}
+
+            {toTextItems(diagnosticCaseStatistics.contextualForces).length >
+              0 && (
+              <div className="space-y-1">
+                <p className="text-sm font-medium">
+                  Fuerzas contextuales registradas
+                </p>
+                <ul className="list-disc pl-5 text-sm text-neutral-700 space-y-1">
+                  {toTextItems(diagnosticCaseStatistics.contextualForces)
+                    .slice(0, 6)
+                    .map((item, index) => (
+                      <li key={`statistics-contextual-force-${index}`}>
+                        {item}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            )}
+
+            {uniqueStrings([
+              ...safeArray(diagnosticCaseStatistics.statisticalTags ?? []),
+              ...safeArray(diagnosticCaseStatistics.tags ?? []),
+            ]).length > 0 && (
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Tags estadísticos</p>
+                <p className="text-sm text-neutral-700 leading-6">
+                  {uniqueStrings([
+                    ...safeArray(diagnosticCaseStatistics.statisticalTags ?? []),
+                    ...safeArray(diagnosticCaseStatistics.tags ?? []),
+                  ]).join(", ")}
+                </p>
+              </div>
+            )}
+
+            {toTextItems(diagnosticCaseStatistics.notes).length > 0 && (
+              <div className="space-y-1">
+                <p className="text-sm font-medium">
+                  Notas estadísticas internas
+                </p>
+                <ul className="list-disc pl-5 text-sm text-neutral-700 space-y-1">
+                  {toTextItems(diagnosticCaseStatistics.notes)
+                    .slice(0, 5)
+                    .map((note, index) => (
+                      <li key={`statistics-note-${index}`}>{note}</li>
+                    ))}
                 </ul>
               </div>
             )}
@@ -1460,6 +1789,79 @@ export default function ResultPage() {
                 </p>
               )}
             </div>
+
+            {learningTrace && (
+              <div className="bg-white border border-emerald-100 rounded-lg p-4 space-y-2">
+                <p className="text-sm uppercase tracking-wide text-emerald-700">
+                  Huella de aprendizaje
+                </p>
+
+                <p className="text-sm">
+                  Tipo de huella:{" "}
+                  <strong>{normalizeLabel(learningTrace.learningTier)}</strong>
+                </p>
+
+                <p className="text-sm">
+                  ¿Debe guardarse?:{" "}
+                  <strong>
+                    {learningTrace.shouldStoreTrace === false ? "No" : "Sí"}
+                  </strong>
+                </p>
+
+                <p className="text-sm">
+                  ¿Influye en futuros casos?:{" "}
+                  <strong>
+                    {learningTrace.shouldInfluenceFutureCases ? "Sí" : "No"}
+                  </strong>
+                </p>
+
+                <p className="text-sm">
+                  Fuerza de influencia:{" "}
+                  <strong>
+                    {formatPercent(learningTrace.influenceStrength)}
+                  </strong>
+                </p>
+
+                {learningTrace.requiresHumanApproval !== undefined && (
+                  <p className="text-sm">
+                    ¿Requiere aprobación humana?:{" "}
+                    <strong>
+                      {learningTrace.requiresHumanApproval ? "Sí" : "No"}
+                    </strong>
+                  </p>
+                )}
+
+                {learningTrace.lesson && (
+                  <p className="text-sm text-neutral-700 leading-6">
+                    Lección mínima: {learningTrace.lesson}
+                  </p>
+                )}
+
+                {learningTrace.whyNotStronger && (
+                  <p className="text-sm text-neutral-700 leading-6">
+                    Por qué no pesa más todavía:{" "}
+                    {learningTrace.whyNotStronger}
+                  </p>
+                )}
+
+                {learningTrace.riskPrevented && (
+                  <p className="text-sm text-neutral-700 leading-6">
+                    Riesgo que ayuda a prevenir: {learningTrace.riskPrevented}
+                  </p>
+                )}
+
+                {safeArray(learningTrace.familiesInvolved).length > 0 && (
+                  <p className="text-sm text-neutral-700 leading-6">
+                    Familias involucradas:{" "}
+                    <strong>
+                      {safeArray(learningTrace.familiesInvolved)
+                        .map((family) => normalizeLabel(family))
+                        .join(" / ")}
+                    </strong>
+                  </p>
+                )}
+              </div>
+            )}
 
             {extractedLessons.length > 0 && (
               <div className="space-y-3">
@@ -1699,6 +2101,7 @@ export default function ResultPage() {
                 currentResult: {
                   resultType: rawResult.resultType,
                   corePattern: rawResult.corePattern,
+                  displayedMainDirection,
                   dominantTension: rawResult.dominantTension,
                   currentCost: rawResult.currentCost,
                   familyScores: rawResult.familyScores ?? [],
@@ -1706,10 +2109,15 @@ export default function ResultPage() {
                   similarCases,
                   diagnosticReview,
                   experienceDistillation,
+                  learningTrace,
+                  diagnosticCaseStatistics,
+                  caseStatistics: diagnosticCaseStatistics,
+                  statisticalTrace: diagnosticCaseStatistics,
                   contextualSituationReview,
                   effectiveLearningRedFlag,
                   isConflictReading,
                   isFrontierSupportReading,
+                  displayFrontierReading,
                   summaryForUser: rawResult.summaryForUser ?? null,
                   trace: rawResult.trace ?? null,
                 },
