@@ -8,7 +8,10 @@ import { runTDM } from "./tdmEngine";
 import { runLTE } from "./lteEngine";
 import { runSEL } from "./selEngine";
 import { runAVE } from "./aveEngine";
-import { buildFinalReading } from "./resultOrchestrator";
+import {
+  buildFinalReading,
+  finalizeReadingAfterDiagnosticReview,
+} from "./resultOrchestrator";
 import { buildFollowupOrchestration } from "./followupOrchestrator";
 import { runAffinityPipelineBridge } from "./affinityPipelineBridge";
 import {
@@ -20,6 +23,7 @@ import { runDiagnosticExperienceDistiller } from "./diagnosticExperienceDistille
 import { runContextualSituationJudge } from "./contextualSituationJudge";
 import { ensureDiagnosticLearningTrace } from "./diagnosticLearningTrace";
 import { buildDiagnosticCaseStatistics } from "./diagnosticCaseStatistics";
+import { calibrateDiagnosticReviewIntensity } from "./diagnosticReviewCalibrator";
 
 type ClarificationMetaPayload = {
   roundsCompleted?: number;
@@ -102,6 +106,150 @@ function buildLearningInputText(
   return uniqueTextLines([...rawText, ...normalizedText]).join("\n");
 }
 
+function normalizeDiagnosticKey(value: unknown): string {
+  if (typeof value !== "string") return "";
+
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/_/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function diagnosticReviewHasWeakSimilarityWarning(
+  diagnosticReview: unknown,
+): boolean {
+  const review = diagnosticReview as any;
+
+  if (!review || typeof review !== "object") return false;
+
+  const findings = Array.isArray(review.findings) ? review.findings : [];
+
+  return findings.some((finding: any) => {
+    const judgeId = normalizeDiagnosticKey(finding?.judgeId);
+    const verdict = normalizeDiagnosticKey(finding?.verdict);
+    const reason = normalizeDiagnosticKey(finding?.reason);
+
+    return (
+      judgeId.includes("similar") &&
+      (verdict.includes("weak similarity warning") ||
+        reason.includes("similitud mas alta es baja") ||
+        reason.includes("similarity"))
+    );
+  });
+}
+
+function diagnosticReviewIsOtherwiseAligned(diagnosticReview: unknown): boolean {
+  const review = diagnosticReview as any;
+
+  if (!review || typeof review !== "object") return false;
+
+  const verdict = normalizeDiagnosticKey(review.finalVerdict);
+
+  return (
+    verdict === "aligned" ||
+    verdict === "aligned with caution" ||
+    verdict.includes("aligned")
+  );
+}
+
+function downgradeWeakSimilarityDistillation(params: {
+  rawExperienceDistillation: unknown;
+  diagnosticReview: unknown;
+}): unknown {
+  const distillation = params.rawExperienceDistillation as any;
+
+  if (!distillation || typeof distillation !== "object") {
+    return params.rawExperienceDistillation;
+  }
+
+  const hasWeakSimilarityWarning = diagnosticReviewHasWeakSimilarityWarning(
+    params.diagnosticReview,
+  );
+
+  const otherwiseAligned = diagnosticReviewIsOtherwiseAligned(
+    params.diagnosticReview,
+  );
+
+  if (!hasWeakSimilarityWarning || !otherwiseAligned) {
+    return params.rawExperienceDistillation;
+  }
+
+  return {
+    ...distillation,
+
+    verdict: "collect_partial_learning",
+    recommendedLearningUse: "calibration_only",
+    shouldBecomeFullLearnedCase: false,
+    shouldCreateObservation: true,
+    shouldRaiseRedFlag: false,
+    confidence:
+      typeof distillation.confidence === "number"
+        ? Math.min(distillation.confidence, 0.45)
+        : 0.4,
+
+    summary:
+      "La memoria de casos detecta una tensión débil por similitud baja, pero no contradice de forma fuerte el diagnóstico principal. Debe guardarse como calibración, no como misread warning.",
+
+    learningTrace: {
+      ...(distillation.learningTrace ?? {}),
+      shouldStoreTrace: true,
+      learningTier: "calibration_only",
+      shouldInfluenceFutureCases: false,
+      influenceStrength: 0,
+      requiresHumanApproval: false,
+      lesson:
+        "Cuando la memoria histórica empuja hacia otra familia con similitud baja, y los jueces principales están alineados, el caso debe dejar traza de calibración pero no conflicto fuerte.",
+      whyNotStronger:
+        "La similitud histórica es baja y no alcanza para desplazar una lectura principal consistente.",
+      riskPrevented:
+        "Evitar que casos aprendidos de baja similitud generen falsas contradicciones diagnósticas.",
+      familiesInvolved: [],
+    },
+  };
+}
+
+function extractFinalAdjudication(reading: FinalReading): unknown | null {
+  const trace = (reading as any)?.trace;
+
+  if (trace && typeof trace === "object" && !Array.isArray(trace)) {
+    return (trace as any).finalAdjudication ?? null;
+  }
+
+  return null;
+}
+
+function ensureTraceCarriesFinalAdjudication(
+  reading: FinalReading,
+): { trace: unknown; finalAdjudication: unknown | null } {
+  const existingTrace = (reading as any)?.trace ?? null;
+  const finalAdjudication = extractFinalAdjudication(reading);
+
+  if (
+    existingTrace &&
+    typeof existingTrace === "object" &&
+    !Array.isArray(existingTrace)
+  ) {
+    return {
+      trace: {
+        ...existingTrace,
+        finalAdjudication,
+      },
+      finalAdjudication,
+    };
+  }
+
+  return {
+    trace: {
+      rawTrace: existingTrace,
+      finalAdjudication,
+    },
+    finalAdjudication,
+  };
+}
+
 export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
   const clarificationMeta = rawInput.clarificationMeta;
   const intake = normalizeUserIntake(rawInput);
@@ -122,7 +270,13 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
   const plausibleDirections = runSEL(profiles, affinityBridge.familyScores);
   const actionVectors = runAVE(plausibleDirections, transitionAssessment);
 
-  const finalReading = buildFinalReading({
+  /**
+   * Lectura inicial.
+   *
+   * Esta lectura es deliberadamente provisoria:
+   * todavía no consultó memoria histórica ni fue auditada por jueces.
+   */
+  const provisionalReading = buildFinalReading({
     intake,
     signals,
     profiles,
@@ -136,8 +290,7 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
   /**
    * Capa 1: aprendizaje diagnóstico.
    *
-   * Compara el caso actual contra casos aprendidos.
-   * No reemplaza el diagnóstico principal: aporta memoria y auditoría.
+   * Compara el caso actual contra casos aprendidos / archivados.
    */
   const learningInputText = buildLearningInputText(rawInput, intake);
 
@@ -148,86 +301,84 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
 
   const learningSignal = buildLearningSignal(
     similarCases,
-    finalReading.corePattern,
+    provisionalReading.corePattern,
   );
 
   /**
    * Capa 2: juzgado de jueces diagnósticos.
    *
    * Revisa coherencia entre:
-   * - resultado principal
+   * - resultado principal provisorio
    * - ranking familiar
    * - casos similares
    * - aprendizaje histórico
    * - lenguaje humano detectado
    */
-  const diagnosticReview = runDiagnosticJudgeEngine({
+  const rawDiagnosticReview = runDiagnosticJudgeEngine({
     intake,
-    finalReading,
+    finalReading: provisionalReading,
     familyScores: affinityBridge.familyScores ?? [],
     affinityScores: affinityBridge.affinityScores ?? [],
     similarCases,
     learningSignal,
   });
 
+  const diagnosticReview = calibrateDiagnosticReviewIntensity(
+    rawDiagnosticReview,
+    {
+      similarCases,
+      familyScores: affinityBridge.familyScores ?? [],
+      finalReading: provisionalReading,
+    },
+  );
+
   /**
    * Capa 3: cirujano de experiencia diagnóstica.
    *
-   * No decide el diagnóstico.
-   * Extrae qué enseñanza parcial o total puede dejar este caso:
-   * - regla de frontera
-   * - contrapeso
-   * - advertencia de mala lectura
-   * - marcador contextual
+   * No decide la sentencia final.
+   * Extrae qué enseñanza puede dejar la corrida.
    */
   const rawExperienceDistillation = runDiagnosticExperienceDistiller({
     sourceInput: {
       rawInput,
       intake,
     },
-    finalReading,
+    finalReading: provisionalReading,
     learningSignal,
+    diagnosticReview,
+  });
+
+  const stabilizedExperienceDistillation = downgradeWeakSimilarityDistillation({
+    rawExperienceDistillation,
     diagnosticReview,
   });
 
   /**
    * Capa 4: juez contextual de situación.
    *
-   * Mira el caso desde arriba:
-   * - situación vital
-   * - restricciones
-   * - activos
-   * - fuerzas contextuales
-   * - riesgo de mala lectura por palabras aisladas
+   * Usa la distillation estabilizada, no la cruda.
    */
   const contextualSituationReview = runContextualSituationJudge({
     intake,
-    finalReading,
+    finalReading: provisionalReading,
     familyScores: affinityBridge.familyScores ?? [],
     affinityScores: affinityBridge.affinityScores ?? [],
     similarCases,
     learningSignal,
     diagnosticReview,
-    experienceDistillation: rawExperienceDistillation,
+    experienceDistillation: stabilizedExperienceDistillation,
   });
 
   /**
    * Capa 5: huella obligatoria de aprendizaje.
    *
-   * Garantiza que todo caso deje al menos:
-   * - traza de calibración
-   * - tipo de huella
-   * - fuerza de influencia
-   * - enseñanza mínima
-   * - familias involucradas
-   *
    * Regla madre:
    * guardar ampliamente, influir selectivamente.
    */
   const experienceDistillation = ensureDiagnosticLearningTrace(
-    rawExperienceDistillation,
+    stabilizedExperienceDistillation,
     {
-      finalReading,
+      finalReading: provisionalReading,
       diagnosticReview,
       contextualSituationReview,
       similarCases,
@@ -235,12 +386,44 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
     },
   );
 
+  /**
+   * Capa 6: adjudicación final.
+   *
+   * Esta es la pieza crítica:
+   * la lectura pública final ya no debe salir sólo de la lectura provisoria.
+   * Debe pasar por memoria, jueces y contexto.
+   */
+  const adjudicatedFinalReading = finalizeReadingAfterDiagnosticReview({
+    provisionalReading,
+    familyScores: affinityBridge.familyScores ?? [],
+    similarCases,
+    learningSignal,
+    diagnosticReview,
+    contextualSituationReview,
+    transitionAssessment,
+  });
+
+  const {
+    trace: adjudicatedTraceWithFinalAdjudication,
+    finalAdjudication,
+  } = ensureTraceCarriesFinalAdjudication(adjudicatedFinalReading);
+
+  /**
+   * Capa 7: traza estadística del caso.
+   *
+   * Importante:
+   * usamos adjudicatedFinalReading, no provisionalReading,
+   * para que la estadística refleje la sentencia final auditada.
+   */
   const diagnosticCaseStatistics = buildDiagnosticCaseStatistics({
     sourceInput: {
       rawInput,
       intake,
     },
-    finalReading,
+    finalReading: {
+      ...adjudicatedFinalReading,
+      trace: adjudicatedTraceWithFinalAdjudication,
+    } as FinalReading,
     familyScores: affinityBridge.familyScores ?? [],
     affinityScores: affinityBridge.affinityScores ?? [],
     similarCases,
@@ -251,19 +434,25 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
   });
 
   /**
-   * Puente explícito hacia frontend.
+   * Puente explícito hacia frontend y archivo.
    *
-   * El resultado público recibe:
-   * - familyScores
-   * - affinityScores
-   * - learningSignal
-   * - similarCases
+   * El resultado público recibe y preserva:
+   * - sentencia final adjudicada
+   * - trace.finalAdjudication
+   * - finalAdjudication top-level
+   * - familyScores / affinityScores
+   * - learningSignal / similarCases
    * - diagnosticReview
    * - experienceDistillation
    * - contextualSituationReview
+   * - diagnosticCaseStatistics
    */
   const finalReadingWithDiagnosticBridge = {
-    ...finalReading,
+    ...adjudicatedFinalReading,
+
+    trace: adjudicatedTraceWithFinalAdjudication,
+    finalAdjudication,
+
     familyScores: affinityBridge.familyScores ?? [],
     affinityScores: affinityBridge.affinityScores ?? [],
     topAffinities: affinityBridge.topAffinities ?? [],
@@ -286,6 +475,10 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
     contextualSituationReview,
     contextualSituationJudge: contextualSituationReview,
     contextualReview: contextualSituationReview,
+
+    diagnosticCaseStatistics,
+    diagnosticStatistics: diagnosticCaseStatistics,
+    statisticalTrace: diagnosticCaseStatistics,
   } as unknown as FinalReading;
 
   const followup =

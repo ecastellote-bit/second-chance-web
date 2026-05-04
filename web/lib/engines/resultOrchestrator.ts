@@ -8,6 +8,7 @@ import type {
   ResultType,
   TransitionAssessment,
 } from "../types/result";
+import type { LearningSignal, SimilarCaseMatch } from "../types/learning";
 import { toDiagnosticProfileSnapshot } from "../types/finalDiagnostic";
 import { buildValueGeneration } from "./valueGenerationEngine";
 import { buildCurrentMisalignment } from "./misalignmentEngine";
@@ -57,6 +58,42 @@ type OrchestratorInput = {
   };
 };
 
+type FinalAdjudicationInput = {
+  provisionalReading: FinalReading;
+  familyScores?: FamilyScoreLike[];
+  similarCases?: SimilarCaseMatch[];
+  learningSignal?: LearningSignal | null;
+  diagnosticReview?: unknown;
+  contextualSituationReview?: unknown;
+  transitionAssessment: TransitionAssessment;
+};
+
+type FinalAdjudicationVerdict =
+  | "keep"
+  | "upgrade_compressed_to_clear_direction"
+  | "open_frontier_or_review";
+
+type FinalAdjudicationTrace = {
+  verdict: FinalAdjudicationVerdict;
+  reason: string;
+  previousResultType: ResultType;
+  finalResultType: ResultType;
+  topFamilyLabel: string | null;
+  topFamilyScore: number;
+  secondFamilyLabel: string | null;
+  secondFamilyScore: number;
+  scoreGap: number;
+  diagnosticReviewAligned: boolean;
+  diagnosticReviewConflict: boolean;
+  diagnosticReviewSuggestsHumanReview: boolean;
+  memorySupportsTopFamily: boolean;
+  memoryContradictsTopFamily: boolean;
+  influentialSimilarCases: number;
+  rawOrCalibrationOnlyMatches: number;
+  contextualSuggestsReview: boolean;
+  contextualSuggestsFrontier: boolean;
+};
+
 const FAMILY_LABELS: Record<string, string> = {
   diplomatic_social_connector: "Diplomatic Social Connector",
   community_builder: "Community Builder",
@@ -99,6 +136,7 @@ function hasUsableProfileFallback(
   profile: ProbableProfile | null | undefined,
 ): boolean {
   const confidence = profile?.confidence;
+
   return (
     typeof confidence === "number" &&
     Number.isFinite(confidence) &&
@@ -110,6 +148,7 @@ function hasUsableSecondaryProfile(
   profile: ProbableProfile | null | undefined,
 ): boolean {
   const confidence = profile?.confidence;
+
   return (
     typeof confidence === "number" &&
     Number.isFinite(confidence) &&
@@ -147,6 +186,7 @@ function resolveFamilyLabel(score: FamilyScoreLike | null | undefined): string |
   }
 
   const familyId = resolveFamilyId(score);
+
   return familyId ? FAMILY_LABELS[familyId] ?? familyId : null;
 }
 
@@ -430,7 +470,7 @@ function resolveFunctionalSubtype(
     case "analytical_strategist":
       return "strategic_pattern_reader";
     case "creative_storyteller":
-      return "narrative_message_builder";
+      return "narrative_atmosphere_builder";
     case "technical_builder":
       return "operational_system_solver";
     case "cultural_explorer":
@@ -557,6 +597,23 @@ function mergeTraceWithFamilyRace(
   };
 }
 
+function mergeTraceWithFinalAdjudication(
+  trace: unknown,
+  finalAdjudication: FinalAdjudicationTrace,
+): unknown {
+  if (trace && typeof trace === "object" && !Array.isArray(trace)) {
+    return {
+      ...trace,
+      finalAdjudication,
+    };
+  }
+
+  return {
+    rawTrace: trace ?? null,
+    finalAdjudication,
+  };
+}
+
 function shouldExposeDominantPattern(resultType: ResultType): boolean {
   return resultType !== "insufficient_evidence";
 }
@@ -647,6 +704,656 @@ function buildDiagnosticSummary(params: {
   }
 
   return "La lectura todavía no tiene evidencia suficiente para afirmar una dirección sin inventar.";
+}
+
+function normalizeDiagnosticText(value: unknown): string {
+  if (typeof value !== "string") return "";
+
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/_/g, " ")
+    .replace(/[^a-z0-9ñ\s]/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function familiesMatch(a: unknown, b: unknown): boolean {
+  const normalizedA = normalizeDiagnosticText(a);
+  const normalizedB = normalizeDiagnosticText(b);
+
+  return normalizedA.length > 0 && normalizedB.length > 0 && normalizedA === normalizedB;
+}
+
+function readReviewText(review: unknown): string {
+  if (!review || typeof review !== "object") return "";
+
+  const value = review as any;
+
+  return [
+    value.finalVerdict,
+    value.verdict,
+    value.status,
+    value.summary,
+    value.reason,
+    value.recommendation,
+    value.warning,
+    ...(Array.isArray(value.findings)
+      ? value.findings.flatMap((finding: any) => [
+          finding?.verdict,
+          finding?.status,
+          finding?.reason,
+          finding?.summary,
+          finding?.family,
+          finding?.familyLabel,
+          finding?.recommendedFamily,
+        ])
+      : []),
+  ]
+    .filter(Boolean)
+    .map(String)
+    .join(" ");
+}
+
+function includesAny(text: string, markers: string[]): boolean {
+  return markers.some((marker) => text.includes(normalizeDiagnosticText(marker)));
+}
+
+function readBooleanFlag(source: unknown, keys: string[]): boolean | null {
+  if (!source || typeof source !== "object") return null;
+
+  const record = source as Record<string, unknown>;
+
+  for (const key of keys) {
+    const value = record[key];
+
+    if (typeof value === "boolean") {
+      return value;
+    }
+  }
+
+  return null;
+}
+
+function textHasExplicitNegativeConflict(text: string): boolean {
+  return includesAny(text, [
+    "red flag no",
+    "red flag de aprendizaje no",
+    "red flag false",
+    "conflicto detectado no",
+    "conflict detected false",
+    "no contradice",
+    "no contradice de forma fuerte",
+    "no se detecta una rivalidad",
+    "no se detecta patron fuerte",
+    "no se detecta patrón fuerte",
+    "sin contradiccion fuerte",
+    "sin contradicción fuerte",
+    "memoria historica no contradice",
+    "memoria histórica no contradice",
+  ]);
+}
+
+function textHasExplicitPositiveConflict(text: string): boolean {
+  return includesAny(text, [
+    "strong conflict",
+    "contradiccion fuerte",
+    "contradicción fuerte",
+    "misread warning",
+    "red flag true",
+    "red flag si",
+    "red flag sí",
+    "red flag activo",
+    "not aligned",
+    "desalineado",
+    "conflict detected true",
+    "conflicto detectado si",
+    "conflicto detectado sí",
+    "contradice de forma fuerte",
+  ]);
+}
+
+function diagnosticReviewIsAligned(diagnosticReview: unknown): boolean {
+  const text = normalizeDiagnosticText(readReviewText(diagnosticReview));
+
+  if (!text) return false;
+
+  if (textHasExplicitPositiveConflict(text) && !textHasExplicitNegativeConflict(text)) {
+    return false;
+  }
+
+  const hasAligned =
+    includesAny(text, [
+      "veredicto general aligned",
+      "final verdict aligned",
+      "aligned",
+      "alineado",
+      "alignment",
+    ]) && !includesAny(text, ["not aligned", "desalineado"]);
+
+  return hasAligned;
+}
+
+function diagnosticReviewHasConflict(diagnosticReview: unknown): boolean {
+  if (!diagnosticReview || typeof diagnosticReview !== "object") return false;
+
+  const review = diagnosticReview as Record<string, unknown>;
+
+  const explicitConflict = readBooleanFlag(review, [
+    "hasConflict",
+    "conflictDetected",
+    "shouldRaiseRedFlag",
+    "raisesRedFlag",
+    "redFlag",
+  ]);
+
+  if (explicitConflict !== null) {
+    return explicitConflict;
+  }
+
+  const text = normalizeDiagnosticText(readReviewText(diagnosticReview));
+
+  if (textHasExplicitNegativeConflict(text)) {
+    return false;
+  }
+
+  return textHasExplicitPositiveConflict(text);
+}
+
+function diagnosticReviewSuggestsHumanReview(diagnosticReview: unknown): boolean {
+  if (!diagnosticReview || typeof diagnosticReview !== "object") return false;
+
+  const review = diagnosticReview as Record<string, unknown>;
+
+  const explicitHumanReview = readBooleanFlag(review, [
+    "requiresHumanReview",
+    "humanReviewSuggested",
+    "suggestsHumanReview",
+    "suggestHumanReview",
+    "needsHumanReview",
+  ]);
+
+  if (explicitHumanReview !== null) {
+    return explicitHumanReview;
+  }
+
+  const text = normalizeDiagnosticText(readReviewText(diagnosticReview));
+
+  if (
+    includesAny(text, [
+      "revision humana sugerida no",
+      "revisión humana sugerida no",
+      "sugiere revision humana no",
+      "sugiere revisión humana no",
+      "requires human review false",
+      "human review no",
+      "human review false",
+    ])
+  ) {
+    return false;
+  }
+
+  return includesAny(text, [
+    "revision humana sugerida si",
+    "revisión humana sugerida sí",
+    "sugiere revision humana si",
+    "sugiere revisión humana sí",
+    "requires human review true",
+    "human review required",
+    "human review suggested",
+    "needs human review",
+  ]);
+}
+
+function contextualSuggestsReview(contextualSituationReview: unknown): boolean {
+  if (!contextualSituationReview || typeof contextualSituationReview !== "object") {
+    return false;
+  }
+
+  const review = contextualSituationReview as Record<string, unknown>;
+
+  const explicitHumanReview = readBooleanFlag(review, [
+    "suggestsHumanReview",
+    "suggestHumanReview",
+    "requiresHumanReview",
+    "needsHumanReview",
+  ]);
+
+  if (explicitHumanReview !== null) {
+    return explicitHumanReview;
+  }
+
+  const text = normalizeDiagnosticText(readReviewText(contextualSituationReview));
+
+  if (
+    includesAny(text, [
+      "revision humana sugerida no",
+      "revisión humana sugerida no",
+      "sugiere revision humana no",
+      "sugiere revisión humana no",
+      "requires human review false",
+      "human review no",
+      "human review false",
+    ])
+  ) {
+    return false;
+  }
+
+  return includesAny(text, [
+    "revision humana sugerida si",
+    "revisión humana sugerida sí",
+    "sugiere revision humana si",
+    "sugiere revisión humana sí",
+    "requires human review true",
+    "human review required",
+    "human review suggested",
+    "needs human review",
+  ]);
+}
+
+function contextualSuggestsFrontier(contextualSituationReview: unknown): boolean {
+  if (!contextualSituationReview || typeof contextualSituationReview !== "object") {
+    return false;
+  }
+
+  const review = contextualSituationReview as Record<string, unknown>;
+
+  const explicitOpenFrontier = readBooleanFlag(review, [
+    "suggestsOpenFrontier",
+    "suggestOpenFrontier",
+    "shouldOpenFrontier",
+    "opensFrontier",
+    "needsFrontierReview",
+  ]);
+
+  if (explicitOpenFrontier !== null) {
+    return explicitOpenFrontier;
+  }
+
+  const text = normalizeDiagnosticText(readReviewText(contextualSituationReview));
+
+  if (
+    includesAny(text, [
+      "sugiere abrir frontera no",
+      "abrir frontera no",
+      "should open frontier false",
+      "open frontier false",
+      "open frontier no",
+    ])
+  ) {
+    return false;
+  }
+
+  return includesAny(text, [
+    "sugiere abrir frontera si",
+    "sugiere abrir frontera sí",
+    "abrir frontera si",
+    "abrir frontera sí",
+    "should open frontier true",
+    "open frontier true",
+    "open frontier required",
+    "open frontier suggested",
+    "needs frontier review",
+  ]);
+}
+
+function getSimilarityInfluenceWeight(match: SimilarCaseMatch): number {
+  const extended = match as any;
+
+  if (extended.shouldInfluenceFutureCases === false) {
+    return 0;
+  }
+
+  if (
+    typeof extended.influenceWeight === "number" &&
+    Number.isFinite(extended.influenceWeight)
+  ) {
+    return Math.max(0, Math.min(1, extended.influenceWeight));
+  }
+
+  const status = normalizeDiagnosticText(extended.reviewStatus);
+
+  if (
+    status.includes("raw") ||
+    status.includes("calibration only") ||
+    status.includes("calibration_only") ||
+    status.includes("rejected")
+  ) {
+    return 0;
+  }
+
+  return 1;
+}
+
+function countRawOrCalibrationOnlyMatches(similarCases: SimilarCaseMatch[]): number {
+  return similarCases.filter((match) => getSimilarityInfluenceWeight(match) <= 0).length;
+}
+
+function countInfluentialSimilarCases(similarCases: SimilarCaseMatch[]): number {
+  return similarCases.filter((match) => getSimilarityInfluenceWeight(match) > 0).length;
+}
+
+function calculateMemoryPressureForFamily(
+  similarCases: SimilarCaseMatch[],
+  familyLabel: string | null,
+): { support: number; contradiction: number } {
+  if (!familyLabel) {
+    return { support: 0, contradiction: 0 };
+  }
+
+  let support = 0;
+  let contradiction = 0;
+
+  for (const match of similarCases) {
+    const influenceWeight = getSimilarityInfluenceWeight(match);
+    if (influenceWeight <= 0) continue;
+
+    const similarity =
+      typeof match.similarityScore === "number" && Number.isFinite(match.similarityScore)
+        ? match.similarityScore
+        : 0;
+
+    const weightedSimilarity = similarity * influenceWeight;
+
+    const matchSupportsFamily =
+      familiesMatch(match.expectedPrimaryFamily, familyLabel) ||
+      match.acceptableFamilies?.some((family) => familiesMatch(family, familyLabel));
+
+    if (matchSupportsFamily) {
+      support += weightedSimilarity;
+    } else {
+      contradiction += weightedSimilarity;
+    }
+  }
+
+  return { support, contradiction };
+}
+
+function memorySupportsTopFamily(params: {
+  similarCases: SimilarCaseMatch[];
+  learningSignal?: LearningSignal | null;
+  familyRace: FamilyRaceAnalysis;
+}): boolean {
+  const topLabel = params.familyRace.topLabel;
+  const topId = params.familyRace.topId;
+
+  if (!topLabel && !topId) return false;
+
+  const pressure = calculateMemoryPressureForFamily(params.similarCases, topLabel);
+
+  const strongestHistoricalFamily = (params.learningSignal as any)?.strongestHistoricalFamily;
+
+  const strongestMatchesTop =
+    familiesMatch(strongestHistoricalFamily, topLabel) ||
+    familiesMatch(strongestHistoricalFamily, topId);
+
+  return (
+    strongestMatchesTop ||
+    (pressure.support > 0 && pressure.support >= pressure.contradiction)
+  );
+}
+
+function memoryContradictsTopFamily(params: {
+  similarCases: SimilarCaseMatch[];
+  learningSignal?: LearningSignal | null;
+  familyRace: FamilyRaceAnalysis;
+}): boolean {
+  const topLabel = params.familyRace.topLabel;
+  const pressure = calculateMemoryPressureForFamily(params.similarCases, topLabel);
+
+  const learningSignalRaisesRedFlag = params.learningSignal?.shouldRaiseRedFlag === true;
+
+  return (
+    learningSignalRaisesRedFlag ||
+    (pressure.contradiction >= 0.28 && pressure.contradiction > pressure.support + 0.12)
+  );
+}
+
+function hasClearFamilyDirection(familyRace: FamilyRaceAnalysis): boolean {
+  return (
+    !!familyRace.topLabel &&
+    familyRace.topScore >= 0.6 &&
+    familyRace.scoreGap >= 0.12 &&
+    !familyRace.shouldAvoidSingleClearClaim
+  );
+}
+
+function shouldUpgradeCompressedLifeToClearDirection(params: {
+  provisionalReading: FinalReading;
+  familyRace: FamilyRaceAnalysis;
+  diagnosticReviewAligned: boolean;
+  diagnosticReviewConflict: boolean;
+  diagnosticReviewSuggestsHumanReview: boolean;
+  memorySupportsTopFamily: boolean;
+  memoryContradictsTopFamily: boolean;
+  contextualSuggestsReview: boolean;
+  contextualSuggestsFrontier: boolean;
+  transitionAssessment: TransitionAssessment;
+}): boolean {
+  if (params.provisionalReading.resultType !== "compressed_life") return false;
+
+  if (!hasClearFamilyDirection(params.familyRace)) return false;
+
+  if (!params.diagnosticReviewAligned) return false;
+
+  if (
+    params.diagnosticReviewConflict ||
+    params.diagnosticReviewSuggestsHumanReview ||
+    params.memoryContradictsTopFamily ||
+    params.contextualSuggestsReview ||
+    params.contextualSuggestsFrontier
+  ) {
+    return false;
+  }
+
+  if (
+    params.transitionAssessment.transitionMargin === "minimal" &&
+    params.familyRace.topScore < 0.72
+  ) {
+    return false;
+  }
+
+  return params.memorySupportsTopFamily || params.familyRace.topScore >= 0.66;
+}
+
+function buildUpgradedCompressedLifeSummary(params: {
+  provisionalReading: FinalReading;
+  familyRace: FamilyRaceAnalysis;
+}): FinalReading["summaryForUser"] {
+  const previous = params.provisionalReading.summaryForUser;
+
+  return {
+    ...previous,
+    diagnostico: params.familyRace.topLabel
+      ? `Aparece una dirección dominante suficientemente clara: ${params.familyRace.topLabel}. La compresión existe, pero no tapa la orientación principal.`
+      : "Aparece una dirección dominante suficientemente clara. La compresión existe, pero no tapa la orientación principal.",
+    tensiones:
+      previous.tensiones ??
+      "La tensión principal no es falta total de dirección, sino dificultad para convertir esa dirección en movimiento real dentro de las restricciones actuales.",
+    direccion: params.familyRace.topLabel
+      ? `La dirección más consistente hoy se ordena alrededor de ${params.familyRace.topLabel}.`
+      : previous.direccion,
+    cierre:
+      "No hace falta negar la compresión ni forzar una reinvención brusca. Hace falta proteger la dirección detectada y probarla con un movimiento pequeño, concreto y reversible.",
+  };
+}
+
+function buildFrontierOrReviewSummary(params: {
+  provisionalReading: FinalReading;
+  familyRace: FamilyRaceAnalysis;
+}): FinalReading["summaryForUser"] {
+  const previous = params.provisionalReading.summaryForUser;
+
+  const frontier =
+    params.familyRace.topLabel && params.familyRace.secondLabel
+      ? `${params.familyRace.topLabel} / ${params.familyRace.secondLabel}`
+      : params.familyRace.topLabel ?? "la familia principal detectada";
+
+  return {
+    ...previous,
+    diagnostico:
+      "La lectura detecta una dirección posible, pero la auditoría recomienda tratarla como frontera activa antes de cerrarla.",
+    direccion: `La zona que conviene revisar es ${frontier}.`,
+    cierre:
+      "No conviene emitir una sentencia cerrada todavía. La memoria histórica o los jueces sugieren revisar la frontera antes de convertir esto en conclusión final.",
+  };
+}
+
+export function finalizeReadingAfterDiagnosticReview(
+  input: FinalAdjudicationInput,
+): FinalReading {
+  const familyScores =
+    input.familyScores ??
+    ((input.provisionalReading as any).familyScores as FamilyScoreLike[] | undefined) ??
+    [];
+
+  const familyRace = analyzeFamilyRace(familyScores);
+  const similarCases = input.similarCases ?? [];
+
+  const diagnosticReviewAligned = diagnosticReviewIsAligned(input.diagnosticReview);
+  const diagnosticReviewConflict = diagnosticReviewHasConflict(input.diagnosticReview);
+  const diagnosticReviewHumanReview = diagnosticReviewSuggestsHumanReview(
+    input.diagnosticReview,
+  );
+  const contextualReview = contextualSuggestsReview(input.contextualSituationReview);
+  const contextualFrontier = contextualSuggestsFrontier(input.contextualSituationReview);
+
+  const memorySupport = memorySupportsTopFamily({
+    similarCases,
+    learningSignal: input.learningSignal,
+    familyRace,
+  });
+
+  const memoryContradiction = memoryContradictsTopFamily({
+    similarCases,
+    learningSignal: input.learningSignal,
+    familyRace,
+  });
+
+  const influentialSimilarCases = countInfluentialSimilarCases(similarCases);
+  const rawOrCalibrationOnlyMatches = countRawOrCalibrationOnlyMatches(similarCases);
+
+  const shouldUpgradeToClear = shouldUpgradeCompressedLifeToClearDirection({
+    provisionalReading: input.provisionalReading,
+    familyRace,
+    diagnosticReviewAligned,
+    diagnosticReviewConflict,
+    diagnosticReviewSuggestsHumanReview: diagnosticReviewHumanReview,
+    memorySupportsTopFamily: memorySupport,
+    memoryContradictsTopFamily: memoryContradiction,
+    contextualSuggestsReview: contextualReview,
+    contextualSuggestsFrontier: contextualFrontier,
+    transitionAssessment: input.transitionAssessment,
+  });
+
+  const shouldOpenFrontierOrReview =
+    !shouldUpgradeToClear &&
+    input.provisionalReading.resultType !== "insufficient_evidence" &&
+    (diagnosticReviewConflict ||
+      diagnosticReviewHumanReview ||
+      memoryContradiction ||
+      contextualReview ||
+      contextualFrontier);
+
+  const finalResultType: ResultType = shouldUpgradeToClear
+    ? "clear_direction"
+    : input.provisionalReading.resultType;
+
+  const adjudicationTrace: FinalAdjudicationTrace = {
+    verdict: shouldUpgradeToClear
+      ? "upgrade_compressed_to_clear_direction"
+      : shouldOpenFrontierOrReview
+        ? "open_frontier_or_review"
+        : "keep",
+    reason: shouldUpgradeToClear
+      ? "La lectura inicial era compressed_life, pero la familia principal es clara, los jueces están alineados y la memoria no contradice la dirección. Se conserva la advertencia de compresión sin dejar que tape la dirección."
+      : shouldOpenFrontierOrReview
+        ? "La auditoría detecta tensión relevante entre diagnóstico, memoria histórica o contexto. No se cambia necesariamente el resultType, pero se marca frontera/revisión."
+        : "La auditoría no aporta fuerza suficiente para modificar la lectura provisoria.",
+    previousResultType: input.provisionalReading.resultType,
+    finalResultType,
+    topFamilyLabel: familyRace.topLabel,
+    topFamilyScore: familyRace.topScore,
+    secondFamilyLabel: familyRace.secondLabel,
+    secondFamilyScore: familyRace.secondScore,
+    scoreGap: familyRace.scoreGap,
+    diagnosticReviewAligned,
+    diagnosticReviewConflict,
+    diagnosticReviewSuggestsHumanReview: diagnosticReviewHumanReview,
+    memorySupportsTopFamily: memorySupport,
+    memoryContradictsTopFamily: memoryContradiction,
+    influentialSimilarCases,
+    rawOrCalibrationOnlyMatches,
+    contextualSuggestsReview: contextualReview,
+    contextualSuggestsFrontier: contextualFrontier,
+  };
+
+  if (shouldUpgradeToClear) {
+    const previousDiagnostic = input.provisionalReading.finalDiagnostic as any;
+
+    return {
+      ...input.provisionalReading,
+      resultType: "clear_direction",
+      communityRouting: decideCommunityRouting("clear_direction"),
+      dominantTension:
+        "La dirección principal aparece suficientemente clara, aunque la transición todavía está condicionada por restricciones reales.",
+      currentCost:
+        "El costo principal no es la falta de dirección, sino avanzar sin cuidar margen, energía y exposición.",
+      summaryForUser: buildUpgradedCompressedLifeSummary({
+        provisionalReading: input.provisionalReading,
+        familyRace,
+      }),
+      finalDiagnostic: {
+        ...previousDiagnostic,
+        severity: resolveSeverity("clear_direction", input.transitionAssessment),
+        functionalSubtype: resolveFunctionalSubtype(
+          familyRace.topId,
+          "clear_direction",
+          familyRace.shouldAvoidSingleClearClaim,
+        ),
+        nextMove: previousDiagnostic?.nextMove
+          ? {
+              ...previousDiagnostic.nextMove,
+              transitionMode: "guided_repositioning",
+            }
+          : previousDiagnostic?.nextMove,
+      },
+      trace: mergeTraceWithFinalAdjudication(
+        input.provisionalReading.trace,
+        adjudicationTrace,
+      ),
+    } as FinalReading;
+  }
+
+  if (shouldOpenFrontierOrReview) {
+    const previousDiagnostic = input.provisionalReading.finalDiagnostic as any;
+
+    return {
+      ...input.provisionalReading,
+      summaryForUser: buildFrontierOrReviewSummary({
+        provisionalReading: input.provisionalReading,
+        familyRace,
+      }),
+      finalDiagnostic: {
+        ...previousDiagnostic,
+        functionalSubtype: "frontier_pattern_needs_review",
+        needsHumanReview: true,
+      },
+      trace: mergeTraceWithFinalAdjudication(
+        input.provisionalReading.trace,
+        adjudicationTrace,
+      ),
+    } as FinalReading;
+  }
+
+  return {
+    ...input.provisionalReading,
+    trace: mergeTraceWithFinalAdjudication(
+      input.provisionalReading.trace,
+      adjudicationTrace,
+    ),
+  } as FinalReading;
 }
 
 export function buildFinalReading(input: OrchestratorInput): FinalReading {
