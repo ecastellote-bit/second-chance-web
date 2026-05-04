@@ -233,14 +233,13 @@ const GROUP_COMMUNITY_CUES = [
   "sostener un grupo",
   "coordinar grupos",
   "pertenencia",
-  "continuidad",
+  "continuidad grupal",
   "que no se enfrie",
   "que no se enfríe",
   "que no se rompa",
-  "cuidar el clima",
+  "cuidar el clima grupal",
   "hacer circular",
   "mover gente",
-  "grupo",
   "comunidad",
   "barrio",
   "espacio colectivo",
@@ -493,10 +492,6 @@ const PUBLIC_POSTURE_CUES = [
   "audiencia",
 ];
 
-// --------------------------------------------------
-// Frontier: Public Communicator vs Creative Storyteller
-// --------------------------------------------------
-
 const PUBLIC_FRONT_CUES = [
   "poner la cara",
   "poner el cuerpo",
@@ -643,9 +638,9 @@ const AFFINITY_PHRASE_BANKS: Record<string, string[]> = {
     "leer actores",
   ],
   group_reading: [
-    "cuidar el clima",
+    "cuidar el clima grupal",
     "pertenencia",
-    "continuidad",
+    "continuidad grupal",
     "grupo",
     "comunidad",
     "espacio colectivo",
@@ -653,16 +648,15 @@ const AFFINITY_PHRASE_BANKS: Record<string, string[]> = {
     "sostener un espacio",
   ],
   trust_building: [
-    "generar confianza",
-    "sostener vinculo",
-    "sostener vínculo",
+    "generar confianza grupal",
+    "sostener vinculo entre personas",
+    "sostener vínculo entre personas",
     "que nadie quede colgado",
-    "buen trato",
-    "cuidar el clima",
+    "cuidar el clima grupal",
     "hacer sentir parte",
-    "hacer sentir comodo",
-    "hacer sentir cómodo",
-    "dar confianza",
+    "hacer sentir comodo en el grupo",
+    "hacer sentir cómodo en el grupo",
+    "dar confianza al grupo",
   ],
   empathic_attunement: [
     "sin invadir",
@@ -1029,6 +1023,22 @@ function getCueProfile(text: string): CueProfile {
   };
 }
 
+function hasExplicitCollectiveSignal(cues: CueProfile): boolean {
+  return (
+    cues.groupContinuityHits > 0 ||
+    cues.groupHits >= 2 ||
+    (cues.groupHits >= 1 && cues.multiActorHits >= 1) ||
+    (cues.groupHits >= 1 && cues.multiPartyFrictionHits >= 1)
+  );
+}
+
+function hasGuideDominantWithoutCollective(cues: CueProfile): boolean {
+  return (
+    cues.guideHits + cues.personDistressHits >= 2 &&
+    !hasExplicitCollectiveSignal(cues)
+  );
+}
+
 function getFieldBoost(affinityId: string, fragment: EvidenceFragment): number {
   const expectedKeys = AFFINITY_FIELD_BOOSTS[affinityId] ?? [];
   if (expectedKeys.length === 0) return 0;
@@ -1091,28 +1101,42 @@ function getSemanticAdjustment(affinityId: string, cues: CueProfile): number {
 
     case "social_coordination": {
       let bonus = 0;
-      if (hasGroup) bonus += 0.08;
-      if (hasGroupContinuity) bonus += 0.08;
-      if (hasMultiActor) bonus += 0.02;
-      if (hasGuide && !hasGroup && !hasGroupContinuity) bonus -= 0.07;
+      const hasCollective = hasExplicitCollectiveSignal(cues);
+      const guideOnly = hasGuideDominantWithoutCollective(cues);
+
+      if (hasCollective) bonus += 0.09;
+      if (hasGroupContinuity) bonus += 0.06;
+      if (hasMultiActor && hasCollective) bonus += 0.03;
+      if (guideOnly) bonus -= 0.12;
+      if (hasGuide && !hasCollective) bonus -= 0.08;
+
       return bonus;
     }
 
     case "group_reading": {
       let bonus = 0;
-      if (hasGroup) bonus += 0.07;
-      if (hasGroupContinuity) bonus += 0.07;
-      if (hasMultiActor) bonus += 0.02;
-      if (hasGuide && !hasGroup && !hasGroupContinuity) bonus -= 0.06;
+      const hasCollective = hasExplicitCollectiveSignal(cues);
+      const guideOnly = hasGuideDominantWithoutCollective(cues);
+
+      if (hasCollective) bonus += 0.08;
+      if (hasGroupContinuity) bonus += 0.06;
+      if (hasMultiActor && hasCollective) bonus += 0.02;
+      if (guideOnly) bonus -= 0.11;
+      if (hasGuide && !hasCollective) bonus -= 0.07;
+
       return bonus;
     }
 
     case "trust_building": {
       let bonus = 0;
-      if (hasGroup) bonus += 0.05;
-      if (hasGuide) bonus += 0.04;
+      const hasCollective = hasExplicitCollectiveSignal(cues);
+      const guideOnly = hasGuideDominantWithoutCollective(cues);
+
+      if (hasCollective) bonus += 0.05;
       if (hasGroupContinuity) bonus += 0.05;
-      if (hasMultiActor) bonus += 0.02;
+      if (hasMultiActor && hasCollective) bonus += 0.02;
+      if (guideOnly) bonus -= 0.06;
+
       return bonus;
     }
 
@@ -1288,19 +1312,25 @@ function getSuppressionMultiplier(
       return 1;
 
     case "social_coordination":
-    case "group_reading":
+    case "group_reading": {
+      if (hasGuideDominantWithoutCollective(cues)) return 0.42;
+      if (!hasExplicitCollectiveSignal(cues)) return 0.68;
+      return 1;
+    }
+
+    case "trust_building": {
+      if (hasGuideDominantWithoutCollective(cues)) return 0.5;
+
       if (
-        cues.guideHits >= 2 &&
         cues.groupHits === 0 &&
         cues.groupContinuityHits === 0 &&
         cues.multiActorHits === 0
       ) {
-        return 0.7;
+        return 0.82;
       }
-      return 1;
 
-    case "trust_building":
       return 1;
+    }
 
     case "empathic_attunement":
     case "restorative_support":
@@ -1336,7 +1366,11 @@ function getSuppressionMultiplier(
 
     case "public_expression":
       if (cues.narrativeFormHits >= 2 && cues.publicPostureHits === 0) return 0.64;
-      if (cues.pedagogicHits >= 2 && cues.publicHits === 0 && cues.publicPostureHits === 0) {
+      if (
+        cues.pedagogicHits >= 2 &&
+        cues.publicHits === 0 &&
+        cues.publicPostureHits === 0
+      ) {
         return 0.8;
       }
       if (
@@ -1350,14 +1384,22 @@ function getSuppressionMultiplier(
       return 1;
 
     case "editorial_framing":
-      if (cues.multiActorHits >= 2 && cues.publicHits === 0 && cues.narrativeHits === 0) {
+      if (
+        cues.multiActorHits >= 2 &&
+        cues.publicHits === 0 &&
+        cues.narrativeHits === 0
+      ) {
         return 0.84;
       }
       return 1;
 
     case "narrative_creation":
       if (cues.publicPostureHits >= 2 && cues.narrativeFormHits === 0) return 0.58;
-      if (cues.multiActorHits >= 2 && cues.narrativeHits === 0 && cues.publicHits === 0) {
+      if (
+        cues.multiActorHits >= 2 &&
+        cues.narrativeHits === 0 &&
+        cues.publicHits === 0
+      ) {
         return 0.82;
       }
       return 1;
@@ -1385,22 +1427,25 @@ function getAggregatePenalty(affinityId: string, cues: CueProfile): number {
       return 1;
 
     case "social_coordination":
-    case "group_reading":
+    case "group_reading": {
+      if (hasGuideDominantWithoutCollective(cues)) return 0.38;
+      if (!hasExplicitCollectiveSignal(cues)) return 0.72;
+      return 1;
+    }
+
+    case "trust_building": {
+      if (hasGuideDominantWithoutCollective(cues)) return 0.45;
+
       if (
         cues.groupHits === 0 &&
-        cues.groupContinuityHits === 0 &&
+        cues.guideHits === 0 &&
         cues.multiActorHits === 0
       ) {
-        if (cues.guideHits >= 2) return 0.54;
-        return 0.8;
-      }
-      return 1;
-
-    case "trust_building":
-      if (cues.groupHits === 0 && cues.guideHits === 0 && cues.multiActorHits === 0) {
         return 0.82;
       }
+
       return 1;
+    }
 
     case "empathic_attunement":
     case "restorative_support":
@@ -1448,7 +1493,11 @@ function getAggregatePenalty(affinityId: string, cues: CueProfile): number {
       return 1;
 
     case "editorial_framing":
-      if (cues.publicHits === 0 && cues.narrativeHits === 0 && cues.narrativeFormHits === 0) {
+      if (
+        cues.publicHits === 0 &&
+        cues.narrativeHits === 0 &&
+        cues.narrativeFormHits === 0
+      ) {
         return 0.8;
       }
       return 1;
@@ -1462,7 +1511,11 @@ function getAggregatePenalty(affinityId: string, cues: CueProfile): number {
       return 1;
 
     case "agenda_detection":
-      if (cues.publicHits === 0 && cues.publicPostureHits === 0 && cues.explorationHits === 0) {
+      if (
+        cues.publicHits === 0 &&
+        cues.publicPostureHits === 0 &&
+        cues.explorationHits === 0
+      ) {
         return 0.82;
       }
       return 1;
@@ -1571,24 +1624,20 @@ export function mapEvidenceToHumanAffinities(
   }));
 
   const normalizedText = normalizedEvidence
-  .map((fragment) => fragment.normalizedText)
-  .join(" | ");
+    .map((fragment) => fragment.normalizedText)
+    .join(" | ");
 
-const hasCreativeFormSurface = NARRATIVE_FORM_CUES.some((cue) =>
-  normalizedText.includes(normalizeText(cue))
-);
+  const hasCreativeFormSurface = NARRATIVE_FORM_CUES.some((cue) =>
+    normalizedText.includes(normalizeText(cue)),
+  );
 
-const hasPublicFrontSurface = PUBLIC_FRONT_CUES.some((cue) =>
-  normalizedText.includes(normalizeText(cue))
-);
+  const hasPublicFrontSurface = PUBLIC_FRONT_CUES.some((cue) =>
+    normalizedText.includes(normalizeText(cue)),
+  );
 
-const hasPublicSuppressionSurface = PUBLIC_SUPPRESSOR_CUES.some((cue) =>
-  normalizedText.includes(normalizeText(cue))
-);
-
-const hasCreativeSuppressionSurface = CREATIVE_SUPPRESSOR_CUES.some((cue) =>
-  normalizedText.includes(normalizeText(cue))
-);
+  const hasPublicSuppressionSurface = PUBLIC_SUPPRESSOR_CUES.some((cue) =>
+    normalizedText.includes(normalizeText(cue)),
+  );
 
   const results: HumanAffinityScore[] = [];
 
@@ -1626,28 +1675,38 @@ const hasCreativeSuppressionSurface = CREATIVE_SUPPRESSOR_CUES.some((cue) =>
         COMPRESSION_PHRASES,
       );
 
+      const affinityId = String(affinity.id);
+
       const profileSpecificBoost =
-        String(affinity.id) === "relational_bridge_building" ||
-        String(affinity.id) === "conflict_mediation" ||
-        String(affinity.id) === "influence_negotiation"
-          ? countPhraseHits(fragment.normalizedText, CONNECTOR_SOCIAL_PHRASES) * 0.025
-          : String(affinity.id) === "institutional_navigation"
-            ? countPhraseHits(fragment.normalizedText, INSTITUTIONAL_OPERATOR_PHRASES) * 0.03
-            : String(affinity.id) === "social_coordination" ||
-                String(affinity.id) === "group_reading" ||
-                String(affinity.id) === "trust_building"
-              ? countPhraseHits(fragment.normalizedText, COMMUNITY_PHRASES) * 0.025
-              : String(affinity.id) === "narrative_creation"
-                ? countPhraseHits(fragment.normalizedText, NARRATIVE_EXPLICIT_PHRASES) * 0.025
+        affinityId === "relational_bridge_building" ||
+        affinityId === "conflict_mediation" ||
+        affinityId === "influence_negotiation"
+          ? countPhraseHits(fragment.normalizedText, CONNECTOR_SOCIAL_PHRASES) *
+            0.025
+          : affinityId === "institutional_navigation"
+            ? countPhraseHits(
+                fragment.normalizedText,
+                INSTITUTIONAL_OPERATOR_PHRASES,
+              ) * 0.03
+            : affinityId === "social_coordination" ||
+                affinityId === "group_reading" ||
+                affinityId === "trust_building"
+              ? countPhraseHits(fragment.normalizedText, COMMUNITY_PHRASES) *
+                0.025
+              : affinityId === "narrative_creation"
+                ? countPhraseHits(
+                    fragment.normalizedText,
+                    NARRATIVE_EXPLICIT_PHRASES,
+                  ) * 0.025
                 : 0;
 
       const baseSignalHits = registryHits + semanticHits;
       if (baseSignalHits <= 0 && profileSpecificBoost <= 0) continue;
 
-      const fieldBoost = getFieldBoost(String(affinity.id), fragment);
-      const semanticAdjustment = getSemanticAdjustment(String(affinity.id), cueProfile);
+      const fieldBoost = getFieldBoost(affinityId, fragment);
+      const semanticAdjustment = getSemanticAdjustment(affinityId, cueProfile);
       const suppressionMultiplier = getSuppressionMultiplier(
-        String(affinity.id),
+        affinityId,
         cueProfile,
       );
 
@@ -1798,98 +1857,99 @@ const hasCreativeSuppressionSurface = CREATIVE_SUPPRESSOR_CUES.some((cue) =>
       if (String(affinity.id) === "narrative_creation") {
         contrastiveMultiplier *= 1.18;
         rationale.push(
-          "creative_form_without_public_front boosts narrative_creation"
+          "creative_form_without_public_front boosts narrative_creation",
         );
       }
-    
+
       if (String(affinity.id) === "aesthetic_sensitivity") {
         contrastiveMultiplier *= 1.12;
         rationale.push(
-          "creative_form_without_public_front boosts aesthetic_sensitivity"
+          "creative_form_without_public_front boosts aesthetic_sensitivity",
         );
       }
-    
+
       if (String(affinity.id) === "public_expression") {
         contrastiveMultiplier *= 0.92;
         rationale.push(
-          "creative_form_without_public_front dampens public_expression"
+          "creative_form_without_public_front dampens public_expression",
         );
       }
-    
+
       if (String(affinity.id) === "editorial_framing") {
         contrastiveMultiplier *= 0.78;
         rationale.push(
-          "creative_form_without_public_front dampens editorial_framing"
+          "creative_form_without_public_front dampens editorial_framing",
         );
       }
     }
 
-    // Contraste central:
-// Creative Storyteller vs Public Communicator
+    if (affinity.id === "narrative_creation") {
+      if (hasCreativeFormSurface && hasPublicSuppressionSurface) {
+        rawScore += 0.22;
+        rationale.push(
+          "Contraste narrativo: aparece forma/edición/tono con supresión explícita del frente público.",
+        );
+      } else if (hasCreativeFormSurface && !hasPublicFrontSurface) {
+        rawScore += 0.14;
+        rationale.push(
+          "Superficie creativa: aparece trabajo de relato/forma sin marca de escenario público.",
+        );
+      }
+    }
 
-if (affinity.id === "narrative_creation") {
-  if (hasCreativeFormSurface && hasPublicSuppressionSurface) {
-    rawScore += 0.22;
-    rationale.push(
-      "Contraste narrativo: aparece forma/edición/tono con supresión explícita del frente público."
-    );
-  } else if (hasCreativeFormSurface && !hasPublicFrontSurface) {
-    rawScore += 0.14;
-    rationale.push(
-      "Superficie creativa: aparece trabajo de relato/forma sin marca de escenario público."
-    );
-  }
-}
+    if (affinity.id === "aesthetic_sensitivity") {
+      if (hasCreativeFormSurface && hasPublicSuppressionSurface) {
+        rawScore += 0.12;
+        rationale.push(
+          "Sensibilidad formal: aparece afinidad por tono/forma con rechazo del frente público.",
+        );
+      } else if (hasCreativeFormSurface && !hasPublicFrontSurface) {
+        rawScore += 0.08;
+        rationale.push(
+          "Sensibilidad formal: aparece trabajo de forma sin orientación central a exposición pública.",
+        );
+      }
+    }
 
-if (affinity.id === "aesthetic_sensitivity") {
-  if (hasCreativeFormSurface && hasPublicSuppressionSurface) {
-    rawScore += 0.12;
-    rationale.push(
-      "Sensibilidad formal: aparece afinidad por tono/forma con rechazo del frente público."
-    );
-  } else if (hasCreativeFormSurface && !hasPublicFrontSurface) {
-    rawScore += 0.08;
-    rationale.push(
-      "Sensibilidad formal: aparece trabajo de forma sin orientación central a exposición pública."
-    );
-  }
-}
+    if (affinity.id === "public_expression") {
+      if (hasPublicFrontSurface) {
+        rawScore += 0.22;
+        rationale.push(
+          "Superficie pública: aparecen postura, voz pública, intervención o deseo de decir hacia otros.",
+        );
+      }
 
-if (affinity.id === "public_expression") {
-  if (hasPublicFrontSurface) {
-    rawScore += 0.22;
-    rationale.push(
-      "Superficie pública: aparecen postura, voz pública, intervención o deseo de decir hacia otros."
-    );
-  }
+      if (hasPublicSuppressionSurface) {
+        rawScore = Math.max(0, rawScore - 0.18);
+        rationale.push(
+          "Supresor público: el texto niega explícitamente querer frente, cara o exposición pública.",
+        );
+      }
+    }
 
-  if (hasPublicSuppressionSurface) {
-    rawScore = Math.max(0, rawScore - 0.18);
-    rationale.push(
-      "Supresor público: el texto niega explícitamente querer frente, cara o exposición pública."
-    );
-  }
-}
+    if (affinity.id === "editorial_framing") {
+      if (hasPublicFrontSurface) {
+        rawScore += 0.14;
+        rationale.push(
+          "Encuadre público: aparece organizar tema, marcar agenda o encuadrar para audiencia.",
+        );
+      }
 
-if (affinity.id === "editorial_framing") {
-  if (hasPublicFrontSurface) {
-    rawScore += 0.14;
-    rationale.push(
-      "Encuadre público: aparece organizar tema, marcar agenda o encuadrar para audiencia."
-    );
-  }
+      if (hasCreativeFormSurface && hasPublicSuppressionSurface) {
+        rawScore = Math.max(0, rawScore - 0.06 + 0.05);
+        rationale.push(
+          "Ajuste editorial: hay trabajo de forma, pero no como vocación central de frente público.",
+        );
+      }
+    }
 
-  if (hasCreativeFormSurface && hasPublicSuppressionSurface) {
-    rawScore = Math.max(0, rawScore - 0.06 + 0.05);
-    rationale.push(
-      "Ajuste editorial: hay trabajo de forma, pero no como vocación central de frente público."
+    const scoreDenominator = Math.max(
+      evidenceCount + (distinctTagCount >= 2 ? 0 : 0.5),
+      1,
     );
-  }
-}
 
     const score = clamp(
-      (rawScore * aggregatePenalty * contrastiveMultiplier),
-        Math.max(evidenceCount + (distinctTagCount >= 2 ? 0 : 0.5), 1),
+      (rawScore * aggregatePenalty * contrastiveMultiplier) / scoreDenominator,
     );
 
     const confidence = clamp(

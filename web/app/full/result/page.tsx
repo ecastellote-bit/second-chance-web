@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFullAnswers } from "../fullAnswersContext";
 
 type TextItemForView =
@@ -565,6 +566,21 @@ async function copyTextToClipboard(text: string): Promise<void> {
     return;
   }
 
+  async function archiveDiagnosticCase(payload: unknown): Promise<void> {
+    const response = await fetch("/api/diagnostic-case-archive", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+  
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || "No se pudo archivar el caso diagnóstico.");
+    }
+  }
+
   const textarea = document.createElement("textarea");
   textarea.value = text;
   textarea.setAttribute("readonly", "true");
@@ -584,13 +600,115 @@ async function copyTextToClipboard(text: string): Promise<void> {
   }
 }
 
+function simpleArchiveHash(value: string): string {
+  let hash = 0;
+
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash << 5) - hash + value.charCodeAt(i);
+    hash |= 0;
+  }
+
+  return Math.abs(hash).toString(16);
+}
+
+function safeArchiveStringify(value: unknown): string {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return "payload_not_serializable";
+  }
+}
+
+async function archiveDiagnosticCase(payload: unknown): Promise<Record<string, unknown>> {
+  const archivedAt = new Date().toISOString();
+  const payloadText = safeArchiveStringify(payload);
+  const payloadHash = simpleArchiveHash(payloadText);
+
+  const storageKey = `2ndch_diagnostic_archive_${payloadHash}`;
+  const lastConfirmationKey = "2ndch_last_archive_confirmation";
+
+  try {
+    const response = await fetch("/api/diagnostic-case-archive", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+
+      const failedTrace = {
+        traceId: `2ndch_failed_${payloadHash}`,
+        archivedAt,
+        payloadHash,
+        storageKey,
+        status: "failed",
+        error: text || "No se pudo archivar el caso diagnóstico.",
+        textPreview: payloadText.slice(0, 300),
+      };
+
+      localStorage.setItem(lastConfirmationKey, JSON.stringify(failedTrace));
+      localStorage.setItem(`${storageKey}_failed`, JSON.stringify(failedTrace));
+
+      console.error("❌ 2ndCh archivo automático falló:", failedTrace);
+
+      throw new Error(text || "No se pudo archivar el caso diagnóstico.");
+    }
+
+    const serverResult = await response.json().catch(() => null);
+
+    const confirmationTrace = {
+      traceId: `2ndch_archived_${payloadHash}`,
+      archivedAt,
+      payloadHash,
+      storageKey,
+      status: "archived",
+      serverResult,
+      textPreview: payloadText.slice(0, 300),
+    };
+
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        trace: confirmationTrace,
+        payload,
+      }),
+    );
+
+    localStorage.setItem(lastConfirmationKey, JSON.stringify(confirmationTrace));
+
+    console.log("✅ 2ndCh caso archivado automáticamente:", confirmationTrace);
+
+    return confirmationTrace;
+  } catch (error) {
+    const failedTrace = {
+      traceId: `2ndch_failed_${payloadHash}`,
+      archivedAt,
+      payloadHash,
+      storageKey,
+      status: "failed",
+      error: error instanceof Error ? error.message : String(error),
+      textPreview: payloadText.slice(0, 300),
+    };
+
+    localStorage.setItem(lastConfirmationKey, JSON.stringify(failedTrace));
+    localStorage.setItem(`${storageKey}_failed`, JSON.stringify(failedTrace));
+
+    console.error("❌ 2ndCh archivo automático falló:", failedTrace);
+
+    throw error;
+  }
+}
+
 function buildHeadline(params: {
   resultType?: string;
   isFrontierReading: boolean;
   isConflictReading: boolean;
 }): string {
   if (params.isConflictReading) {
-    return "La lectura detecta una contradicción diagnóstica que conviene revisar";
+    return "La lectura principal necesita revisión de matices que conviene revisar juntas";
   }
 
   if (params.resultType === "insufficient_evidence") {
@@ -779,6 +897,81 @@ function buildFallbackDiagnosticCaseStatistics(params: {
       "No decide el diagnóstico. Alimenta memoria estadística y auditoría futura.",
     ],
   };
+}
+
+type DiagnosticArchivePayload = Record<string, unknown>;
+
+type ArchiveConfirmationTrace = {
+  traceId: string;
+  archivedAt: string;
+  archiveKey: string;
+  resultType: string;
+  primaryFamily: string;
+  frontierFamilies: string[];
+  textPreview: string;
+  payloadHash: string;
+  status: "archived" | "failed";
+  storageKey: string;
+  error?: string;
+};
+
+function safeArchiveText(value: unknown): string {
+  try {
+    return JSON.stringify(value ?? {});
+  } catch {
+    return String(value ?? "");
+  }
+}
+
+function buildArchiveConfirmationTrace(args: {
+  archiveKey: string;
+  autoArchivePayload: unknown;
+  displayedMainDirection: string | null | undefined;
+  frontierFamilies?: string[];
+  resultType?: string | null;
+  status: "archived" | "failed";
+}): ArchiveConfirmationTrace {
+  const payloadText = safeArchiveText(args.autoArchivePayload);
+  const payloadHash = simpleArchiveHash(payloadText);
+
+  return {
+    traceId: `archive_${Date.now()}_${payloadHash}`,
+    archivedAt: new Date().toISOString(),
+    archiveKey: args.archiveKey,
+    resultType: args.resultType ?? "unknown_result_type",
+    primaryFamily: args.displayedMainDirection ?? "unknown_family",
+    frontierFamilies: args.frontierFamilies ?? [],
+    textPreview: payloadText.slice(0, 260),
+    payloadHash,
+    status: args.status,
+    storageKey: "VOCATIONUP_LAST_ARCHIVE_CONFIRMATION",
+  };
+}
+
+function persistArchiveConfirmationTrace(trace: ArchiveConfirmationTrace): void {
+  if (typeof window === "undefined") return;
+
+  localStorage.setItem(
+    "VOCATIONUP_LAST_ARCHIVE_CONFIRMATION",
+    JSON.stringify(trace, null, 2),
+  );
+
+  const rawIndex = localStorage.getItem("VOCATIONUP_ARCHIVE_CONFIRMATION_INDEX");
+
+  let previous: ArchiveConfirmationTrace[] = [];
+
+  try {
+    previous = rawIndex ? JSON.parse(rawIndex) : [];
+  } catch {
+    previous = [];
+  }
+
+  const nextIndex = [trace, ...previous].slice(0, 50);
+
+  localStorage.setItem(
+    "VOCATIONUP_ARCHIVE_CONFIRMATION_INDEX",
+    JSON.stringify(nextIndex, null, 2),
+  );
 }
 
 export default function ResultPage() {
@@ -1009,6 +1202,104 @@ export default function ResultPage() {
     ? "También aparece como línea posible, aunque con menos fuerza que la frontera principal."
     : "También aparece como línea posible, aunque con menos fuerza que la dirección principal.";
 
+    const autoArchivePayload = useMemo(
+      () => ({
+        archiveVersion: "diagnostic_case_archive_v0.1",
+        createdAt: new Date().toISOString(),
+        source: "full_result_auto_archive",
+    
+        sourceInput: {
+          fullAnswersContext: buildSourceInputSnapshot(fullAnswersContext),
+        },
+    
+        currentResult: {
+          resultType: rawResult.resultType,
+          corePattern: rawResult.corePattern,
+          displayedMainDirection,
+          dominantTension: rawResult.dominantTension,
+          currentCost: rawResult.currentCost,
+    
+          familyScores: rawResult.familyScores ?? [],
+          learningSignal: rawResult.learningSignal ?? null,
+          similarCases,
+    
+          diagnosticReview,
+          experienceDistillation,
+          learningTrace,
+    
+          diagnosticCaseStatistics,
+          caseStatistics: diagnosticCaseStatistics,
+          statisticalTrace: diagnosticCaseStatistics,
+    
+          contextualSituationReview,
+    
+          effectiveLearningRedFlag,
+          isConflictReading,
+          isFrontierSupportReading,
+          displayFrontierReading,
+    
+          summaryForUser: rawResult.summaryForUser ?? null,
+          trace: rawResult.trace ?? null,
+        },
+    
+        humanReview: {
+          expectedPrimaryFamily: "",
+          acceptableFamilies: [],
+          rivalFamilies: [],
+          verdict: "pending_human_review",
+          correctionNote: "",
+          shouldBecomeLearnedCase: false,
+        },
+      }),
+      [
+        fullAnswersContext,
+        rawResult,
+        displayedMainDirection,
+        similarCases,
+        diagnosticReview,
+        experienceDistillation,
+        learningTrace,
+        diagnosticCaseStatistics,
+        contextualSituationReview,
+        effectiveLearningRedFlag,
+        isConflictReading,
+        isFrontierSupportReading,
+        displayFrontierReading,
+      ],
+    );
+    
+    const autoArchiveKey = useMemo(
+      () =>
+        JSON.stringify({
+          resultType: rawResult.resultType,
+          corePattern: rawResult.corePattern,
+          displayedMainDirection,
+          familyScores: rawResult.familyScores ?? [],
+          sourceInput: buildSourceInputSnapshot(fullAnswersContext),
+        }),
+      [rawResult, displayedMainDirection, fullAnswersContext],
+    );
+    
+    const autoArchiveRef = useRef<string | null>(null);
+
+    const [archiveConfirmationTrace, setArchiveConfirmationTrace] =
+  useState<ArchiveConfirmationTrace | null>(null);
+    
+    useEffect(() => {
+      if (!analysis?.result) return;
+      if (autoArchiveRef.current === autoArchiveKey) return;
+    
+      autoArchiveRef.current = autoArchiveKey;
+    
+      archiveDiagnosticCase(autoArchivePayload)
+  .then((trace) => {
+    console.log("✅ 2ndCh caso archivado automáticamente:", trace);
+  })
+  .catch((error: unknown) => {
+    console.error("❌ No se pudo archivar automáticamente el caso:", error);
+  });
+    }, [analysis?.result, autoArchiveKey, autoArchivePayload]);
+
   return (
     <main className="min-h-screen bg-white text-black px-6 py-10">
       <div className="max-w-3xl mx-auto space-y-10">
@@ -1045,7 +1336,7 @@ export default function ResultPage() {
             )}
         </div>
 
-        {/* CONTRADICCIÓN DIAGNÓSTICA */}
+        {/* TENSIÓN DIAGNÓSTICA INTERNA */}
         {isConflictReading && (
           <div className="border border-red-300 bg-red-50 rounded-xl p-6 space-y-4">
             <div className="space-y-2">
@@ -1054,7 +1345,7 @@ export default function ResultPage() {
               </p>
 
               <h3 className="text-lg font-medium">
-                El sistema recomienda revisar antes de cerrar
+                La lectura merece revisión antes de cerrarse
               </h3>
 
               <p className="text-sm text-neutral-700 leading-6">

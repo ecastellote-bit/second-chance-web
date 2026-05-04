@@ -79,6 +79,108 @@ const EXPRESSIVE_MARKERS = [
   "symbolic",
 ];
 
+/**
+ * Marcadores que sí justifican Community Builder.
+ *
+ * Importante:
+ * No incluimos "leadership" o "liderazgo" como palabra suelta.
+ * Liderazgo aislado puede ser herramienta, rol laboral o rasgo de carácter.
+ * Para Community Builder debe haber grupo, comunidad, red, pertenencia,
+ * convocatoria, coordinación colectiva o sostenimiento de espacios compartidos.
+ */
+const COMMUNITY_COLLECTIVE_MARKERS = [
+  "community",
+  "communal",
+  "collective",
+  "group",
+  "team",
+  "belonging",
+  "membership",
+  "network",
+  "networking",
+  "convocation",
+  "convener",
+  "gather",
+  "assemble",
+  "social_fabric",
+  "social_coordination",
+  "coordination_social",
+  "collective_coordination",
+  "group_coordination",
+  "community_coordination",
+  "community_building",
+  "group_building",
+  "space_sustaining",
+  "shared_space",
+  "moderation",
+  "cohort",
+  "circle",
+  "ecosystem",
+  "circulation",
+  "participation",
+  "pertenencia",
+  "comunidad",
+  "comunitario",
+  "colectivo",
+  "grupal",
+  "grupo",
+  "equipo",
+  "red",
+  "convocar",
+  "convocatoria",
+  "coordinar_grupo",
+  "coordinacion_grupal",
+  "coordinacion_colectiva",
+  "sostener_espacios",
+  "espacio_comun",
+];
+
+/**
+ * Marcadores típicos de Empathic Guide / acompañamiento uno a uno.
+ *
+ * Estos pueden ser sociales y humanos, pero NO son prueba suficiente de
+ * Community Builder si no aparece el objeto grupal/comunitario.
+ */
+const ONE_TO_ONE_HUMAN_SUPPORT_MARKERS = [
+  "empathic",
+  "empathy",
+  "listen",
+  "listening",
+  "care",
+  "caring",
+  "support",
+  "human_support",
+  "contain",
+  "containment",
+  "accompany",
+  "accompaniment",
+  "guide",
+  "guidance",
+  "confid",
+  "person",
+  "individual",
+  "inner",
+  "psychological",
+  "emotional",
+  "processes",
+  "human_process",
+  "escucha",
+  "escuchar",
+  "acompanar",
+  "acompañamiento",
+  "acompanamiento",
+  "contener",
+  "contencion",
+  "contención",
+  "cuidado",
+  "persona",
+  "individual",
+  "confidencia",
+  "procesos_internos",
+  "mundo_interno",
+  "orientacion_humana",
+];
+
 function clamp(value: number, min = 0, max = 1): number {
   return Math.max(min, Math.min(max, value));
 }
@@ -168,12 +270,26 @@ function sortWeightedAffinities(items: WeightedAffinity[]): WeightedAffinity[] {
   });
 }
 
+function normalizeSignalText(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/_/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function affinityIdIncludes(
   item: WeightedAffinity,
   markers: string[],
 ): boolean {
-  const id = String(item.id).toLowerCase();
-  return markers.some((marker) => id.includes(marker));
+  const id = normalizeSignalText(String(item.id));
+
+  return markers.some((marker) => {
+    const normalizedMarker = normalizeSignalText(marker);
+    return id.includes(normalizedMarker);
+  });
 }
 
 function matchingSignalItems(
@@ -225,6 +341,18 @@ function applyFamilyCalibration(params: {
   const expressiveStrength = signalStrength(all, EXPRESSIVE_MARKERS);
   const expressiveCount = signalCount(all, EXPRESSIVE_MARKERS);
 
+  const collectiveStrength = signalStrength(all, COMMUNITY_COLLECTIVE_MARKERS);
+  const collectiveCount = signalCount(all, COMMUNITY_COLLECTIVE_MARKERS);
+
+  const oneToOneSupportStrength = signalStrength(
+    all,
+    ONE_TO_ONE_HUMAN_SUPPORT_MARKERS,
+  );
+  const oneToOneSupportCount = signalCount(
+    all,
+    ONE_TO_ONE_HUMAN_SUPPORT_MARKERS,
+  );
+
   /**
    * Regla anti-cebado:
    * Technical Builder no sube por una palabra aislada.
@@ -251,6 +379,64 @@ function applyFamilyCalibration(params: {
       hasEnoughCore = true;
       notes.push(
         "Ajuste de cobertura: el cluster técnico-concreto es suficientemente fuerte para evitar que la familia quede relegada sólo por falta de coincidencia exacta en afinidades núcleo.",
+      );
+    }
+  }
+
+  /**
+   * Community Builder no debe absorber casos de acompañamiento uno a uno.
+   *
+   * Regla central:
+   * - escucha, ayuda, cuidado, confidencia, orientación emocional o acompañamiento
+   *   activan Empathic Guide;
+   * - sólo activan fuerte Community Builder si además hay señales explícitas de
+   *   grupo, comunidad, coordinación colectiva, pertenencia, convocatoria,
+   *   red o sostenimiento de espacios compartidos.
+   */
+  if (params.familyId === "community_builder") {
+    const hasExplicitCollectiveCluster =
+      (collectiveCount >= 2 && collectiveStrength >= 0.24) ||
+      (collectiveCount >= 1 && collectiveStrength >= 0.46);
+
+    const looksLikeOneToOneSupport =
+      oneToOneSupportCount >= 2 && oneToOneSupportStrength >= 0.24;
+
+    const expressiveWithoutCollectiveObject =
+      expressiveCount >= 1 &&
+      expressiveStrength >= 0.2 &&
+      !hasExplicitCollectiveCluster;
+
+    if (hasExplicitCollectiveCluster) {
+      score += 0.04;
+      confidence += 0.03;
+      hasEnoughCore = true;
+      notes.push(
+        "Ajuste de validación comunitaria: aparecen señales explícitas de grupo, comunidad, coordinación colectiva o pertenencia; Community Builder puede competir legítimamente.",
+      );
+    }
+
+    if (!hasExplicitCollectiveCluster && looksLikeOneToOneSupport) {
+      score = Math.min(score - 0.16, 0.54);
+      confidence = Math.min(confidence - 0.08, 0.48);
+      hasEnoughCore = false;
+      notes.push(
+        "Ajuste anti-contaminación: el caso muestra acompañamiento humano uno a uno, escucha o contención, pero no evidencia explícita de comunidad, grupo o coordinación colectiva; Community Builder queda limitado para no competir falsamente con Empathic Guide.",
+      );
+    }
+
+    if (!hasExplicitCollectiveCluster && expressiveWithoutCollectiveObject) {
+      score = Math.min(score - 0.08, 0.56);
+      confidence = Math.min(confidence - 0.04, 0.5);
+      notes.push(
+        "Ajuste anti-arrastre: señales expresivas o interpretativas sin objeto comunitario no deben empujar Community Builder como frontera principal.",
+      );
+    }
+
+    if (!hasExplicitCollectiveCluster && !looksLikeOneToOneSupport) {
+      score = Math.min(score, 0.58);
+      confidence = Math.min(confidence, 0.52);
+      notes.push(
+        "Ajuste de prudencia: sin señales colectivas explícitas, Community Builder puede quedar visible para auditoría, pero no debe cerrarse como dirección fuerte.",
       );
     }
   }

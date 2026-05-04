@@ -118,13 +118,6 @@ function normalizeText(value: unknown): string {
     .trim();
 }
 
-function normalizeFamilyKey(value: unknown): string {
-  return normalizeText(value)
-    .replace(/_/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 function includesAny(text: string, terms: string[]): boolean {
   return terms.some((term) => text.includes(normalizeText(term)));
 }
@@ -199,12 +192,6 @@ function buildForce(
 ): ContextualForce | null {
   const evidence = collectEvidence(text, definition.signalGroups);
 
-  /**
-   * Anti-cebado:
-   * La mayoría de las fuerzas necesitan dos grupos de evidencia independientes.
-   * Algunas fuerzas de contexto duro permiten una sola evidencia, pero con términos
-   * más específicos para evitar que palabras genéricas decidan demasiado.
-   */
   if (evidence.length < definition.minEvidence) return null;
 
   return {
@@ -232,6 +219,33 @@ function hasForce(
   kind: ContextualForceKind,
 ): boolean {
   return Boolean(getForce(forces, kind));
+}
+
+function hasOneToOneCareWithoutCollectiveBuild(
+  forces: ContextualForce[],
+): boolean {
+  const care = getForce(forces, "care_listening_or_emotional_support");
+  const group = getForce(forces, "group_building_or_leadership");
+
+  if (!care) return false;
+
+  const groupEvidence = group?.evidence ?? [];
+
+  const hasExplicitCollectiveEvidence = groupEvidence.some((item) => {
+    const normalized = normalizeText(item);
+
+    return (
+      normalized.includes("grupos") ||
+      normalized.includes("equipos") ||
+      normalized.includes("comunidad explicita") ||
+      normalized.includes("coordinar") ||
+      normalized.includes("convocar") ||
+      normalized.includes("colectiva") ||
+      normalized.includes("pertenencia grupal")
+    );
+  });
+
+  return care.strength >= 0.7 && !hasExplicitCollectiveEvidence;
 }
 
 function getTopFamilies(params: {
@@ -270,8 +284,8 @@ const FORCE_DEFINITIONS: ForceDefinition[] = [
         terms: ["comunicar", "comunicacion", "transmitir", "mensaje"],
       },
       {
-        label: "audiencia o público explícito",
-        terms: ["audiencia", "publico", "pública", "publica", "frente a otros"],
+        label: "audiencia o público",
+        terms: ["audiencia", "publico", "publica", "gente", "para otros"],
       },
       {
         label: "voz, postura o decir",
@@ -330,13 +344,7 @@ const FORCE_DEFINITIONS: ForceDefinition[] = [
       },
       {
         label: "dirigencia, militancia o activismo",
-        terms: [
-          "dirigente",
-          "militancia",
-          "militar",
-          "activista",
-          "lider politico",
-        ],
+        terms: ["dirigente", "militancia", "militar", "activista", "lider politico"],
       },
     ],
     interpretation:
@@ -346,28 +354,67 @@ const FORCE_DEFINITIONS: ForceDefinition[] = [
     kind: "group_building_or_leadership",
     label: "Construcción grupal o liderazgo",
     minEvidence: 2,
-    baseStrength: 0.36,
-    evidenceWeight: 0.14,
+    baseStrength: 0.28,
+    evidenceWeight: 0.12,
     signalGroups: [
       {
-        label: "grupos o equipos",
-        terms: ["grupo", "grupos", "equipo", "equipos", "comunidad"],
+        label: "grupos, equipos o comunidad explícita",
+        terms: [
+          "armar grupos",
+          "armar un grupo",
+          "crear grupos",
+          "crear un grupo",
+          "grupo de personas",
+          "equipos de trabajo",
+          "comunidad",
+          "comunidades",
+          "espacio comunitario",
+          "espacio grupal",
+        ],
       },
       {
-        label: "liderar o conducir",
-        terms: ["liderar", "liderazgo", "conducir", "coordinar", "organizar gente"],
+        label: "coordinar o conducir personas",
+        terms: [
+          "coordinar personas",
+          "coordinar equipos",
+          "coordinar grupos",
+          "conducir grupos",
+          "liderar equipos",
+          "liderar grupos",
+          "organizar gente",
+          "organizar personas",
+        ],
       },
       {
-        label: "armado colectivo",
-        terms: ["armar con otros", "crear grupos", "conformacion", "convocar"],
+        label: "convocar o reunir colectivamente",
+        terms: [
+          "convocar",
+          "reunir personas",
+          "juntar gente",
+          "sumar gente",
+          "hacer encuentros",
+          "organizar encuentros",
+          "organizar reuniones",
+          "círculo",
+          "circulo",
+        ],
       },
       {
-        label: "pertenencia o circulación grupal",
-        terms: ["pertenencia", "participacion", "red", "redes", "vinculos"],
+        label: "sostener pertenencia o participación colectiva",
+        terms: [
+          "sostener comunidad",
+          "sostener un grupo",
+          "participacion colectiva",
+          "participación colectiva",
+          "pertenencia grupal",
+          "red de apoyo",
+          "ayuda mutua",
+          "apoyo entre personas",
+        ],
       },
     ],
     interpretation:
-      "Hay señales de armado social, coordinación, liderazgo o construcción con otros. No debe leerse sólo como rasgo social liviano.",
+      "Hay señales explícitas de armado grupal, coordinación colectiva, convocatoria o sostenimiento comunitario. No debe activarse fuerte sólo por acompañar, ayudar o escuchar a personas uno a uno.",
   },
   {
     kind: "creative_narrative_expression",
@@ -633,14 +680,7 @@ const FORCE_DEFINITIONS: ForceDefinition[] = [
     signalGroups: [
       {
         label: "apagamiento o desgaste",
-        terms: [
-          "me apago",
-          "apagado",
-          "agotado",
-          "agotamiento",
-          "estres",
-          "no la soporto",
-        ],
+        terms: ["me apago", "apagado", "agotado", "agotamiento", "estres", "no la soporto"],
       },
       {
         label: "capacidad o deseo tapado",
@@ -666,29 +706,20 @@ const FORCE_DEFINITIONS: ForceDefinition[] = [
     evidenceWeight: 0.13,
     signalGroups: [
       {
-        label: "presión económica explícita",
-        terms: ["presion economica", "problema economico", "deuda", "ingresos bajos"],
+        label: "presión económica",
+        terms: ["economica", "economicas", "plata", "ingresos", "deuda"],
       },
       {
         label: "carga familiar o dependientes",
-        terms: ["carga familiar", "hijos a cargo", "dependientes", "mantener a mi familia"],
+        terms: ["familia", "hijos", "dependientes", "carga familiar"],
       },
       {
         label: "poca energía o cansancio",
-        terms: ["energia baja", "sin energia", "muy cansado", "agotado"],
+        terms: ["energia baja", "cansancio", "sin energia", "agotado"],
       },
       {
-        label: "trabajo actual sostenido por necesidad",
-        terms: [
-          "actualmente estoy ejerciendo",
-          "trabajo actual",
-          "mi trabajo actual",
-          "sostener mi trabajo",
-        ],
-      },
-      {
-        label: "presión social o familiar",
-        terms: ["presion social", "presion familiar", "que diran"],
+        label: "trabajo actual o profesión sostenida",
+        terms: ["trabajo", "profesion", "actualmente estoy", "empleado"],
       },
     ],
     interpretation:
@@ -720,25 +751,25 @@ const FORCE_DEFINITIONS: ForceDefinition[] = [
   {
     kind: "available_assets",
     label: "Activos aprovechables",
-    minEvidence: 2,
+    minEvidence: 1,
     baseStrength: 0.4,
     evidenceWeight: 0.13,
     signalGroups: [
       {
         label: "experiencia previa útil",
-        terms: ["experiencia previa", "ya hice", "trabaje en", "trayectoria"],
+        terms: ["experiencia", "ya hice", "trabaje en", "trayectoria"],
       },
       {
         label: "habilidades declaradas",
-        terms: ["buena escritura", "facilidad para", "capacidad de", "habilidad para"],
+        terms: ["buena escritura", "facilidad", "capacidad", "habilidad"],
       },
       {
         label: "red, contactos o reputación",
-        terms: ["contactos", "red de contactos", "reputacion", "audiencia propia"],
+        terms: ["contactos", "red", "reputacion", "audiencia"],
       },
       {
         label: "formación o conocimientos",
-        terms: ["formacion", "titulo", "cursos", "conocimiento en"],
+        terms: ["formacion", "titulo", "cursos", "conocimiento"],
       },
     ],
     interpretation:
@@ -789,12 +820,16 @@ function buildFamilyAdjustments(params: {
   }
 
   if (group) {
+    const oneToOneCareWithoutCollectiveBuild =
+      hasOneToOneCareWithoutCollectiveBuild(forces);
+
     adjustments.push({
       family: "community_builder",
-      direction: "raise",
-      strength: 0.72,
-      reason:
-        "La aparición combinada de grupos, coordinación, liderazgo o armado colectivo sugiere construcción social.",
+      direction: oneToOneCareWithoutCollectiveBuild ? "watch" : "raise",
+      strength: oneToOneCareWithoutCollectiveBuild ? 0.48 : 0.72,
+      reason: oneToOneCareWithoutCollectiveBuild
+        ? "Hay acompañamiento humano fuerte, pero no aparecen señales colectivas suficientes para elevar Community Builder. Usar sólo como observación."
+        : "La aparición combinada de grupos, coordinación, liderazgo o armado colectivo sugiere construcción social.",
     });
   }
 
@@ -889,10 +924,13 @@ function buildFamilyAdjustments(params: {
   if (community) {
     adjustments.push({
       family: "community_builder",
-      direction: "watch",
-      strength: 0.64,
-      reason:
-        "La sensibilidad por pertenencia, comunidad o circulación social puede apoyar Community Builder si aparece acción grupal concreta.",
+      direction: hasOneToOneCareWithoutCollectiveBuild(forces)
+        ? "watch"
+        : "watch",
+      strength: hasOneToOneCareWithoutCollectiveBuild(forces) ? 0.44 : 0.64,
+      reason: hasOneToOneCareWithoutCollectiveBuild(forces)
+        ? "La sensibilidad social aparece subordinada al acompañamiento uno a uno; no alcanza para elevar Community Builder sin señales grupales explícitas."
+        : "La sensibilidad por pertenencia, comunidad o circulación social puede apoyar Community Builder si aparece acción grupal concreta.",
     });
   }
 
@@ -926,7 +964,6 @@ function buildThemeHints(params: {
   familyAdjustments: FamilyAdjustment[];
 }): ThemeHint[] {
   const { forces, familyAdjustments } = params;
-
   const has = (kind: ContextualForceKind) => hasForce(forces, kind);
 
   const familyRaisedOrWatched = (family: string) =>
@@ -963,12 +1000,15 @@ function buildThemeHints(params: {
     });
   }
 
-  if (has("group_building_or_leadership")) {
+  if (
+    has("group_building_or_leadership") &&
+    !hasOneToOneCareWithoutCollectiveBuild(forces)
+  ) {
     hints.push({
       themeId: "construir_algo_con_otros",
       label: "Construir algo con otros",
       reason:
-        "Aparecen señales de liderazgo, coordinación, grupos o armado colectivo.",
+        "Aparecen señales explícitas de liderazgo, coordinación, grupos o armado colectivo.",
       linkedFamilies: ["community_builder", "diplomatic_social_connector"],
       activationFit: "high",
     });
@@ -1037,11 +1077,7 @@ function buildThemeHints(params: {
       label: "Recuperar una parte tuya que quedó tapada",
       reason:
         "El caso muestra capacidades o deseos que no están encontrando espacio real en la vida actual.",
-      linkedFamilies: [
-        "creative_storyteller",
-        "public_communicator",
-        "empathic_guide",
-      ],
+      linkedFamilies: ["creative_storyteller", "public_communicator", "empathic_guide"],
       activationFit: "medium",
       caution:
         "Debe conectarse con una acción concreta, no quedar como introspección indefinida.",
@@ -1069,8 +1105,9 @@ function buildActivationHints(forces: ContextualForce[]): ActivationHint[] {
   }
 
   if (
-    has("group_building_or_leadership") ||
-    has("community_belonging_and_sustainment")
+    (has("group_building_or_leadership") ||
+      has("community_belonging_and_sustainment")) &&
+    !hasOneToOneCareWithoutCollectiveBuild(forces)
   ) {
     hints.push({
       path: "asociarme_con_otras_personas",
@@ -1149,16 +1186,16 @@ function buildCautions(params: {
     );
   }
 
-  if (hasForce(forces, "group_building_or_leadership")) {
+  if (
+    hasForce(forces, "group_building_or_leadership") &&
+    !hasOneToOneCareWithoutCollectiveBuild(forces)
+  ) {
     cautions.push(
       "No leer liderazgo, grupos o conducción como simple rasgo social; puede ser señal de construcción colectiva.",
     );
   }
 
-  if (
-    hasForce(forces, "care_listening_or_emotional_support") &&
-    !hasForce(forces, "group_building_or_leadership")
-  ) {
+  if (hasOneToOneCareWithoutCollectiveBuild(forces)) {
     cautions.push(
       "No convertir acompañamiento uno a uno en Community Builder si el objeto principal es una persona y su mundo interno.",
     );
@@ -1179,9 +1216,9 @@ function buildCautions(params: {
     );
   }
 
-  if (strongForces.length >= 5) {
+  if (strongForces.length >= 4) {
     cautions.push(
-      "Hay muchas fuerzas contextuales fuertes. Esto no implica automáticamente revisión humana: puede tratarse de una historia rica. Priorizar la combinación más coherente con la historia completa.",
+      "Hay muchas fuerzas contextuales fuertes. Puede tratarse de una vida compleja o de sobrelectura; conviene priorizar la combinación más coherente con la historia completa.",
     );
   }
 
@@ -1194,7 +1231,8 @@ function buildSituationFrame(forces: ContextualForce[]): string {
   if (
     has("public_voice_or_communication") &&
     has("civic_or_social_incidence") &&
-    has("group_building_or_leadership")
+    has("group_building_or_leadership") &&
+    !hasOneToOneCareWithoutCollectiveBuild(forces)
   ) {
     return "public_voice_with_civic_and_group_building_context";
   }
@@ -1275,11 +1313,6 @@ function inferSuggestedFrontier(adjustments: FamilyAdjustment[]): string[] {
   ).slice(0, 4);
 }
 
-function countFamilyOverlap(a: string[], b: string[]): number {
-  const normalizedA = new Set(a.map((item) => normalizeFamilyKey(item)));
-  return b.filter((item) => normalizedA.has(normalizeFamilyKey(item))).length;
-}
-
 export function runContextualSituationJudge(params: {
   intake: UserIntake;
   finalReading: FinalReading;
@@ -1322,54 +1355,23 @@ export function runContextualSituationJudge(params: {
   const situationFrame = buildSituationFrame(forces);
   const summary = buildSummary(situationFrame);
 
-  const contextualFrontier = inferSuggestedFrontier(familyAdjustments);
-  const suggestedPrimaryFamily = inferSuggestedPrimaryFamily(familyAdjustments);
-
-  const topThreeFamilies = topFamilies.slice(0, 3);
-  const frontierOverlapWithTopThree = countFamilyOverlap(
-    topThreeFamilies,
-    contextualFrontier,
-  );
-
-  const contextualFrontierIsMostlyAligned =
-    contextualFrontier.length > 0 && frontierOverlapWithTopThree > 0;
-
-  const contextualFrontierIsOutsideCurrentReading =
-    contextualFrontier.length >= 2 && frontierOverlapWithTopThree === 0;
-
-  const hasHardCompressionContext =
-    hasForce(forces, "compressed_capacity") &&
-    hasForce(forces, "stability_constraint") &&
-    hasForce(forces, "exposure_fear");
-
-  const highComplexityButNotContradiction =
-    strongForces.length >= 5 && contextualFrontierIsMostlyAligned;
-
   const shouldInfluenceDiagnostic =
-    contextualFrontier.length >= 2 ||
-    familyAdjustments.some((item) => item.strength >= 0.76) ||
-    (strongForces.length >= 2 &&
-      familyAdjustments.some((item) => item.strength >= 0.7));
+    familyAdjustments.some((item) => item.strength >= 0.72) ||
+    strongForces.length >= 2;
 
   const shouldInfluenceGuidedSelection = themeHints.length > 0;
 
-  const shouldOpenFrontier =
-    shouldInfluenceDiagnostic && contextualFrontier.length >= 2;
-
-  /**
-   * Regla anti-cebado fuerte:
-   * - Muchas fuerzas no equivalen a revisión humana.
-   * - La revisión humana se pide cuando el contexto empuja con fuerza hacia
-   *   una zona que el diagnóstico actual no está contemplando, o cuando hay
-   *   compresión dura + frontera contextual externa.
-   */
   const shouldRequestHumanReview =
-    (contextualFrontierIsOutsideCurrentReading && strongForces.length >= 2) ||
-    (hasHardCompressionContext && contextualFrontierIsOutsideCurrentReading) ||
-    (strongForces.length >= 6 &&
-      contextualFrontier.length >= 4 &&
-      frontierOverlapWithTopThree <= 1 &&
-      !highComplexityButNotContradiction);
+    strongForces.length >= 4 ||
+    (hasForce(forces, "compressed_capacity") &&
+      hasForce(forces, "stability_constraint") &&
+      mediumForces.length >= 4);
+
+  const suggestedFrontier = inferSuggestedFrontier(familyAdjustments);
+  const suggestedPrimaryFamily = inferSuggestedPrimaryFamily(familyAdjustments);
+
+  const shouldOpenFrontier =
+    shouldInfluenceDiagnostic && suggestedFrontier.length >= 2;
 
   const verdict =
     forces.length === 0
@@ -1386,21 +1388,17 @@ export function runContextualSituationJudge(params: {
       : Math.min(
           0.9,
           0.42 +
-            strongForces.length * 0.08 +
-            Math.max(0, mediumForces.length - strongForces.length) * 0.035,
+            strongForces.length * 0.1 +
+            Math.max(0, mediumForces.length - strongForces.length) * 0.04,
         );
 
   const notes = uniqueStrings([
     "Anti-cebado activo: ninguna palabra aislada decide una fuerza contextual fuerte.",
     "Las fuerzas contextuales funcionan como lectura de situación, no como reemplazo automático del diagnóstico.",
-    "Muchas fuerzas contextuales no implican por sí solas revisión humana.",
-    contextualFrontierIsMostlyAligned
-      ? "La frontera contextual tiene solapamiento con el ranking actual; debe usarse como refinamiento, no como contradicción."
+    hasOneToOneCareWithoutCollectiveBuild(forces)
+      ? "Acompañamiento uno a uno detectado: Community Builder no debe elevarse sin señales colectivas explícitas."
       : "",
-    contextualFrontierIsOutsideCurrentReading
-      ? "La frontera contextual aparece fuera del ranking principal actual; conviene contrastar antes de cerrar."
-      : "",
-    forces.length === 0
+    strongForces.length === 0
       ? "No se detectaron fuerzas contextuales fuertes; usar esta capa con prudencia."
       : "",
   ]);
@@ -1419,15 +1417,15 @@ export function runContextualSituationJudge(params: {
     shouldInfluenceDiagnostic,
     shouldInfluenceGuidedSelection,
 
-    recommendedUse: shouldRequestHumanReview
-      ? "human_review_support"
-      : shouldOpenFrontier
-        ? "frontier_support"
+    recommendedUse: shouldOpenFrontier
+      ? "frontier_support"
+      : shouldRequestHumanReview
+        ? "human_review_support"
         : "contextual_support",
     dominantContext: situationFrame,
     contextSummary: summary,
     suggestedPrimaryFamily,
-    suggestedFrontier: contextualFrontier,
+    suggestedFrontier,
     shouldAdjustDiagnosis: shouldInfluenceDiagnostic,
     shouldOpenFrontier,
     shouldRequestHumanReview,

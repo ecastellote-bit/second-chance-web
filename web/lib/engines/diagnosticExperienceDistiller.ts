@@ -599,6 +599,80 @@ import type {
           .join(" / ")}.`,
       );
     }
+
+    function getTopSimilarity(similarCases: unknown): number {
+        if (!Array.isArray(similarCases) || similarCases.length === 0) return 0;
+      
+        return similarCases.reduce((max, item) => {
+          const safe = item as { similarityScore?: unknown };
+          const score =
+            typeof safe.similarityScore === "number" && Number.isFinite(safe.similarityScore)
+              ? safe.similarityScore
+              : 0;
+      
+          return Math.max(max, score);
+        }, 0);
+      }
+      
+      function normalizeKey(value: unknown): string {
+        if (typeof value !== "string") return "";
+      
+        return value
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/_/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+      }
+      
+      function shouldDowngradeWeakSimilarityMisread(params: {
+        similarCases: unknown;
+        diagnosticReview: unknown;
+        recommendedLearningUse: unknown;
+        confidence: unknown;
+      }): boolean {
+        const topSimilarity = getTopSimilarity(params.similarCases);
+        const recommendedUse = normalizeKey(params.recommendedLearningUse);
+        const confidence =
+          typeof params.confidence === "number" && Number.isFinite(params.confidence)
+            ? params.confidence
+            : 0;
+      
+        const diagnosticSafe = params.diagnosticReview as {
+          finalVerdict?: unknown;
+          shouldRequestHumanReview?: unknown;
+        };
+      
+        const diagnosticVerdict = normalizeKey(diagnosticSafe?.finalVerdict);
+        const judgeRequestsHumanReview =
+          diagnosticSafe?.shouldRequestHumanReview === true;
+      
+        const isMisreadWarning =
+          recommendedUse === "misread warning" || recommendedUse === "misread_warning";
+      
+        const hasStrongDiagnosticConflict =
+          diagnosticVerdict === "conflict" || judgeRequestsHumanReview;
+      
+        return (
+          isMisreadWarning &&
+          topSimilarity > 0 &&
+          topSimilarity < 0.4 &&
+          confidence <= 0.45 &&
+          !hasStrongDiagnosticConflict
+        );
+      }
+      
+      function uniqueFamilies(values: unknown[]): string[] {
+        return Array.from(
+          new Set(
+            values
+              .filter((value): value is string => typeof value === "string")
+              .map((value) => value.trim())
+              .filter(Boolean),
+          ),
+        );
+      }
   
     return {
       verdict: recommendation.verdict,
