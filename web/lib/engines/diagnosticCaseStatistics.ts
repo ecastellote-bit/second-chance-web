@@ -691,9 +691,38 @@ export function buildDiagnosticCaseStatistics(params: {
 
   const shouldStoreLearningTrace = true;
 
-  const shouldInfluenceFutureCases =
-    learningTrace?.shouldInfluenceFutureCases === true ||
-    experienceDistillation?.shouldInfluenceFutureCases === true;
+  const experienceDistillationRecord =
+  experienceDistillation && typeof experienceDistillation === "object"
+    ? (experienceDistillation as Record<string, unknown>)
+    : {};
+
+const normalizedLearningTier = normalizeKey(learningTier ?? "");
+
+const normalizedDistillationVerdict = normalizeKey(
+  cleanLabel(experienceDistillationRecord.verdict) ??
+    cleanLabel(experienceDistillationRecord.finalVerdict) ??
+    cleanLabel(experienceDistillationRecord.recommendedLearningUse) ??
+    "",
+);
+
+const requestedFutureInfluence =
+  learningTrace?.shouldInfluenceFutureCases === true ||
+  experienceDistillation?.shouldInfluenceFutureCases === true;
+
+const shouldBlockFutureInfluence =
+  diagnosticJudgeRequestedHumanReview === true ||
+  normalizedLearningTier.includes("frontier_support") ||
+  normalizedLearningTier.includes("calibration_only") ||
+  normalizedLearningTier.includes("raw") ||
+  normalizedLearningTier.includes("misread_warning") ||
+  normalizedLearningTier.includes("no_useful_learning") ||
+  normalizedLearningTier.includes("do_not_learn_yet") ||
+  normalizedDistillationVerdict.includes("collect_partial_learning") ||
+  normalizedDistillationVerdict.includes("do_not_learn_yet") ||
+  normalizedDistillationVerdict.includes("no_useful_learning");
+
+const shouldInfluenceFutureCases =
+  requestedFutureInfluence && !shouldBlockFutureInfluence;
 
   const contextualVerdict = cleanLabel(contextualSituationReview?.verdict);
 

@@ -156,6 +156,10 @@ function hasUsableSecondaryProfile(
   );
 }
 
+function clamp(value: number, min = 0, max = 1): number {
+  return Math.max(min, Math.min(max, value));
+}
+
 function resolveFamilyId(score: FamilyScoreLike | null | undefined): string | null {
   if (!score) return null;
 
@@ -270,6 +274,234 @@ function analyzeFamilyRace(familyScores?: FamilyScoreLike[]): FamilyRaceAnalysis
     isVeryCloseRace,
     shouldAvoidSingleClearClaim: isCloseRace || isVeryCloseRace,
   };
+}
+
+function familyScoreMatchesId(
+  score: FamilyScoreLike | null | undefined,
+  familyId: string,
+): boolean {
+  if (!score) return false;
+
+  const target = normalizeDiagnosticText(familyId);
+  const resolvedId = normalizeDiagnosticText(resolveFamilyId(score));
+  const resolvedLabel = normalizeDiagnosticText(resolveFamilyLabel(score));
+
+  return resolvedId === target || resolvedLabel === target;
+}
+
+function findFamilyScore(
+  familyScores: FamilyScoreLike[],
+  familyId: string,
+): FamilyScoreLike | null {
+  return familyScores.find((score) => familyScoreMatchesId(score, familyId)) ?? null;
+}
+
+function collectTextFromUnknown(value: unknown, depth = 0): string[] {
+  if (depth > 5) return [];
+
+  if (typeof value === "string") {
+    const cleaned = value.trim();
+    return cleaned.length > 0 ? [cleaned] : [];
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return [String(value)];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => collectTextFromUnknown(item, depth + 1));
+  }
+
+  if (value && typeof value === "object") {
+    return Object.values(value).flatMap((item) =>
+      collectTextFromUnknown(item, depth + 1),
+    );
+  }
+
+  return [];
+}
+
+function buildIntakeCalibrationText(intake: UserIntake): string {
+  return normalizeDiagnosticText(collectTextFromUnknown(intake).join(" "));
+}
+
+function hasPublicCivicIssueSurface(text: string): boolean {
+  return includesAny(text, [
+    "municipalidad",
+    "municipal",
+    "municipio",
+    "comuna",
+    "ciudad",
+    "barrio",
+    "vecino",
+    "vecinos",
+    "atencion al vecino",
+    "atención al vecino",
+    "transporte",
+    "limpieza",
+    "seguridad",
+    "espacio publico",
+    "espacio público",
+    "decision publica",
+    "decisión pública",
+    "decisiones publicas",
+    "decisiones públicas",
+    "politica publica",
+    "política pública",
+    "problema publico",
+    "problema público",
+    "problemas publicos",
+    "problemas públicos",
+    "asuntos publicos",
+    "asuntos públicos",
+    "causa publica",
+    "causa pública",
+    "tension civica",
+    "tensión cívica",
+    "ciudadania",
+    "ciudadanía",
+    "institucion",
+    "institución",
+    "instituciones",
+    "institucional",
+    "conflicto institucional",
+    "agenda social",
+    "agenda publica",
+    "agenda pública",
+    "incidencia",
+    "sociedad",
+    "politica",
+    "política",
+    "civismo",
+  ]);
+}
+
+function hasPublicVoiceSurface(text: string): boolean {
+  return includesAny(text, [
+    "voz publica",
+    "voz pública",
+    "hablar publicamente",
+    "hablar públicamente",
+    "discutirlo publicamente",
+    "discutirlo públicamente",
+    "opinion publica",
+    "opinión pública",
+    "opinion",
+    "opinión",
+    "editorial",
+    "editoriales",
+    "radio",
+    "medios",
+    "entrevistas",
+    "instalar un tema",
+    "instalar una idea",
+    "agenda",
+    "postura",
+    "decir",
+    "comunicar",
+    "comunicacion publica",
+    "comunicación pública",
+    "analisis publico",
+    "análisis público",
+    "escribir",
+    "explicar problemas publicos",
+    "explicar problemas públicos",
+  ]);
+}
+
+function hasExplicitNoCommunityBuilderSurface(text: string): boolean {
+  return includesAny(text, [
+    "no soy de armar grupos",
+    "no soy de organizar grupos",
+    "no soy de armar reuniones",
+    "no soy de organizar reuniones",
+    "no necesariamente organizo gente",
+    "no organizo gente",
+    "no me interesa armar grupos",
+    "sin armar grupos",
+    "sin organizar grupos",
+  ]);
+}
+
+function calibrateFamilyScoresForCivicAdjacency(params: {
+  intake: UserIntake;
+  familyScores?: FamilyScoreLike[];
+}): FamilyScoreLike[] {
+  const familyScores = params.familyScores ?? [];
+
+  if (familyScores.length === 0) return [];
+
+  const cloned = familyScores.map((score) => ({ ...score }));
+
+  const publicCommunicator = findFamilyScore(cloned, "public_communicator");
+  const civicAdvocate = findFamilyScore(cloned, "civic_advocate");
+  const educatorInterpreter = findFamilyScore(cloned, "educator_interpreter");
+  const communityBuilder = findFamilyScore(cloned, "community_builder");
+
+  if (!publicCommunicator || !civicAdvocate) {
+    return getSortedFamilyScores(cloned);
+  }
+
+  const text = buildIntakeCalibrationText(params.intake);
+
+  const publicScore = getNumericScore(publicCommunicator);
+  const publicConfidence = getNumericConfidence(publicCommunicator);
+  const civicScore = getNumericScore(civicAdvocate);
+  const civicConfidence = getNumericConfidence(civicAdvocate);
+  const educatorScore = getNumericScore(educatorInterpreter);
+  const communityScore = getNumericScore(communityBuilder);
+
+  const rawRace = analyzeFamilyRace(cloned);
+  const publicIsMainOrVeryClose =
+    familyScoreMatchesId(rawRace.topFamily, "public_communicator") ||
+    publicScore >= rawRace.topScore - 0.12;
+
+  const hasCivicMaterial =
+    hasPublicCivicIssueSurface(text) &&
+    hasPublicVoiceSurface(text) &&
+    publicIsMainOrVeryClose &&
+    publicScore >= 0.55;
+
+  const communityShouldNotDominate =
+    hasExplicitNoCommunityBuilderSurface(text) || communityScore < 0.68;
+
+  if (!hasCivicMaterial || !communityShouldNotDominate) {
+    return getSortedFamilyScores(cloned);
+  }
+
+  /**
+   * Calibración quirúrgica:
+   *
+   * En casos de comunicación política/cívica:
+   * - Public Communicator sigue siendo el modo principal si hay voz, agenda y audiencia.
+   * - Civic Advocate sube como secundaria fuerte si el contenido gira sobre problemas públicos.
+   * - Educator Interpreter puede quedar como función de apoyo, pero no debe tapar el núcleo cívico.
+   *
+   * No hacemos que Civic Advocate empate automáticamente con Public Communicator.
+   * Lo dejamos cerca, pero con margen suficiente para no convertir el caso en frontera falsa.
+   */
+  const safeUpperBoundBelowPublic = Math.max(0, publicScore - 0.11);
+  const desiredCivicScore = Math.max(
+    civicScore,
+    Math.min(safeUpperBoundBelowPublic, educatorScore + 0.03),
+    Math.min(safeUpperBoundBelowPublic, 0.58),
+  );
+
+  if (desiredCivicScore > civicScore) {
+    civicAdvocate.score = clamp(desiredCivicScore);
+
+    const desiredConfidence = Math.max(
+      civicConfidence,
+      Math.min(0.72, Math.max(0.55, publicConfidence - 0.06)),
+    );
+
+    civicAdvocate.confidence = clamp(desiredConfidence);
+
+    (civicAdvocate as any).calibrationReason =
+      "Civic Advocate boosted as strong secondary: public communication case with civic/public-issue content.";
+  }
+
+  return getSortedFamilyScores(cloned);
 }
 
 function buildSyntheticProfileFromFamily(
@@ -1203,9 +1435,15 @@ function buildFrontierOrReviewSummary(params: {
 export function finalizeReadingAfterDiagnosticReview(
   input: FinalAdjudicationInput,
 ): FinalReading {
+  /**
+   * Importante:
+   * preferimos los familyScores ya calibrados dentro de provisionalReading.
+   * Si analysisPipeline pasa los familyScores crudos, no deben pisar la
+   * calibración fina que hizo buildFinalReading.
+   */
   const familyScores =
-    input.familyScores ??
     ((input.provisionalReading as any).familyScores as FamilyScoreLike[] | undefined) ??
+    input.familyScores ??
     [];
 
   const familyRace = analyzeFamilyRace(familyScores);
@@ -1295,6 +1533,7 @@ export function finalizeReadingAfterDiagnosticReview(
     return {
       ...input.provisionalReading,
       resultType: "clear_direction",
+      familyScores,
       communityRouting: decideCommunityRouting("clear_direction"),
       dominantTension:
         "La dirección principal aparece suficientemente clara, aunque la transición todavía está condicionada por restricciones reales.",
@@ -1331,6 +1570,7 @@ export function finalizeReadingAfterDiagnosticReview(
 
     return {
       ...input.provisionalReading,
+      familyScores,
       summaryForUser: buildFrontierOrReviewSummary({
         provisionalReading: input.provisionalReading,
         familyRace,
@@ -1349,6 +1589,7 @@ export function finalizeReadingAfterDiagnosticReview(
 
   return {
     ...input.provisionalReading,
+    familyScores,
     trace: mergeTraceWithFinalAdjudication(
       input.provisionalReading.trace,
       adjudicationTrace,
@@ -1357,27 +1598,43 @@ export function finalizeReadingAfterDiagnosticReview(
 }
 
 export function buildFinalReading(input: OrchestratorInput): FinalReading {
-  const familyRace = analyzeFamilyRace(input.familyScores);
-
-  const decision = evaluateResultDecision({
+  const calibratedFamilyScores = calibrateFamilyScoresForCivicAdjacency({
     intake: input.intake,
-    signals: input.signals,
-    profiles: input.profiles,
-    transitionAssessment: input.transitionAssessment,
-    plausibleDirections: input.plausibleDirections,
-    clarificationMeta: input.clarificationMeta,
     familyScores: input.familyScores,
   });
 
-  const resultType = decision.resultType;
-  const legacyTopProfile = input.profiles[0] ?? null;
+  const calibratedInput: OrchestratorInput = {
+    ...input,
+    familyScores: calibratedFamilyScores,
+  };
 
-  const analyticalDominantPattern = resolveDominantPattern(input, legacyTopProfile);
-  const analyticalDominantProfile = resolveDominantProfile(input, legacyTopProfile);
+  const familyRace = analyzeFamilyRace(calibratedInput.familyScores);
+
+  const decision = evaluateResultDecision({
+    intake: calibratedInput.intake,
+    signals: calibratedInput.signals,
+    profiles: calibratedInput.profiles,
+    transitionAssessment: calibratedInput.transitionAssessment,
+    plausibleDirections: calibratedInput.plausibleDirections,
+    clarificationMeta: calibratedInput.clarificationMeta,
+    familyScores: calibratedInput.familyScores,
+  });
+
+  const resultType = decision.resultType;
+  const legacyTopProfile = calibratedInput.profiles[0] ?? null;
+
+  const analyticalDominantPattern = resolveDominantPattern(
+    calibratedInput,
+    legacyTopProfile,
+  );
+  const analyticalDominantProfile = resolveDominantProfile(
+    calibratedInput,
+    legacyTopProfile,
+  );
   const analyticalSecondaryProfile = resolveSecondaryProfile(
-    input,
+    calibratedInput,
     analyticalDominantProfile,
-    input.profiles[1] ?? null,
+    calibratedInput.profiles[1] ?? null,
   );
 
   const exposeDominantPattern = shouldExposeDominantPattern(resultType);
@@ -1395,39 +1652,39 @@ export function buildFinalReading(input: OrchestratorInput): FinalReading {
     : null;
 
   const valueGeneration = buildValueGeneration({
-    intake: input.intake,
+    intake: calibratedInput.intake,
     dominantProfile: presentedDominantProfile,
-    signals: input.signals,
+    signals: calibratedInput.signals,
   });
 
   const currentMisalignment = buildCurrentMisalignment({
-    intake: input.intake,
+    intake: calibratedInput.intake,
     dominantProfile: presentedDominantProfile,
-    signals: input.signals,
+    signals: calibratedInput.signals,
     resultType,
   });
 
   const bestWorkContexts = buildBestWorkContexts({
-    intake: input.intake,
+    intake: calibratedInput.intake,
     dominantProfile: presentedDominantProfile,
-    signals: input.signals,
+    signals: calibratedInput.signals,
     resultType,
   });
 
   const misreadRisk = buildMisreadRisk({
     dominantProfile: presentedDominantProfile,
     secondaryProfile: presentedSecondaryProfile,
-    signals: input.signals,
+    signals: calibratedInput.signals,
     resultType,
   });
 
   const transitionRecommendation = buildTransitionRecommendation({
-    intake: input.intake,
+    intake: calibratedInput.intake,
     dominantProfile: presentedDominantProfile,
     resultType,
   });
 
-  const nextMove = buildNextMoveBlock(input.actionVectors, resultType);
+  const nextMove = buildNextMoveBlock(calibratedInput.actionVectors, resultType);
 
   const corePattern = buildCorePatternLabel({
     dominantLabel: presentedDominantPattern.label,
@@ -1437,7 +1694,7 @@ export function buildFinalReading(input: OrchestratorInput): FinalReading {
   });
 
   const finalDiagnostic = {
-    severity: resolveSeverity(resultType, input.transitionAssessment),
+    severity: resolveSeverity(resultType, calibratedInput.transitionAssessment),
     functionalSubtype: resolveFunctionalSubtype(
       presentedDominantPattern.id,
       resultType,
@@ -1458,53 +1715,53 @@ export function buildFinalReading(input: OrchestratorInput): FinalReading {
   const directionsText = buildDirectionsText({
     resultType,
     familyRace,
-    plausibleDirections: input.plausibleDirections,
+    plausibleDirections: calibratedInput.plausibleDirections,
   });
 
   const actionText =
     transitionRecommendation.summary ??
-    input.actionVectors[0]?.description ??
+    calibratedInput.actionVectors[0]?.description ??
     "El siguiente paso correcto es ampliar evidencia antes de mover demasiado.";
 
   const minimalPath =
     nextMove.items?.[0] ??
-    input.actionVectors[0]?.microActions?.[0] ??
+    calibratedInput.actionVectors[0]?.microActions?.[0] ??
     "Volver a entrar al sistema con más historia, más matices y más contexto.";
 
   const baseTrace =
     (decision as { trace?: unknown })?.trace ??
-    buildFallbackTrace(input, resultType, familyRace);
+    buildFallbackTrace(calibratedInput, resultType, familyRace);
 
   const trace = mergeTraceWithFamilyRace(baseTrace, familyRace);
 
   const alignedSupportingProfiles = buildOrderedSupportingProfiles(
-    input,
+    calibratedInput,
     analyticalDominantProfile,
     analyticalSecondaryProfile,
   );
 
   return {
     resultType,
-    familyScores: input.familyScores ?? [],
+    familyScores: calibratedInput.familyScores ?? [],
     corePattern,
     dominantTension: buildDominantTension({
       resultType,
-      transitionAssessment: input.transitionAssessment,
+      transitionAssessment: calibratedInput.transitionAssessment,
       familyRace,
     }),
     currentCost:
-      input.transitionAssessment.transitionMargin === "minimal"
+      calibratedInput.transitionAssessment.transitionMargin === "minimal"
         ? "El costo actual de mover demasiado es alto."
         : resultType === "insufficient_evidence"
           ? "Antes de mover demasiado, conviene ganar claridad real y evidencia más firme."
           : familyRace.shouldAvoidSingleClearClaim
             ? "El costo principal ahora no es moverse, sino cerrar demasiado pronto una lectura que todavía está en frontera."
             : "El costo actual permite movimientos graduales si se sostienen con criterio.",
-    plausibleDirections: input.plausibleDirections,
-    actionVectors: input.actionVectors,
-    transitionAssessment: input.transitionAssessment,
+    plausibleDirections: calibratedInput.plausibleDirections,
+    actionVectors: calibratedInput.actionVectors,
+    transitionAssessment: calibratedInput.transitionAssessment,
     supportingProfiles: alignedSupportingProfiles,
-    detectedSignals: input.signals,
+    detectedSignals: calibratedInput.signals,
     communityRouting: decideCommunityRouting(resultType),
     summaryForUser: {
       diagnostico: buildDiagnosticSummary({
@@ -1516,7 +1773,7 @@ export function buildFinalReading(input: OrchestratorInput): FinalReading {
         (presentedDominantProfile?.summary ??
           "Todavía no hay un hilo conductor suficientemente sostenido para organizar una lectura fuerte."),
       tensiones:
-        currentMisalignment.summary ?? input.transitionAssessment.summary,
+        currentMisalignment.summary ?? calibratedInput.transitionAssessment.summary,
       direccion: directionsText,
       action: actionText,
       camino_minimo: minimalPath,

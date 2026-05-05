@@ -200,7 +200,7 @@ function inferInfluence(params: {
 
     case "frontier_support":
       return {
-        shouldInfluenceFutureCases: true,
+        shouldInfluenceFutureCases: false,
         influenceStrength: Math.min(0.35, Math.max(0.2, confidence * 0.4)),
         requiresHumanApproval: true,
       };
