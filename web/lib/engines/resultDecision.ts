@@ -201,8 +201,9 @@ export function evaluateResultDecision(
     !hasManageableCompressionNarrative &&
     !hasSoftCompressionNarrative;
 
-  const compressionPushesToCompressedLife =
-    minimalMargin || hasHardCompressionPressure;
+  // Minimal transition margin is a constraint signal, not enough by itself
+  // to override a clear family direction into compressed_life.
+  const compressionPushesToCompressedLife = hasHardCompressionPressure;
 
   const hasPlausibleDirections = input.plausibleDirections.length > 0;
   const hasRobustEvidence = signalCount >= 5;
