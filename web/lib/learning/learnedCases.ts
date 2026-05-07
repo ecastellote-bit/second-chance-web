@@ -725,4 +725,56 @@ export const LEARNED_DIAGNOSTIC_CASES: LearnedDiagnosticCase[] = [
         "Este caso enseña que una persona puede mostrar lenguaje institucional, de áreas, roles, governance o coordinación organizacional, pero seguir siendo principalmente System Designer cuando el núcleo de evidencia es diseñar flujos, reglas, criterios, arquitectura de proceso y mecanismos para que el sistema funcione sin depender de héroes. Institutional Operator debe quedar como rival/adyacente cuando la persona se mueve dentro de estructuras, pero no desplazar a System Designer si la acción central es rediseñar el funcionamiento.",
       shouldInfluenceFutureCases: true,
     },
+    {
+      id: "learned_system_designer_public_communicator_frontier_001",
+      title: "System Designer con frontera Public Communicator tras R2 manual",
+      source: "manual_synthetic",
+      language: "es",
+      region: "Uruguay",
+      inputText:
+        "Equipo de producto con deuda de procesos; me piden diseño y al mismo tiempo entrega inmediata. Empiezo mapeando el proceso y termino codeando integraciones porque el plazo aprieta. Si solo me evalúan por tickets cerrados, mi rol de sistema no existe en el papel. La clave no es que yo quiera implementar más rápido ni resolver tickets sueltos. Lo que más me importa es diseñar primero el flujo, las reglas, las responsabilidades y las dependencias del sistema para que después la implementación tenga sentido. Puedo programar o automatizar cuando hace falta, pero mi aporte distintivo aparece antes: ordenar la arquitectura del proceso y evitar que todo dependa de parches.",
+      expectedPrimaryFamily: "system_designer",
+      acceptableFamilies: ["system_designer", "public_communicator"],
+      rivalFamilies: [
+        "technical_builder",
+        "analytical_strategist",
+        "institutional_operator",
+      ],
+      keyHumanLanguage: [
+        "deuda de procesos",
+        "me piden diseño y entrega inmediata",
+        "mapear el proceso",
+        "termino codeando integraciones porque el plazo aprieta",
+        "si solo me evalúan por tickets cerrados, mi rol de sistema no existe en el papel",
+        "no quiero implementar más rápido ni resolver tickets sueltos",
+        "diseñar primero el flujo, las reglas, las responsabilidades y las dependencias",
+        "ordenar la arquitectura del proceso",
+        "evitar que todo dependa de parches",
+        "ordenar el sistema antes que picar código o tareas sueltas",
+      ],
+      missingCuesDetected: [
+        "No confundir capacidad de implementación con Technical Builder cuando la intención dominante es diseñar sistema, flujo, reglas y dependencias.",
+        "Si aparece lenguaje de audiencia, voz, mensaje o explicación pública, revisar Public Communicator como frontera, no necesariamente como dominancia.",
+        "Si la persona insiste en ordenar arquitectura antes de código o tareas sueltas, favorecer System Designer sobre Technical Builder.",
+        "Cuando la salida enriquecida pasa de insufficient_evidence a clear_direction pero aparece una segunda familia muy cercana, conservar el caso como frontera consultable.",
+      ],
+      actualResult: {
+        corePattern: "system_designer / public_communicator frontier",
+        resultType: "clear_direction",
+        familyScores: [
+          {
+            originalResultType: "insufficient_evidence",
+            enrichedResultType: "clear_direction",
+            topFamily: "system_designer",
+            frontierFamily: "public_communicator",
+            promotionSignal: "frontier_support",
+            manualFollowupRound: 2,
+          },
+        ],
+      },
+      verdict: "learning_candidate",
+      lesson:
+        "Este caso enseña que una persona puede parecer Technical Builder porque implementa o codea bajo presión, pero su patrón dominante puede ser System Designer si su preocupación central es diseñar flujo, reglas, responsabilidades, dependencias y arquitectura antes de ejecutar. También muestra que, cuando aparece necesidad de explicar, ordenar agenda o construir mensaje para otros, Public Communicator debe quedar como frontera activa y no como descarte automático.",
+      shouldInfluenceFutureCases: true,
+    },
 ];

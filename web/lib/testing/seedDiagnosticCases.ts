@@ -708,9 +708,9 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
   },
   {
     id: "seed_system_designer_02",
-    label: "Semilla — System designer (riesgo technical builder)",
+    label: "Semilla — System designer (frontera public communicator)",
     expectation:
-      "Debe tender a system_designer; riesgo de confundirlo con technical_builder si domina implementación táctica sobre diseño de sistema.",
+      "Debe tender a system_designer; riesgo de frontera con public_communicator si aparece necesidad de traducir sistema, construir mensaje o explicar complejidad para una audiencia. No debe confundirse con technical_builder si la implementación aparece como recurso táctico y no como patrón dominante.",
     payload: {
       profile: {
         age: 36,
@@ -750,6 +750,57 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
           "Comunicación con ingeniería",
           "Criterio de priorización",
         ],
+      },
+    },
+  },
+  {
+    id: "seed_public_communicator_system_designer_frontier_01",
+    label: "Semilla — Comunicador público (frontera system designer)",
+    expectation:
+      "Debe tender a clear_direction con public_communicator; riesgo de confundirlo con system_designer porque ordena marcos, reglas o sistemas, pero el objeto dominante es traducir complejidad para una audiencia y construir voz, agenda o explicación pública.",
+    payload: {
+      profile: {
+        age: 39,
+        country: "Argentina",
+        language: "es",
+        employmentStatus: "employed",
+        educationLevel: "tertiary",
+      },
+      narrative: {
+        childhoodMemories:
+          "De chico me gustaba explicar a mis amigos por qué una regla del colegio o del club no tenía sentido; terminaba armando ejemplos para que todos entendieran el problema.",
+        earlyFascinations:
+          "Me enganchaba ver cómo una idea complicada podía volverse clara si encontraba la frase, el ejemplo y el orden justo.",
+        meaningfulSchoolSubjects:
+          "Historia, comunicación, educación cívica, debates; también algo de sistemas porque me gusta entender la estructura antes de explicarla.",
+        repeatedWorkPatterns:
+          "En distintos trabajos termino traduciendo decisiones confusas de equipos técnicos o directivos a mensajes que la gente entienda y pueda discutir.",
+        naturalSocialRoles:
+          "Soy quien arma el hilo, el documento o la explicación pública cuando hay muchas partes diciendo cosas sueltas.",
+        lossesOrRenunciations:
+          "Me frustré cuando me empujaron a roles de proceso interno; puedo ordenar, pero me apago si eso no termina en comunicación clara hacia otros.",
+        whatFeelsCompressedNow:
+          "Tengo capacidad para ordenar ideas complejas, pero hoy queda encerrada en documentos internos que casi nadie lee.",
+        additionalContext:
+          "No quiero diseñar sistemas por diseñarlos; quiero construir una voz, una agenda o una explicación que ayude a una audiencia a entender qué está pasando y qué puede hacer.",
+      },
+      currentContext: {
+        currentSituation:
+          "Trabajo cerca de producto y comunicación interna; me piden ordenar información dispersa sobre cambios complejos.",
+        restrictions: [
+          "Necesito moverme gradualmente",
+          "No puedo dejar mi trabajo actual sin una alternativa concreta",
+          "Me cuesta venderme como comunicador porque vengo de roles de coordinación y proceso",
+        ],
+        assets: [
+          "claridad escrita",
+          "lectura de audiencia",
+          "capacidad de síntesis",
+          "criterio para ordenar argumentos",
+          "facilidad para explicar sistemas a no especialistas",
+        ],
+        transitionGoal:
+          "Probar una línea de comunicación pública o institucional donde convierta complejidad en mensajes claros para una audiencia real.",
       },
     },
   },
