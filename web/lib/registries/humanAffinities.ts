@@ -601,7 +601,7 @@ export const HUMAN_AFFINITIES: HumanAffinityDefinition[] = [
       "que no falle",
     ],
     confusableWith: ["practical_execution", "resource_optimization"],
-    likelyDomains: ["work", "home", "craft"],
+    likelyDomains: ["work", "family"],
     relatedContributionModes: ["repairs", "adjusts", "builds"],
     relatedFlourishingConditions: [
       "problemas concretos",
@@ -627,7 +627,7 @@ export const HUMAN_AFFINITIES: HumanAffinityDefinition[] = [
       "mejorar rendimiento",
     ],
     confusableWith: ["system_ordering", "operational_rhythm"],
-    likelyDomains: ["work", "community", "home"],
+    likelyDomains: ["work", "community", "family"],
     relatedContributionModes: ["optimizes", "streamlines", "improves"],
     relatedFlourishingConditions: [
       "procesos mejorables",
@@ -683,7 +683,7 @@ export const HUMAN_AFFINITIES: HumanAffinityDefinition[] = [
       "no dejarlo a medias",
     ],
     confusableWith: ["technical_assembly", "aesthetic_sensitivity"],
-    likelyDomains: ["work", "craft", "art", "home"],
+    likelyDomains: ["work", "family"],
     relatedContributionModes: ["refines", "polishes", "finishes well"],
     relatedFlourishingConditions: [
       "tiempo para hacer bien",
@@ -934,7 +934,7 @@ export const HUMAN_AFFINITIES: HumanAffinityDefinition[] = [
       "conocer lugares",
     ],
     confusableWith: ["curiosity_depth", "initiative_drive"],
-    likelyDomains: ["work", "travel", "culture", "community"],
+    likelyDomains: ["work", "community"],
     relatedContributionModes: ["explores", "discovers", "opens paths"],
     relatedFlourishingConditions: [
       "margen de movimiento",

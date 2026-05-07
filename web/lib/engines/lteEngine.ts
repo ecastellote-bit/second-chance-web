@@ -14,7 +14,7 @@ function calculateTransitionMargin(input: UserIntake): TransitionMargin {
     return "narrow";
   }
 
-  if (energy === "high" && economic === "low" && family !== "heavy") {
+  if (energy === "high" && economic === "low") {
     return "strong";
   }
 

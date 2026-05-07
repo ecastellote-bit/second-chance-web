@@ -1,7 +1,17 @@
 import type { ProbableProfile } from "./profiles";
+import type { ResultType } from "./result";
 
 export type DiagnosticSeverity = "low" | "medium" | "high";
-export type FunctionalSubtype = string;
+
+/** Subtipo funcional exportable desde el composer rico del diagnóstico. */
+export type FunctionalSubtypeDetail = {
+  id: string;
+  label: string;
+  explanation: string;
+};
+
+/** Código corto desde el orchestrator o snapshot desde el composer. */
+export type FunctionalSubtype = FunctionalSubtypeDetail | string;
 
 export type TransitionMode =
   | "gradual_lateral"
@@ -18,6 +28,7 @@ export type DiagnosticProfileSnapshot = {
 };
 
 export type DirectionSnapshot = {
+  id?: string;
   label: string;
   ecosystem?: string;
   rationale?: string;
@@ -28,6 +39,8 @@ type BaseDiagnosticBlock = {
   headline?: string;
   summary?: string;
   description?: string;
+  /** Texto aclaratorio (bloques generados por motores/composer). */
+  explanation?: string;
   rationale?: string;
   severity?: DiagnosticSeverity;
   subtype?: string;
@@ -54,7 +67,10 @@ export type TransitionRecommendationBlock = BaseDiagnosticBlock & {
   transitionMode?: TransitionMode;
 };
 
-export type NextMoveBlock = BaseDiagnosticBlock;
+export type NextMoveBlock = BaseDiagnosticBlock & {
+  /** Lista orientativa de pasos (composer); el orchestrator usa `items` / `microActions`. */
+  actions?: string[];
+};
 
 export type FinalDiagnostic = {
   severity: DiagnosticSeverity;
@@ -69,6 +85,22 @@ export type FinalDiagnostic = {
   misreadRisk: MisreadRiskBlock;
   transitionRecommendation: TransitionRecommendationBlock;
   nextMove: NextMoveBlock;
+};
+
+/** Salida de `buildFinalDiagnostic` (composer standalone); forma distinta al `FinalDiagnostic` del reading. */
+export type ComposerFinalDiagnostic = {
+  resultType: ResultType;
+  dominantProfile: DiagnosticProfileSnapshot | null;
+  secondaryProfile: DiagnosticProfileSnapshot | null;
+  functionalSubtype: FunctionalSubtypeDetail | null;
+  valueGeneration: ValueGenerationBlock;
+  currentMisalignment: MisalignmentBlock;
+  bestContexts: WorkContextBlock;
+  misreadRisk: MisreadRiskBlock;
+  compatibleDirections: DirectionSnapshot[];
+  transitionRecommendation: TransitionRecommendationBlock;
+  nextMove: NextMoveBlock;
+  summaryForUser: { headline: string; diagnostico: string };
 };
 
 export function toDiagnosticProfileSnapshot(

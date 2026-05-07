@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { FunctionalSubtype } from "@/lib/types/finalDiagnostic";
 import { HUMAN_LANGUAGE_CASES } from "@/lib/testing/humanLanguageCases";
 
 type DirectionItem =
@@ -30,7 +31,7 @@ type GenericBlock = {
 
 type FinalDiagnosticPayload = {
   severity?: string;
-  functionalSubtype?: string;
+  functionalSubtype?: FunctionalSubtype;
   profileSnapshot?: {
     id?: string;
     label?: string;
@@ -665,7 +666,9 @@ export default function LabPage() {
               {finalDiagnostic?.functionalSubtype ? (
                 <p>
                   <strong>Functional subtype:</strong>{" "}
-                  {finalDiagnostic.functionalSubtype}
+                  {typeof finalDiagnostic.functionalSubtype === "object"
+                    ? `${finalDiagnostic.functionalSubtype.label} (${finalDiagnostic.functionalSubtype.id})`
+                    : finalDiagnostic.functionalSubtype}
                 </p>
               ) : null}
               <p>

@@ -94,7 +94,7 @@ const FOLLOWUP_BANK: Record<string, FollowupPack> = {
     round: 3,
     title: "Último desempate entre guía humana y construcción de comunidad",
     objective:
-      "Forzar adjudicación entre foco uno a uno y foco colectivo.",
+      "Necesitamos separar mejor dos direcciones posibles (uno a uno vs colectivo). Esta pregunta ayuda a distinguir cuál pesa más, sin forzar una etiqueta cerrada.",
     questions: [
       {
         id: "gvc_r3_q1",
@@ -262,7 +262,7 @@ const FOLLOWUP_BANK: Record<string, FollowupPack> = {
     round: 3,
     title: "Último desempate entre escucha profunda y articulación de actores",
     objective:
-      "Obligar a elegir entre proceso humano interno y coordinación externa entre partes.",
+      "Necesitamos separar mejor dos direcciones posibles (escucha interna vs articulación entre partes). Esta pregunta ayuda a distinguir cuál pesa más, sin forzar una etiqueta cerrada.",
     questions: [
       {
         id: "gvcn_r3_q1",
@@ -428,7 +428,7 @@ const FOLLOWUP_BANK: Record<string, FollowupPack> = {
     round: 3,
     title: "Último desempate entre estrategia y operación",
     objective:
-      "Obligar a elegir entre criterio previo y resolución concreta.",
+      "Una última aclaración para distinguir dos caminos cercanos (estrategia vs ejecución). Ayuda a ver cuál pesa más sin forzar una etiqueta cerrada.",
     questions: [
       {
         id: "svb_r3_q1",
@@ -594,7 +594,7 @@ const FOLLOWUP_BANK: Record<string, FollowupPack> = {
     round: 3,
     title: "Último desempate entre exploración cultural y construcción narrativa",
     objective:
-      "Obligar a elegir entre comprensión exploratoria y forma verbal dominante.",
+      "Una última aclaración para distinguir exploración contextual vs forma narrativa dominante.",
     questions: [
       {
         id: "svc_r3_q1",
@@ -760,7 +760,7 @@ const FOLLOWUP_BANK: Record<string, FollowupPack> = {
     round: 3,
     title: "Último desempate entre articulación de actores y construcción narrativa",
     objective:
-      "Obligar a elegir entre diplomacia relacional y forma verbal dominante.",
+      "Una última aclaración para distinguir articulación entre actores vs construcción de mensaje o relato.",
     questions: [
       {
         id: "cvs_r3_q1",
@@ -886,9 +886,9 @@ const FOLLOWUP_BANK: Record<string, FollowupPack> = {
   "weak_signal_general_round_3": {
     ambiguityType: "weak_signal_general",
     round: 3,
-    title: "Último esfuerzo para forzar una rama principal",
+    title: "Una última aclaración para distinguir dos caminos cercanos",
     objective:
-      "Obtener una inclinación dominante aunque la señal general siga débil.",
+      "Esta pregunta ayuda a distinguir cuál pesa más aun cuando la señal general siga difusa.",
     questions: [
       {
         id: "wsg_r3_q1",

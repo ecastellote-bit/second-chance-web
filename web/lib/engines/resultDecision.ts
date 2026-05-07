@@ -93,6 +93,12 @@ export function evaluateResultDecision(
   const hasVeryStrongTopFamily =
     familyView.topFamilyScore >= 0.62 || familyView.topFamilyConfidence >= 0.8;
 
+  const hasStrongEnoughSecondFamily =
+    familyView.secondFamilyScore >= 0.45 ||
+    familyView.secondFamilyConfidence >= 0.6;
+
+  const hasStrongEnoughSecondProfile = secondConfidence >= 0.55;
+
   const topLayerStrongEnough = useFamilyDecisionLayer
     ? hasStrongEnoughTopFamily
     : hasStrongEnoughTopProfile;
@@ -201,9 +207,11 @@ export function evaluateResultDecision(
     !hasManageableCompressionNarrative &&
     !hasSoftCompressionNarrative;
 
-  // Minimal transition margin is a constraint signal, not enough by itself
-  // to override a clear family direction into compressed_life.
-  const compressionPushesToCompressedLife = hasHardCompressionPressure;
+  // Hard compression still counts as context, but should not override
+  // a strong family direction. Reserve compressed_life for cases where
+  // compression effectively blocks closing an actionable direction.
+  const compressionPushesToCompressedLife =
+    hasHardCompressionPressure && !topLayerStrongEnough;
 
   const hasPlausibleDirections = input.plausibleDirections.length > 0;
   const hasRobustEvidence = signalCount >= 5;
@@ -265,9 +273,26 @@ export function evaluateResultDecision(
         hasRobustEvidence &&
         hasPlausibleDirections;
 
+    const defensibleFrontierWithinCloseRace =
+      hasPlausibleDirections &&
+      (useFamilyDecisionLayer
+        ? signalCount >= 4 &&
+          hasStrongEnoughTopFamily &&
+          hasStrongEnoughSecondFamily &&
+          !!familyView.secondFamilyLabel
+        : !!secondProfile &&
+          hasStrongEnoughTopProfile &&
+          hasStrongEnoughSecondProfile &&
+          hasRobustEvidence);
+
     if (secondTooClose && !allowClearDespiteCloseSecond) {
-      decisionReason = "SECOND_PROFILE_TOO_CLOSE";
-      resultTypePreview = "insufficient_evidence";
+      if (defensibleFrontierWithinCloseRace) {
+        decisionReason = "CLEAR_DIRECTION_DEFENSIBLE_FRONTIER";
+        resultTypePreview = "clear_direction";
+      } else {
+        decisionReason = "SECOND_PROFILE_TOO_CLOSE";
+        resultTypePreview = "insufficient_evidence";
+      }
     } else {
       decisionReason = "CLEAR_DIRECTION";
       resultTypePreview = "clear_direction";

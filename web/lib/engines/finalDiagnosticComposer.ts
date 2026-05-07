@@ -3,9 +3,9 @@ import type { EmployabilityDirection, ProbableProfile } from "../types/profiles"
 import type { DetectedSignal } from "../types/signals";
 import type { ResultType } from "../types/result";
 import type {
+  ComposerFinalDiagnostic,
   DirectionSnapshot,
-  FinalDiagnostic,
-  FunctionalSubtype,
+  FunctionalSubtypeDetail,
   NextMoveBlock,
 } from "../types/finalDiagnostic";
 import { toDiagnosticProfileSnapshot } from "../types/finalDiagnostic";
@@ -38,14 +38,14 @@ function toDirectionSnapshot(
     id: direction.id,
     ecosystem: direction.ecosystem,
     label: direction.label,
-    whyItFits: direction.whyItFits,
+    rationale: direction.whyItFits,
   };
 }
 
 function buildFunctionalSubtype(
   dominantProfile: ProbableProfile | null | undefined,
   signals: DetectedSignal[]
-): FunctionalSubtype | null {
+): FunctionalSubtypeDetail | null {
   if (!dominantProfile) return null;
 
   const signalKeys = getSignalKeys(signals);
@@ -325,7 +325,7 @@ function buildNextMove(
 function buildSummary(
   resultType: ResultType,
   dominantProfile: ProbableProfile | null | undefined,
-  functionalSubtype: FunctionalSubtype | null,
+  functionalSubtype: FunctionalSubtypeDetail | null,
   compatibleDirections: DirectionSnapshot[]
 ): { headline: string; diagnostico: string } {
   if (!dominantProfile || resultType === "insufficient_evidence") {
@@ -362,7 +362,7 @@ function buildSummary(
 
 export function buildFinalDiagnostic(
   input: FinalDiagnosticComposerInput
-): FinalDiagnostic {
+): ComposerFinalDiagnostic {
   const dominantProfile = input.profiles[0] ?? null;
   const secondaryProfile = input.profiles[1] ?? null;
 

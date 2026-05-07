@@ -3,63 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFullAnswers } from "../fullAnswersContext";
+import type { FollowupOrchestratorResult } from "@/lib/engines/followupOrchestrator";
 import type { FinalReading } from "@/lib/types/result";
-
-type FollowupOption = {
-  id: string;
-  label: string;
-  leansToward?: string[];
-};
-
-type FollowupQuestion = {
-  id: string;
-  round: 2 | 3;
-  ambiguityType: string;
-  kind: "open_text" | "contrast_choice" | "forced_choice" | "micro_narrative";
-  prompt: string;
-  helpText?: string;
-  options?: FollowupOption[];
-};
-
-type FollowupPack = {
-  ambiguityType: string;
-  round: 2 | 3;
-  title: string;
-  objective: string;
-  questions: FollowupQuestion[];
-};
-
-type FollowupAssessment = {
-  needsFollowupRound: boolean;
-  recommendedRound: 2 | 3 | null;
-  ambiguityType: string | null;
-  candidateProfiles: string[];
-  questionStrategy: string;
-  reason: string;
-  signalCount: number;
-  topProfileId: string | null;
-  topProfileLabel: string | null;
-  topProfileConfidence: number | null;
-  secondProfileId: string | null;
-  secondProfileLabel: string | null;
-  secondProfileConfidence: number | null;
-  confidenceGap: number | null;
-  allowForcedAdjudicationAfterRound2: boolean;
-};
-
-type FollowupOrchestratorResult = {
-  shouldAskFollowup: boolean;
-  round: 2 | 3 | null;
-  ambiguityType: string | null;
-  pack: FollowupPack | null;
-  assessment: FollowupAssessment;
-  status:
-    | "no_followup_needed"
-    | "round_ready"
-    | "no_pack_available"
-    | "round_not_allowed";
-  reason: string;
-};
 
 type AnalyzeResponse =
   | {

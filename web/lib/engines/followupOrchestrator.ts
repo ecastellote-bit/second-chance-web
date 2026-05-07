@@ -168,10 +168,10 @@ export function buildFollowupOrchestration(
       status: "no_followup_needed",
       reason:
         completedRounds === 0
-          ? "La lectura inicial ya alcanza para adjudicar una rama principal sin ronda extra."
+          ? "La lectura inicial ya alcanza para una conclusión defendible sin ronda extra."
           : completedRounds === 1
-            ? "La Ronda 2 ya aportó evidencia suficiente para adjudicar una rama principal."
-            : "La evidencia adicional ya alcanzó para adjudicar una rama principal sin pedir más rondas.",
+            ? "La Ronda 2 ya aportó evidencia suficiente para cerrar o acotar bien la lectura."
+            : "La evidencia adicional ya alcanzó para cerrar sin pedir más rondas.",
     };
   }
 
@@ -194,7 +194,7 @@ export function buildFollowupOrchestration(
       canAskAnotherRound: false,
       status: "forced_adjudication_required",
       reason:
-        "La lectura sigue ambigua incluso después de Ronda 2 y Ronda 3. Ya no corresponde abrir más rondas: ahora hay que adjudicar la rama más probable con confianza limitada.",
+        "La lectura sigue ambigua incluso después de Ronda 2 y Ronda 3. Ya no corresponde abrir más rondas: conviene cerrar con la mejor lectura posible y confianza acotada.",
     };
   }
 
@@ -237,7 +237,7 @@ export function buildFollowupOrchestration(
       canAskAnotherRound: false,
       status: "forced_adjudication_required",
       reason:
-        "La lectura necesitaba una Ronda 3, pero no existe un paquete cargado para esa ambigüedad. En vez de dejar el flujo bloqueado, corresponde adjudicar con la mejor evidencia disponible.",
+        "La lectura necesitaba una Ronda 3, pero no existe un paquete cargado para esa ambigüedad. En vez de dejar el flujo bloqueado, conviene cerrar con la mejor evidencia disponible.",
     };
   }
 
@@ -271,7 +271,7 @@ export function buildFollowupOrchestration(
     status: "round_ready",
     reason:
       round === 2
-        ? "La lectura necesita una Ronda 2 de clarificación antes de adjudicar una rama principal."
-        : "La lectura necesita una Ronda 3 final para decantar antes de la adjudicación obligatoria.",
+        ? "La lectura necesita una Ronda 2 para separar mejor dos direcciones posibles."
+        : "Una última aclaración (Ronda 3) ayuda a distinguir cuál pesa más, sin forzar una etiqueta cerrada.",
   };
 }
