@@ -295,6 +295,7 @@ function normalizePayload(payload: any) {
       currentContext: {
         currentSituation:
           payload.currentContext.currentSituation ?? payload.currentSituation ?? "",
+        transitionGoal: payload.currentContext?.transitionGoal ?? "",
         restrictions: toArray(
           payload.currentContext.restrictions ?? payload.restrictions,
         ),
