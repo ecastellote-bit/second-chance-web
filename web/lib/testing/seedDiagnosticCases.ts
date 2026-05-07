@@ -5,7 +5,7 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
     id: "seed_empathic_guide_01",
     label: "Semilla — Guía empática (clara)",
     expectation:
-      "Debe tender a clear_direction con empathic_guide; foco uno a uno y profundidad humana sin eje comunitario dominante.",
+      "Debe tender a clear_direction con empathic_guide; foco uno a uno y profundidad humana sin eje comunitario, institucional ni operativo.",
     payload: {
       profile: {
         age: 36,
@@ -21,29 +21,29 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
           "Me enganchaba entender qué le pasaba a la otra persona de verdad, no solo el relato lindo.",
         meaningfulSchoolSubjects: "Psicología por afuera, filosofía barata y muchas charlas con compañeros.",
         repeatedWorkPatterns:
-          "En el laburo termino siendo la que acompaña conversaciones difíciles, hace preguntas que ordenan y no deja tirada a la gente.",
+          "Me sale escuchar sin apurar, hacer una pregunta justa y ayudar a que la otra persona entienda qué siente y qué necesita. No me interesa dirigir grupos ni organizar equipos; me interesa acompañar procesos personales.",
         naturalSocialRoles:
           "La que escucha de verdad, la que contiene un poco sin ser terapeuta de fantasía.",
         lossesOrRenunciations:
           "Fui posponiendo esto por tareas más medibles y por cansancio de que me tomen como muleta emocional.",
         whatFeelsCompressedNow:
-          "Sostengo mucho a otros y a veces no sé dónde quedo yo; me cuesta canalizar esto sin sentirme egoísta.",
+          "Muchas veces sostengo emocionalmente a otros y después me cuesta encontrar un lugar donde esa capacidad tenga forma real, sin quedar como favor invisible.",
         additionalContext:
           "No me interesa coordinar grupos grandes ni ser referente de comunidad; mi energía va persona a persona.",
       },
       currentContext: {
         currentSituation:
-          "Trabajo en un equipo donde me piden mucho contención informal y clarificar situaciones humanas antes de que exploten.",
+          "En distintos momentos termino siendo la persona a la que alguien busca cuando está confundido, triste o no sabe cómo poner en palabras lo que le pasa.",
         transitionGoal:
           "Quiero que esto deje de ser solo 'ayuda gratis' y encuentre un marco laboral donde tenga peso sin quemarme.",
         restrictions: [
-          "No puedo largar el laburo de golpe",
-          "Necesito que cualquier cambio sea gradual",
+          "No puedo cambiar de trabajo de golpe",
+          "Necesito probar esta capacidad de manera gradual y cuidada",
         ],
         assets: [
           "Escucha fina",
-          "Preguntas que ordenan",
           "Paciencia real",
+          "Preguntas que ayudan a ordenar el mundo interno de una persona",
         ],
       },
     },
