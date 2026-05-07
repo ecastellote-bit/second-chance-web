@@ -754,10 +754,10 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
     },
   },
   {
-    id: "seed_public_communicator_system_designer_frontier_01",
-    label: "Semilla — Comunicador público (frontera system designer)",
+    id: "seed_public_communicator_educator_interpreter_frontier_01",
+    label: "Semilla — Comunicador público (frontera educador intérprete)",
     expectation:
-      "Debe tender a clear_direction con public_communicator; riesgo de confundirlo con system_designer porque ordena marcos, reglas o sistemas, pero el objeto dominante es traducir complejidad para una audiencia y construir voz, agenda o explicación pública.",
+      "Debe tender a public_communicator con frontera educator_interpreter; comunicación pública, explicación clara, traducción de complejidad y lectura pedagógica para audiencia real.",
     payload: {
       profile: {
         age: 39,
@@ -782,7 +782,7 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
         whatFeelsCompressedNow:
           "Tengo capacidad para ordenar ideas complejas, pero hoy queda encerrada en documentos internos que casi nadie lee.",
         additionalContext:
-          "No quiero diseñar sistemas por diseñarlos; quiero construir una voz, una agenda o una explicación que ayude a una audiencia a entender qué está pasando y qué puede hacer.",
+          "No busco diseñar procesos internos como objetivo principal; quiero construir voz pública y explicación clara para una audiencia real, con frontera natural hacia educator_interpreter cuando domina lo pedagógico.",
       },
       currentContext: {
         currentSituation:
@@ -797,10 +797,61 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
           "lectura de audiencia",
           "capacidad de síntesis",
           "criterio para ordenar argumentos",
-          "facilidad para explicar sistemas a no especialistas",
+          "facilidad para traducir complejidad a lenguaje comprensible",
         ],
         transitionGoal:
           "Probar una línea de comunicación pública o institucional donde convierta complejidad en mensajes claros para una audiencia real.",
+      },
+    },
+  },
+  {
+    id: "seed_public_communicator_system_designer_frontier_02",
+    label: "Semilla — Comunicador público (frontera diseñador de sistemas)",
+    expectation:
+      "Debe tender a public_communicator, con frontera system_designer; el objetivo dominante es construir voz pública, agenda y audiencia, pero con diseño estructural previo de mapa, reglas y secuencia comunicacional.",
+    payload: {
+      profile: {
+        age: 41,
+        country: "Argentina",
+        language: "es",
+        employmentStatus: "employed",
+        educationLevel: "tertiary",
+      },
+      narrative: {
+        childhoodMemories:
+          "De chico me gustaba armar diarios, programas o campañas inventadas, pero no empezaba por el título: primero ordenaba secciones, reglas, roles, temas y el recorrido para que todo tuviera coherencia.",
+        earlyFascinations:
+          "Me enganchaba ver cómo una idea pública podía cambiar de fuerza cuando había estructura: mapa de temas, orden de aparición, tono, marco y continuidad.",
+        meaningfulSchoolSubjects:
+          "Comunicación, historia, educación cívica, debate, diseño de argumentos; también me atraían los sistemas porque me ayudaban a ordenar antes de hablar.",
+        repeatedWorkPatterns:
+          "Cuando tengo que comunicar algo complejo, no empiezo escribiendo frases lindas: primero diseño el esquema, separo capas, defino criterios, ordeno dependencias y recién después construyo el mensaje.",
+        naturalSocialRoles:
+          "Soy quien arma la arquitectura de comunicación y después sostiene una voz pública entendible.",
+        lossesOrRenunciations:
+          "Me frustré cuando me pidieron solo piezas sueltas sin continuidad; sin estructura se pierde la agenda.",
+        whatFeelsCompressedNow:
+          "Me frustra que me pidan posteos o discursos aislados, cuando mi aporte real es diseñar la arquitectura de comunicación que les da coherencia.",
+        additionalContext:
+          "No quiero diseñar sistemas por diseñarlos: quiero que esa estructura termine en una voz pública clara, una agenda entendible y una comunicación que pueda sostenerse en el tiempo.",
+      },
+      currentContext: {
+        currentSituation:
+          "Trabajo convirtiendo temas dispersos en una postura pública clara, pero antes de escribir necesito ordenar el mapa completo: qué va primero, qué categorías usar, qué regla editorial sostiene cada pieza y cómo se conecta cada mensaje con el siguiente.",
+        restrictions: [
+          "Necesito moverme gradualmente",
+          "No puedo dejar mi trabajo actual sin una alternativa concreta",
+          "El equipo me pide salidas rápidas y a veces sin secuencia",
+        ],
+        assets: [
+          "voz pública consistente",
+          "criterio para ordenar agenda",
+          "diseño de secuencia editorial",
+          "capacidad de síntesis para audiencia real",
+          "arquitectura de explicación",
+        ],
+        transitionGoal:
+          "Construir una línea de comunicación pública que no dependa de ocurrencias sueltas: quiero que haya una arquitectura detrás de la voz, una secuencia de temas, criterios de publicación y una forma reconocible de ordenar agenda para una audiencia real.",
       },
     },
   },

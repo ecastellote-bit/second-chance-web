@@ -777,4 +777,38 @@ export const LEARNED_DIAGNOSTIC_CASES: LearnedDiagnosticCase[] = [
         "Este caso enseña que una persona puede parecer Technical Builder porque implementa o codea bajo presión, pero su patrón dominante puede ser System Designer si su preocupación central es diseñar flujo, reglas, responsabilidades, dependencias y arquitectura antes de ejecutar. También muestra que, cuando aparece necesidad de explicar, ordenar agenda o construir mensaje para otros, Public Communicator debe quedar como frontera activa y no como descarte automático.",
       shouldInfluenceFutureCases: true,
     },
+    {
+      id: "learned_public_communicator_educator_interpreter_frontier_001",
+      title: "Public Communicator con frontera Educator Interpreter",
+      source: "manual_synthetic",
+      language: "es",
+      region: "Argentina",
+      inputText:
+        "De chico me gustaba explicar a mis amigos por qué una regla del colegio o del club no tenía sentido; terminaba armando ejemplos para que todos entendieran el problema. Me enganchaba ver cómo una idea complicada podía volverse clara si encontraba la frase, el ejemplo y el orden justo. En distintos trabajos termino traduciendo decisiones confusas de equipos técnicos o directivos a mensajes que la gente entienda y pueda discutir. No busco diseñar procesos internos como objetivo principal; quiero construir una voz pública y una explicación clara para una audiencia real. Quiero probar una línea de comunicación pública o institucional donde convierta complejidad en mensajes claros para una audiencia real.",
+      expectedPrimaryFamily: "public_communicator",
+      acceptableFamilies: ["public_communicator", "educator_interpreter"],
+      rivalFamilies: [
+        "creative_storyteller",
+        "system_designer",
+        "institutional_operator",
+      ],
+      keyHumanLanguage: [
+        "traduciendo decisiones confusas",
+        "mensajes que la gente entienda",
+        "explicar una idea complicada",
+        "frase, ejemplo y orden justo",
+        "comunicación pública o institucional",
+        "audiencia real",
+      ],
+      missingCuesDetected: [
+        "cuando el eje es traducir complejidad para una audiencia, priorizar Public Communicator",
+        "si aparece impulso pedagógico de explicación clara, sostener Educator Interpreter como frontera natural",
+        "no subir System Designer por defecto solo por lenguaje de estructura si el objeto dominante es voz pública y audiencia",
+        "no subir Institutional Operator si no hay operación formal, circuitos internos o foco en trámite institucional",
+      ],
+      verdict: "learning_candidate",
+      lesson:
+        "Cuando el eje dominante es convertir complejidad en mensajes claros para una audiencia, y además aparece impulso de enseñanza/explicación, la frontera natural puede ser Public Communicator ↔ Educator Interpreter. No debe forzarse System Designer como frontera principal si la estructura aparece como soporte y no como objeto de diseño central.",
+      shouldInfluenceFutureCases: true,
+    },
 ];
