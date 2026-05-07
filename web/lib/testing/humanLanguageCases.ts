@@ -1,6 +1,7 @@
 import type { EvaluationCase } from "./evaluationCases";
+import { SEED_DIAGNOSTIC_CASES } from "./seedDiagnosticCases";
 
-export const HUMAN_LANGUAGE_CASES: EvaluationCase[] = [
+const LEGACY_HUMAN_LANGUAGE_CASES: EvaluationCase[] = [
   {
     id: "voc_t1_escucha_uno_a_uno",
     label: "Voc T1 – Escucha humana uno a uno",
@@ -1936,4 +1937,9 @@ export const HUMAN_LANGUAGE_CASES: EvaluationCase[] = [
 // ==========================
 
 
+];
+
+export const HUMAN_LANGUAGE_CASES: EvaluationCase[] = [
+  ...SEED_DIAGNOSTIC_CASES,
+  ...LEGACY_HUMAN_LANGUAGE_CASES,
 ];
