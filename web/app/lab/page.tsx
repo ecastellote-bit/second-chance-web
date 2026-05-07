@@ -127,13 +127,40 @@ type AffinityBridgePayload = {
   likelyFlourishingConditions?: string[];
 };
 
+type FollowupQuestion = {
+  id: string;
+  round: 2 | 3;
+  ambiguityType: string;
+  kind: "open_text" | "contrast_choice" | "forced_choice" | "micro_narrative";
+  prompt: string;
+  helpText?: string;
+};
+
+type FollowupPack = {
+  ambiguityType: string;
+  round: 2 | 3;
+  title: string;
+  objective: string;
+  questions: FollowupQuestion[];
+};
+
+type FollowupResult = {
+  shouldAskFollowup: boolean;
+  shouldForceAdjudication?: boolean;
+  round: 2 | 3 | null;
+  ambiguityType: string | null;
+  pack: FollowupPack | null;
+  status?: string;
+  reason: string;
+};
+
 type AnalyzeResponse =
   | {
       ok: true;
       data: AnalyzeSuccess;
       trace?: unknown;
       warnings?: string[];
-      followup?: unknown;
+      followup?: FollowupResult | null;
       affinityBridge?: AffinityBridgePayload;
       familyScores?: ProfileFamilyScore[];
       evidence?: EvidenceFragment[];
@@ -480,7 +507,14 @@ export default function LabPage() {
     HUMAN_LANGUAGE_CASES[0]?.id ?? "",
   );
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<AnalyzeResponse | null>(null);
+  const [originalResult, setOriginalResult] = useState<AnalyzeResponse | null>(null);
+  const [enrichedResult, setEnrichedResult] = useState<AnalyzeResponse | null>(null);
+  const [manualRound2Answer, setManualRound2Answer] = useState("");
+  const [manualRound3Answer, setManualRound3Answer] = useState("");
+  const [lastManualRoundSubmitted, setLastManualRoundSubmitted] = useState<2 | 3 | null>(
+    null,
+  );
+  const [manualCompletionFields, setManualCompletionFields] = useState<string[]>([]);
 
   const selectedCase = useMemo(
     () =>
@@ -492,6 +526,9 @@ export default function LabPage() {
     () => (selectedCase ? normalizePayload(selectedCase.payload) : null),
     [selectedCase],
   );
+
+  const result = enrichedResult ?? originalResult;
+  const followup = result && result.ok ? (result.followup ?? null) : null;
 
   const handleRunCase = async () => {
     if (!selectedCase || !normalizedPayload) return;
@@ -508,9 +545,81 @@ export default function LabPage() {
       });
 
       const json = (await response.json()) as AnalyzeResponse;
-      setResult(json);
+      setOriginalResult(json);
+      setEnrichedResult(null);
+      setManualRound2Answer("");
+      setManualRound3Answer("");
+      setLastManualRoundSubmitted(null);
+      setManualCompletionFields([]);
     } catch (error) {
-      setResult({
+      setOriginalResult({
+        ok: false,
+        error: "request_failed",
+        detail:
+          error instanceof Error ? error.message : "Error desconocido en fetch",
+      });
+      setEnrichedResult(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleManualFollowupSubmit = async (round: 2 | 3) => {
+    if (!selectedCase || !normalizedPayload || !followup) return;
+
+    const answer = round === 2 ? manualRound2Answer.trim() : manualRound3Answer.trim();
+    if (!answer) return;
+
+    const marker = round === 2 ? "[MANUAL_SEED_COMPLETION_R2]" : "[MANUAL_SEED_COMPLETION_R3]";
+
+    const body = {
+      ...normalizedPayload,
+      narrative: {
+        ...normalizedPayload.narrative,
+        additionalContext: [
+          normalizedPayload.narrative.additionalContext ?? "",
+          `${marker}\n${answer}`,
+        ]
+          .filter(Boolean)
+          .join("\n\n"),
+      },
+      originalSeedId: selectedCase.id,
+      manualFollowupRound: round,
+      source: "manual_seed_completion",
+      clarificationMeta:
+        round === 2
+          ? {
+              roundsCompleted: 0,
+              requestedRound: 2,
+              lockedAmbiguityType: followup.ambiguityType,
+            }
+          : {
+              roundsCompleted: 1,
+              requestedRound: 3,
+              lockedAmbiguityType: followup.ambiguityType,
+            },
+    };
+
+    setLoading(true);
+    try {
+      const response = await fetch("/api/lab-analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      const json = (await response.json()) as AnalyzeResponse;
+      setEnrichedResult(json);
+      setLastManualRoundSubmitted(round);
+      setManualCompletionFields([
+        `originalSeedId: ${selectedCase.id}`,
+        `manualFollowupRound: ${round}`,
+        `clarificationMeta: ${JSON.stringify(body.clarificationMeta)}`,
+        `manualAnswer: ${answer}`,
+      ]);
+    } catch (error) {
+      setEnrichedResult({
         ok: false,
         error: "request_failed",
         detail:
@@ -563,7 +672,15 @@ export default function LabPage() {
           <select
             className="w-full rounded-md border px-3 py-2 text-sm"
             value={selectedCaseId}
-            onChange={(event) => setSelectedCaseId(event.target.value)}
+            onChange={(event) => {
+              setSelectedCaseId(event.target.value);
+              setOriginalResult(null);
+              setEnrichedResult(null);
+              setManualRound2Answer("");
+              setManualRound3Answer("");
+              setLastManualRoundSubmitted(null);
+              setManualCompletionFields([]);
+            }}
           >
             {HUMAN_LANGUAGE_CASES.map((testCase) => (
               <option key={testCase.id} value={testCase.id}>
@@ -587,6 +704,128 @@ export default function LabPage() {
         >
           {loading ? "Corriendo caso..." : "Correr caso"}
         </button>
+
+        {originalResult && originalResult.ok ? (
+          <div className="rounded-lg border p-4 space-y-2 text-sm text-neutral-700">
+            <p>
+              <strong>Resultado original:</strong>{" "}
+              {originalResult.data.resultType ?? "n/a"}
+            </p>
+            {enrichedResult && enrichedResult.ok ? (
+              <p>
+                <strong>Resultado enriquecido:</strong>{" "}
+                {enrichedResult.data.resultType ?? "n/a"}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {followup &&
+        result &&
+        result.ok &&
+        result.data.resultType === "insufficient_evidence" ? (
+          <div className="rounded-lg border p-4 space-y-3">
+            <h3 className="text-sm font-medium">Follow-up disponible</h3>
+            <p className="text-sm text-neutral-700">
+              <strong>round:</strong> {followup.round ?? "n/a"}
+            </p>
+            <p className="text-sm text-neutral-700">
+              <strong>ambiguityType:</strong> {followup.ambiguityType ?? "n/a"}
+            </p>
+            <p className="text-sm text-neutral-700">
+              <strong>reason:</strong> {followup.reason}
+            </p>
+            {followup.pack?.questions?.length ? (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Preguntas sugeridas</p>
+                <ul className="list-disc pl-5 text-sm text-neutral-700 space-y-1">
+                  {followup.pack.questions.map((question) => (
+                    <li key={question.id}>
+                      {question.prompt}
+                      {question.helpText ? ` — ${question.helpText}` : ""}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {followup.round === 2 ? (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Respuesta manual de ronda 2
+                </label>
+                <textarea
+                  className="w-full rounded-md border px-3 py-2 text-sm min-h-24"
+                  value={manualRound2Answer}
+                  onChange={(event) => setManualRound2Answer(event.target.value)}
+                  placeholder="Escribí acá la respuesta manual del fundador para ronda 2..."
+                />
+                <button
+                  onClick={() => handleManualFollowupSubmit(2)}
+                  disabled={loading || manualRound2Answer.trim().length === 0}
+                  className="rounded-md border border-black px-4 py-2 text-sm disabled:opacity-50"
+                >
+                  Enviar respuesta manual R2
+                </button>
+              </div>
+            ) : null}
+
+            {followup.round === 3 ? (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Respuesta manual de ronda 3
+                </label>
+                <textarea
+                  className="w-full rounded-md border px-3 py-2 text-sm min-h-24"
+                  value={manualRound3Answer}
+                  onChange={(event) => setManualRound3Answer(event.target.value)}
+                  placeholder="Escribí acá la respuesta manual del fundador para ronda 3..."
+                />
+                <button
+                  onClick={() => handleManualFollowupSubmit(3)}
+                  disabled={loading || manualRound3Answer.trim().length === 0}
+                  className="rounded-md border border-black px-4 py-2 text-sm disabled:opacity-50"
+                >
+                  Enviar respuesta manual R3
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {manualCompletionFields.length > 0 ? (
+          <div className="rounded-lg border p-4 space-y-2">
+            <p className="text-sm font-medium">Campos completados manualmente</p>
+            <ul className="list-disc pl-5 text-sm text-neutral-700 space-y-1">
+              {manualCompletionFields.map((field, index) => (
+                <li key={`manual-field-${index}`}>{field}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {enrichedResult && enrichedResult.ok ? (
+          <div className="rounded-lg border p-4 space-y-2 text-sm">
+            <p className="font-medium">Señal de promoción</p>
+            {enrichedResult.data.resultType === "clear_direction" ? (
+              (() => {
+                const trace = extractTrace(enrichedResult) as any;
+                const verdict = trace?.finalAdjudication?.verdict;
+                const isFrontier = verdict === "open_frontier_or_review";
+                return (
+                  <p className="text-neutral-700">
+                    {isFrontier ? "Frontier support" : "Promover a learnedCases"}
+                  </p>
+                );
+              })()
+            ) : enrichedResult.data.resultType === "insufficient_evidence" &&
+              lastManualRoundSubmitted === 3 ? (
+              <p className="text-neutral-700">Seed refinado</p>
+            ) : (
+              <p className="text-neutral-700">Sin señal de promoción todavía</p>
+            )}
+          </div>
+        ) : null}
       </section>
 
       <section className="grid gap-5 lg:grid-cols-3">
