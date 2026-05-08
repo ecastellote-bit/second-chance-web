@@ -805,10 +805,10 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
     },
   },
   {
-    id: "seed_public_communicator_system_designer_frontier_02",
-    label: "Semilla — Comunicador público (frontera diseñador de sistemas)",
+    id: "seed_public_communicator_institutional_operator_frontier_01",
+    label: "Semilla — Comunicador público (frontera operador institucional)",
     expectation:
-      "Debe tender a clear_direction con public_communicator; riesgo/frontera con system_designer cuando la arquitectura editorial, reglas de publicación y secuencia de mensajes pesan fuerte, pero el objetivo dominante sigue siendo voz pública, agenda y comunicación para audiencia real. No debe confundirse principalmente con educator_interpreter.",
+      "Debe tender a clear_direction con public_communicator; frontera institutional_operator por comunicación pública/institucional, agenda, asuntos colectivos o estructura formal. No debe tratarse como system_designer salvo que la arquitectura de sistema sea dominante.",
     payload: {
       profile: {
         age: 39,
@@ -852,6 +852,56 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
         ],
         transitionGoal:
           "No soy diseñador de sistemas en general; soy comunicador público que necesita diseñar una arquitectura de mensajes para que una voz pública no dependa de ocurrencias sueltas.",
+      },
+    },
+  },
+  {
+    id: "seed_public_communicator_system_designer_frontier_03",
+    label: "Semilla — Comunicador público (frontera diseñador de sistemas)",
+    expectation:
+      "Debe tender a clear_direction con public_communicator como familia primaria y system_designer como frontera secundaria. La persona no diseña sistemas generales ni procesos institucionales; diseña arquitectura de comunicación pública: módulos, dependencias, plantillas, secuencia, reglas de continuidad y criterios de consistencia para sostener una voz reconocible. Evitar arrastre a creative_storyteller, educator_interpreter e institutional_operator.",
+    payload: {
+      profile: {
+        age: 37,
+        country: "Argentina",
+        language: "es",
+        employmentStatus: "employed",
+        educationLevel: "tertiary",
+      },
+      narrative: {
+        childhoodMemories:
+          "De chico me gustaba ordenar materiales para que funcionaran como un conjunto: separaba partes, definía reglas, armaba recorridos y probaba si cada elemento cumplía una función dentro del sistema.",
+        earlyFascinations:
+          "Me interesaba ver cómo una idea ganaba fuerza cuando dejaba de estar suelta y pasaba a tener estructura: mapa, secuencia, roles, continuidad y relación entre partes.",
+        meaningfulSchoolSubjects:
+          "Comunicación, escritura clara, organización de información, lógica, estructura de textos y diseño de procesos. Me interesaba entender cómo ordenar un mensaje para que pudiera sostenerse como sistema.",
+        repeatedWorkPatterns:
+          "Cuando tengo que comunicar algo complejo, no empiezo por escribir piezas aisladas. Primero diseño el mapa general, separo módulos, defino criterios, ordeno dependencias y recién después bajo textos concretos.",
+        naturalSocialRoles:
+          "Soy quien convierte información dispersa en una arquitectura de comunicación clara, repetible y reconocible.",
+        lossesOrRenunciations:
+          "Me frustra cuando me piden piezas sueltas sin sistema. Sin arquitectura, la comunicación pierde continuidad, cambia de tono y depende demasiado de ocurrencias.",
+        whatFeelsCompressedNow:
+          "Mi aporte queda comprimido cuando lo leen como simple redacción. En realidad, mi valor aparece cuando diseño el sistema que permite que una voz pública sea coherente, repetible y sostenible.",
+        additionalContext:
+          "No soy diseñador de sistemas en general. Mi centro es la comunicación pública. Pero para comunicar bien necesito diseñar una arquitectura de mensajes: módulos, reglas, secuencia, plantillas, dependencias y criterios que hagan que la voz sea consistente en el tiempo.",
+      },
+      currentContext: {
+        currentSituation:
+          "Trabajo creando comunicación pública para productos, servicios o proyectos complejos. Mi tarea principal es convertir información dispersa en una voz clara para una audiencia real, pero antes de escribir piezas necesito diseñar la arquitectura de mensajes: módulos, secuencia, dependencias, criterios de tono y reglas de continuidad.",
+        restrictions: [
+          "No puedo dejar mi trabajo actual sin una alternativa concreta",
+          "Me exigen salidas rápidas aunque eso rompa continuidad",
+        ],
+        assets: [
+          "lectura de audiencia",
+          "criterio editorial",
+          "diseño de arquitectura de mensajes",
+          "orden de secuencias y dependencias narrativas",
+          "continuidad de voz en múltiples piezas",
+        ],
+        transitionGoal:
+          "Construir una comunicación pública reconocible y sostenida en el tiempo, no una colección de piezas sueltas. Quiero diseñar un sistema de mensajes con módulos, plantillas, flujo de publicación, reglas de consistencia y conexiones claras entre cada pieza.",
       },
     },
   },

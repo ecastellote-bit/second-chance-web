@@ -181,6 +181,30 @@ const ONE_TO_ONE_HUMAN_SUPPORT_MARKERS = [
   "orientacion_humana",
 ];
 
+const PUBLIC_COMMUNICATOR_CORE_MARKERS = ["public_expression"];
+
+const PUBLIC_COMMUNICATOR_SUPPORT_MARKERS = [
+  "audience_activation",
+  "editorial_framing",
+  "agenda_detection",
+  "performance_presence",
+  "narrative_creation",
+];
+
+const COMMUNICATION_ARCHITECTURE_MARKERS = [
+  "system_ordering",
+  "editorial_framing",
+  "conceptual_abstraction",
+];
+
+const EDUCATOR_MARKERS = ["teaching_impulse"];
+const STORYTELLER_MARKERS = ["aesthetic_sensitivity", "narrative_creation"];
+const INSTITUTIONAL_MARKERS = [
+  "institutional_navigation",
+  "decision_ownership",
+  "influence_negotiation",
+];
+
 function clamp(value: number, min = 0, max = 1): number {
   return Math.max(min, Math.min(max, value));
 }
@@ -227,6 +251,24 @@ function buildAffinityMap(
   return new Map(
     affinityScores.map((affinity) => [affinity.id as HumanAffinityId, affinity]),
   );
+}
+
+function collectGlobalAffinities(
+  affinityScores: HumanAffinityScore[],
+  threshold: number,
+): WeightedAffinity[] {
+  return affinityScores
+    .map((affinity) => {
+      const weightedScore = scoreAffinity(affinity);
+      if (weightedScore < threshold) return null;
+
+      return {
+        id: affinity.id as HumanAffinityId,
+        weightedScore,
+        raw: affinity,
+      };
+    })
+    .filter((item): item is WeightedAffinity => item !== null);
 }
 
 function collectAffinities(
@@ -318,6 +360,7 @@ function applyFamilyCalibration(params: {
   familyId: string;
   core: WeightedAffinity[];
   supporting: WeightedAffinity[];
+  global: WeightedAffinity[];
   baseScore: number;
   baseConfidence: number;
   hasEnoughCore: boolean;
@@ -328,6 +371,7 @@ function applyFamilyCalibration(params: {
   const notes: string[] = [];
 
   const all = [...params.core, ...params.supporting];
+  const global = params.global;
 
   const technicalConcreteStrength = signalStrength(
     all,
@@ -461,6 +505,72 @@ function applyFamilyCalibration(params: {
         "Ajuste contrastivo: la evidencia concreta/técnica supera a la evidencia abstracta de diseño sistémico; System Designer no debe absorber automáticamente el caso.",
       );
     }
+
+    const publicCoreStrength = signalStrength(
+      global,
+      PUBLIC_COMMUNICATOR_CORE_MARKERS,
+    );
+    const publicCoreCount = signalCount(global, PUBLIC_COMMUNICATOR_CORE_MARKERS);
+
+    const publicSupportStrength = signalStrength(
+      global,
+      PUBLIC_COMMUNICATOR_SUPPORT_MARKERS,
+    );
+    const publicSupportCount = signalCount(
+      global,
+      PUBLIC_COMMUNICATOR_SUPPORT_MARKERS,
+    );
+
+    const communicationArchitectureStrength = signalStrength(
+      global,
+      COMMUNICATION_ARCHITECTURE_MARKERS,
+    );
+    const communicationArchitectureCount = signalCount(
+      global,
+      COMMUNICATION_ARCHITECTURE_MARKERS,
+    );
+
+    const educatorStrength = signalStrength(global, EDUCATOR_MARKERS);
+    const storytellerStrength = signalStrength(global, STORYTELLER_MARKERS);
+    const institutionalStrength = signalStrength(global, INSTITUTIONAL_MARKERS);
+
+    const hasStrongPublicCommunicatorSignature =
+      publicCoreCount >= 1 &&
+      publicCoreStrength >= 0.3 &&
+      publicSupportCount >= 2 &&
+      publicSupportStrength >= 0.22;
+
+    const hasCommunicationArchitectureCluster =
+      communicationArchitectureCount >= 2 &&
+      communicationArchitectureStrength >= 0.22 &&
+      abstractSystemCount >= 1 &&
+      abstractSystemStrength >= 0.24;
+
+    const teachingDominates = educatorStrength > publicCoreStrength + 0.06;
+    const aestheticNarrativeDominates =
+      storytellerStrength > publicSupportStrength + 0.08;
+    const institutionalDominates =
+      institutionalStrength > publicSupportStrength + 0.08;
+    const technicalDominates =
+      technicalConcreteCount >= 2 &&
+      technicalConcreteStrength > abstractSystemStrength + 0.05;
+
+    const allowCommunicationArchitectureFrontierBoost =
+      hasStrongPublicCommunicatorSignature &&
+      hasCommunicationArchitectureCluster &&
+      !teachingDominates &&
+      !aestheticNarrativeDominates &&
+      !institutionalDominates &&
+      !technicalDominates;
+
+    if (allowCommunicationArchitectureFrontierBoost) {
+      score += 0.20;
+      confidence += 0.04;
+      hasEnoughCore = true;
+      notes.push(
+        "Boost de frontera: Public Communicator con arquitectura comunicacional fuerte activa System Designer como familia secundaria plausible.",
+      );
+    }
   }
 
   /**
@@ -558,6 +668,7 @@ export function scoreProfileFamiliesFromAffinities(
   affinityScores: HumanAffinityScore[],
 ): ProfileFamilyScore[] {
   const affinityMap = buildAffinityMap(affinityScores);
+  const global = collectGlobalAffinities(affinityScores, 0.14);
 
   const familyScores = PROFILE_FAMILIES.map((family): ProfileFamilyScore => {
     const coreAffinities = family.coreAffinities ?? [];
@@ -643,6 +754,7 @@ export function scoreProfileFamiliesFromAffinities(
       familyId: String(family.id),
       core,
       supporting,
+      global,
       baseScore: score,
       baseConfidence: confidence,
       hasEnoughCore,

@@ -811,4 +811,41 @@ export const LEARNED_DIAGNOSTIC_CASES: LearnedDiagnosticCase[] = [
         "Cuando el eje dominante es convertir complejidad en mensajes claros para una audiencia, y además aparece impulso de enseñanza/explicación, la frontera natural puede ser Public Communicator ↔ Educator Interpreter. No debe forzarse System Designer como frontera principal si la estructura aparece como soporte y no como objeto de diseño central.",
       shouldInfluenceFutureCases: true,
     },
+    {
+      id: "learned_public_communicator_institutional_operator_frontier_001",
+      title: "Public Communicator con frontera Institutional Operator",
+      source: "manual_synthetic",
+      language: "es",
+      region: "LatAm",
+      inputText:
+        "Trabajo creando comunicación pública para temas complejos. Necesito construir agenda, sostener una voz reconocible y ordenar mensajes en el tiempo para que no sean piezas sueltas. Cuando aparecen estructuras formales, reglas de funcionamiento y asuntos colectivos, también debo traducir ese marco a una narrativa clara para audiencia real, sin perder continuidad editorial.",
+      expectedPrimaryFamily: "public_communicator",
+      acceptableFamilies: ["public_communicator", "institutional_operator"],
+      rivalFamilies: [
+        "system_designer",
+        "educator_interpreter",
+        "civic_advocate",
+        "creative_storyteller",
+      ],
+      keyHumanLanguage: [
+        "comunicación pública",
+        "agenda",
+        "voz reconocible",
+        "mensajes en el tiempo",
+        "estructura formal",
+        "reglas de funcionamiento",
+        "asuntos colectivos",
+        "narrativa clara para audiencia real",
+        "continuidad editorial",
+      ],
+      missingCuesDetected: [
+        "agenda y voz pública deben sostener Public Communicator como familia primaria",
+        "marco formal y reglas de funcionamiento pueden abrir frontera Institutional Operator",
+        "no subir System Designer si la arquitectura aparece como soporte y no como núcleo dominante",
+      ],
+      verdict: "learning_candidate",
+      lesson:
+        "Este caso enseña que cuando la comunicación pública aparece junto a agenda, asuntos colectivos, marco institucional o reglas de funcionamiento público, la frontera secundaria puede ser Institutional Operator. No debe confundirse con System Designer salvo que el diseño de arquitectura, dependencias, módulos o flujos sea el núcleo dominante y no solo soporte de la voz pública.",
+      shouldInfluenceFutureCases: true,
+    },
 ];
