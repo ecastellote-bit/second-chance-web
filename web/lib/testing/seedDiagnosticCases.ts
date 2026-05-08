@@ -756,6 +756,54 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
     },
   },
   {
+    id: "seed_analytical_strategist_system_designer_frontier_01",
+    label: "Semilla — Estrategia analítica (frontera diseñador de sistemas)",
+    expectation:
+      'Debe tender a analytical_strategist con frontera system_designer. expectedPrimaryFamily: "analytical_strategist". acceptableFamilies: ["analytical_strategist", "system_designer"]. rivalFamilies: ["system_designer", "technical_builder", "institutional_operator"]. El centro es lectura de escenarios, comparación de caminos, variables críticas y consecuencias para decidir estrategia; la estructura de sistema aparece como soporte analítico, no como diseño operativo.',
+    payload: {
+      profile: {
+        age: 40,
+        country: "Argentina",
+        language: "es",
+        employmentStatus: "employed",
+        educationLevel: "tertiary",
+      },
+      narrative: {
+        childhoodMemories:
+          "Desde chico hacía mapas de opciones antes de decidir: qué pasaba si cambiaba una variable, qué riesgo aparecía y qué consecuencia quedaba escondida.",
+        earlyFascinations:
+          "Me atrapaba comparar escenarios y detectar puntos de quiebre antes de que un equipo tomara una decisión costosa.",
+        meaningfulSchoolSubjects:
+          "Economía, lógica, estadística y teoría de decisión.",
+        repeatedWorkPatterns:
+          "Trabajo con modelos, tableros y estructuras para leer escenarios, ponderar variables críticas, anticipar efectos de segundo orden y elegir estrategia con mejor relación riesgo-impacto.",
+        naturalSocialRoles:
+          "El que ordena criterios de decisión y evita que se elija por intuición corta.",
+        lossesOrRenunciations:
+          "A veces me empujan a bajar al detalle operativo cuando mi mayor valor está en definir qué camino conviene y por qué.",
+        whatFeelsCompressedNow:
+          "Me frustra cuando reducen mi trabajo a 'armar procesos' porque yo uso la estructura para decidir estrategia, no para diseñar operación.",
+        additionalContext:
+          "No busco diseñar flujos operativos ni implementar herramientas; mi foco es análisis estructural para decisión estratégica bajo incertidumbre.",
+      },
+      currentContext: {
+        currentSituation:
+          "Estoy en un equipo que enfrenta decisiones de expansión con alta incertidumbre; mi rol es construir mapas de escenarios, comparar rutas y recomendar una estrategia defendible.",
+        transitionGoal:
+          "Consolidar un rol de estrategia donde la lectura de escenarios pese más que la ejecución operativa.",
+        restrictions: [
+          "Datos incompletos y ventanas de decisión cortas",
+          "Presión por soluciones rápidas sin evaluar consecuencias",
+        ],
+        assets: [
+          "Modelado de escenarios",
+          "Lectura de variables críticas",
+          "Capacidad de anticipar trade-offs",
+        ],
+      },
+    },
+  },
+  {
     id: "seed_system_designer_01",
     label: "Semilla — Diseñador de sistemas (claro)",
     expectation:
