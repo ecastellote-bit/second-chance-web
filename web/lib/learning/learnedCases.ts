@@ -848,4 +848,106 @@ export const LEARNED_DIAGNOSTIC_CASES: LearnedDiagnosticCase[] = [
         "Este caso enseña que cuando la comunicación pública aparece junto a agenda, asuntos colectivos, marco institucional o reglas de funcionamiento público, la frontera secundaria puede ser Institutional Operator. No debe confundirse con System Designer salvo que el diseño de arquitectura, dependencias, módulos o flujos sea el núcleo dominante y no solo soporte de la voz pública.",
       shouldInfluenceFutureCases: true,
     },
+    {
+      id: "learned_empathic_guide_community_builder_frontier_inverted_order_001",
+      title:
+        "Frontera EG/CB con orden invertido (watchlist)",
+      source: "manual_synthetic",
+      language: "es",
+      region: "LatAm",
+      inputText:
+        "Caso semilla de guía empática con vocabulario de grupo y clima donde el sistema devolvió #1 Community Builder y #2 Empathic Guide. Ambas familias son plausibles, pero el orden quedó invertido respecto de la expectativa principal de acompañamiento uno a uno profundo.",
+      expectedPrimaryFamily: "empathic_guide",
+      acceptableFamilies: ["empathic_guide", "community_builder"],
+      rivalFamilies: ["diplomatic_social_connector"],
+      keyHumanLanguage: [
+        "me confunden escuchar profundo con sostener comunidad",
+        "a veces hablo de equipo",
+        "lo que más me llena es la conversación seria con alguien concreto",
+        "me agota llevar el clima",
+      ],
+      missingCuesDetected: [
+        "risk: group_language_overactivates_community_builder",
+        "marker: one_to_one_deep_listening_should_weight_empathic_guide",
+        "marker: negative contrast against group maintenance should reduce community certainty",
+        "warning: no usar palabras como equipo, grupo o clima de forma automática para cerrar Community Builder si el usuario explícitamente diferencia grupo vs acompañamiento individual",
+        "use: watchlist",
+        "use: frontier_order_case",
+        "use: seed_refinement",
+      ],
+      actualResult: {
+        corePattern: "community_builder / empathic_guide (frontier order inverted)",
+        resultType: "clear_direction",
+        familyScores: [
+          {
+            expectedPrimaryFamily: "empathic_guide",
+            acceptableFamilies: ["empathic_guide", "community_builder"],
+            observedTop1: "community_builder",
+            observedTop2: "empathic_guide",
+            note: "Orden invertido dentro de frontera legítima; caso reservado para calibración fina.",
+          },
+        ],
+      },
+      verdict: "borderline",
+      lesson:
+        "Preservar como caso de frontera auditado: no usar como learned fuerte pro Community Builder. Útil para refinar lectura de contraste explícito entre sostén de grupo y acompañamiento individual profundo.",
+      shouldInfluenceFutureCases: false,
+    },
+    {
+      id: "learned_empathic_guide_frontier_refinement_seed_001",
+      title:
+        "Seed refinado EG>CB con contraste explícito",
+      source: "manual_synthetic",
+      language: "es",
+      region: "LatAm",
+      inputText:
+        "Me confunden escuchar profundo con sostener comunidad. Uso lenguaje de equipo, pero mi valor real aparece cuando acompaño a una persona concreta a ordenar lo que le pasa. No quiero ser quien mantiene vivo el grupo; quiero ayudar a que alguien entienda su tensión interna. Me agota que me usen para llevar el clima. Lo que más me llena es la conversación seria, no la dinámica grupal.",
+      expectedPrimaryFamily: "empathic_guide",
+      acceptableFamilies: ["empathic_guide", "community_builder"],
+      rivalFamilies: ["diplomatic_social_connector"],
+      keyHumanLanguage: [
+        "acompaño a una persona concreta",
+        "tensión interna",
+        "me confunden escuchar profundo con sostener comunidad",
+        "no quiero mantener vivo el grupo",
+      ],
+      missingCuesDetected: [
+        "risk: group_language_overactivates_community_builder",
+        "marker: one_to_one_deep_listening_should_weight_empathic_guide",
+        "marker: negative contrast against group maintenance should reduce community certainty",
+      ],
+      verdict: "learning_candidate",
+      lesson:
+        "Seed de refinamiento quirúrgico para validar que Empathic Guide gane cuando el propio relato subordina lo grupal y explicita prioridad uno a uno.",
+      shouldInfluenceFutureCases: false,
+    },
+    {
+      id: "learned_community_builder_frontier_refinement_seed_001",
+      title:
+        "Seed refinado CB>EG con escucha instrumental",
+      source: "manual_synthetic",
+      language: "es",
+      region: "LatAm",
+      inputText:
+        "Escucho personas una por una para que el grupo no se rompa. Mi valor aparece cuando una comunidad recupera circulación, pertenencia y continuidad. Me interesa diseñar espacios donde la gente vuelva, participe y se sienta parte. La conversación individual es una herramienta para sostener el tejido colectivo.",
+      expectedPrimaryFamily: "community_builder",
+      acceptableFamilies: ["community_builder", "empathic_guide"],
+      rivalFamilies: ["diplomatic_social_connector"],
+      keyHumanLanguage: [
+        "para que el grupo no se rompa",
+        "circulación, pertenencia y continuidad",
+        "diseñar espacios",
+        "tejido colectivo",
+      ],
+      missingCuesDetected: [
+        "risk: group_language_overactivates_community_builder",
+        "marker: one_to_one_deep_listening_should_weight_empathic_guide",
+        "marker: negative contrast against group maintenance should reduce community certainty",
+        "warning: no usar palabras como equipo, grupo o clima de forma automática para cerrar Community Builder si el usuario explícitamente diferencia grupo vs acompañamiento individual",
+      ],
+      verdict: "learning_candidate",
+      lesson:
+        "Seed contrastivo para verificar frontera en sentido opuesto: la escucha individual cuenta como soporte, pero el objeto dominante es sostener comunidad.",
+      shouldInfluenceFutureCases: false,
+    },
 ];

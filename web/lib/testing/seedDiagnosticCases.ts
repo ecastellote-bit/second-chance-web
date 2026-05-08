@@ -52,7 +52,7 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
     id: "seed_empathic_guide_02",
     label: "Semilla — Guía empática (riesgo comunitario)",
     expectation:
-      "Debe tender a empathic_guide; riesgo de confundirlo con community_builder si se sobreactiva lo grupal o el clima de equipo.",
+      "Caso de frontera empathic_guide / community_builder con orden invertido observado. expectedPrimaryFamily: empathic_guide. acceptableFamilies: empathic_guide, community_builder. Actual observado: #1 community_builder, #2 empathic_guide. Uso recomendado: watchlist / frontier_order_case / seed_refinement (no learned fuerte).",
     payload: {
       profile: {
         age: 41,
@@ -91,6 +91,102 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
           "Confianza del equipo",
           "Capacidad de bajar conflictos",
           "Criterio humano",
+        ],
+      },
+    },
+  },
+  {
+    id: "seed_empathic_guide_community_builder_frontier_refinement_01",
+    label: "Semilla — Guía empática (frontera comunidad, quirúrgica)",
+    expectation:
+      "Debe tender a empathic_guide con frontera community_builder. expectedPrimaryFamily: empathic_guide. acceptableFamilies: empathic_guide, community_builder. Riesgo a vigilar: lenguaje de grupo que no debe desplazar el uno a uno profundo.",
+    payload: {
+      profile: {
+        age: 39,
+        country: "Argentina",
+        language: "es",
+        employmentStatus: "employed",
+        educationLevel: "tertiary",
+      },
+      narrative: {
+        childhoodMemories:
+          "Desde chica me buscaban para hablar en serio cuando alguien estaba roto por dentro; podía sostener la conversación sin apurarla.",
+        earlyFascinations:
+          "Me interesa escuchar profundo, hacer preguntas justas y ayudar a que una persona ordene su tensión interna.",
+        meaningfulSchoolSubjects:
+          "Lengua, filosofía, psicología y talleres de escucha.",
+        repeatedWorkPatterns:
+          "Uso lenguaje de equipo, pero mi valor real aparece cuando acompaño a una persona concreta a ordenar lo que le pasa.",
+        naturalSocialRoles:
+          "Acompañante uno a uno, escucha profunda, presencia humana con criterio.",
+        lossesOrRenunciations:
+          "Me agota que me usen para llevar el clima grupal cuando lo mío es el proceso humano individual.",
+        whatFeelsCompressedNow:
+          "Me confunden escuchar profundo con sostener comunidad; no quiero ser quien mantiene vivo el grupo.",
+        additionalContext:
+          "No quiero ser quien mantiene vivo el grupo; quiero ayudar a que alguien entienda su tensión interna. Lo que más me llena es la conversación seria, no la dinámica grupal.",
+      },
+      currentContext: {
+        currentSituation:
+          "Trabajo con equipos y aparecen temas de clima, pero donde más rindo es en conversaciones uno a uno profundas y difíciles.",
+        transitionGoal:
+          "Diferenciar mi aporte de acompañamiento individual de cualquier rol de sostén comunitario.",
+        restrictions: [
+          "No puedo dejar mi trabajo actual de golpe",
+          "No quiero quedar absorbida en tareas de clima grupal",
+        ],
+        assets: [
+          "Escucha profunda",
+          "Preguntas de clarificación",
+          "Capacidad de acompañar tensión interna",
+        ],
+      },
+    },
+  },
+  {
+    id: "seed_community_builder_empathic_guide_frontier_refinement_01",
+    label: "Semilla — Community builder (frontera guía empática, quirúrgica)",
+    expectation:
+      "Debe tender a community_builder con frontera empathic_guide. expectedPrimaryFamily: community_builder. acceptableFamilies: community_builder, empathic_guide. La escucha individual aparece como herramienta al servicio del tejido colectivo.",
+    payload: {
+      profile: {
+        age: 37,
+        country: "Argentina",
+        language: "es",
+        employmentStatus: "employed",
+        educationLevel: "tertiary",
+      },
+      narrative: {
+        childhoodMemories:
+          "Desde chico armaba espacios y grupos para que la gente vuelva, se encuentre y se sienta parte.",
+        earlyFascinations:
+          "Me interesa diseñar espacios donde la gente vuelva, participe y se sienta parte.",
+        meaningfulSchoolSubjects:
+          "Comunicación, trabajo social, dinámicas grupales y facilitación.",
+        repeatedWorkPatterns:
+          "Escucho personas una por una para que el grupo no se rompa y la circulación colectiva se sostenga.",
+        naturalSocialRoles:
+          "Tejedor de comunidad, anfitrión, coordinador de circulación grupal.",
+        lossesOrRenunciations:
+          "A veces me pierdo en urgencias individuales y me cuesta volver al plano comunitario.",
+        whatFeelsCompressedNow:
+          "La conversación individual es una herramienta para sostener el tejido colectivo, no mi centro final.",
+        additionalContext:
+          "Mi valor aparece cuando una comunidad recupera circulación, pertenencia y continuidad.",
+      },
+      currentContext: {
+        currentSituation:
+          "Coordino una comunidad activa y uso conversaciones individuales para cuidar vínculos, participación y continuidad grupal.",
+        transitionGoal:
+          "Fortalecer el diseño de espacios colectivos sostenibles sin quedar solo en intervenciones uno a uno.",
+        restrictions: [
+          "Recursos acotados para sostener la comunidad",
+          "Demandas individuales intensas",
+        ],
+        assets: [
+          "Convocatoria",
+          "Cuidado de pertenencia",
+          "Diseño de espacios participativos",
         ],
       },
     },
