@@ -1100,7 +1100,7 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
     id: "seed_technical_builder_02",
     label: "Semilla — Technical builder (riesgo system designer)",
     expectation:
-      "Debe tender a technical_builder; riesgo de confundirlo con system_designer si domina rediseño de proceso sobre ejecución inmediata.",
+      'Caso de frontera/mismatch. expectedPrimaryFamily: technical_builder. acceptableFamilies: ["technical_builder", "system_designer"]. observedResult: system_designer. verdict/usage: expectation_mismatch / seed_needs_refinement. Nota: La evidencia del seed inclina más a System Designer que a Technical Builder; no usar como learned fuerte.',
     payload: {
       profile: {
         age: 39,
@@ -1139,6 +1139,54 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
           "Conocimiento de piso",
           "Respeto del equipo",
           "Mano firme",
+        ],
+      },
+    },
+  },
+  {
+    id: "seed_technical_builder_system_designer_frontier_refinement_01",
+    label: "Semilla — Technical builder (frontera system designer, refinamiento)",
+    expectation:
+      'Debe tender a technical_builder con frontera secundaria system_designer. expectedPrimaryFamily: technical_builder. acceptableFamilies: ["technical_builder", "system_designer"]. Centro del caso: ejecución concreta, reparación, implementación, ajuste de herramientas/procesos, piso operativo, resolver fricción hoy, throughput y pruebas rápidas.',
+    payload: {
+      profile: {
+        age: 36,
+        country: "Argentina",
+        language: "es",
+        employmentStatus: "employed",
+        educationLevel: "tertiary",
+      },
+      narrative: {
+        childhoodMemories:
+          "De chico desarmaba y arreglaba lo que se rompía en casa; me gustaba dejarlo funcionando ese mismo día.",
+        earlyFascinations:
+          "Diagnosticar fallas rápido, probar alternativas y ver resultado concreto en el momento.",
+        meaningfulSchoolSubjects:
+          "Taller técnico, electricidad básica, mantenimiento industrial y mejora práctica.",
+        repeatedWorkPatterns:
+          "Cuando algo frena la operación, entro al piso, detecto la fricción, ajusto herramienta o proceso, hago pruebas cortas y dejo el flujo corriendo hoy.",
+        naturalSocialRoles:
+          "El que resuelve en campo, implementa, corrige y sostiene throughput sin vueltas largas.",
+        lossesOrRenunciations:
+          "A veces quedo etiquetado como 'bombero operativo' y se invisibiliza mi criterio práctico.",
+        whatFeelsCompressedNow:
+          "Me agota la fricción repetida; necesito margen para implementar mejoras concretas sin burocracia.",
+        additionalContext:
+          "Puedo ordenar pasos para ejecutar mejor, pero no busco diseñar arquitectura completa de sistema: mi centro es que funcione ahora y sin trabas.",
+      },
+      currentContext: {
+        currentSituation:
+          "Coordino turnos operativos con incidencias diarias y presión de entrega; si no implementamos ajustes rápidos, cae el rendimiento del día.",
+        transitionGoal:
+          "Consolidar un rol técnico-operativo con mejora continua aplicada en campo.",
+        restrictions: [
+          "Ventanas cortas de mantenimiento",
+          "Recursos limitados y alta exigencia de cumplimiento",
+        ],
+        assets: [
+          "Diagnóstico práctico de fallas",
+          "Capacidad de implementación rápida",
+          "Experiencia real de piso operativo",
         ],
       },
     },
