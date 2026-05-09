@@ -358,7 +358,7 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
         lossesOrRenunciations:
           "Menos tiempo para el cuidado fino del vínculo puro porque siempre aparece la negociación.",
         whatFeelsCompressedNow:
-          "Me siento más diplomatic_social_connector que community_builder y me agota no saber cómo nombrarlo.",
+          "Me siento más como quien destraba entre áreas y partes que como quien teje comunidad día a día, y me agota no saber cómo nombrarlo.",
         additionalContext:
           "Me importa la comunidad viva, pero últimamente mi día es más alinear intereses jerárquicos que cuidar pertenencia cotidiana.",
       },
@@ -926,7 +926,7 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
         whatFeelsCompressedNow:
           "Tengo capacidad para ordenar ideas complejas, pero hoy queda encerrada en documentos internos que casi nadie lee.",
         additionalContext:
-          "No busco diseñar procesos internos como objetivo principal; quiero construir voz pública y explicación clara para una audiencia real, con frontera natural hacia educator_interpreter cuando domina lo pedagógico.",
+          "No busco diseñar procesos internos como objetivo principal; quiero construir voz pública y explicación clara para una audiencia real, con apertura natural hacia lo pedagógico cuando domina enseñar y hacer entender.",
       },
       currentContext: {
         currentSituation:

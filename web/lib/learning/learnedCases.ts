@@ -670,6 +670,7 @@ export const LEARNED_DIAGNOSTIC_CASES: LearnedDiagnosticCase[] = [
         "Este caso enseña que una persona puede mostrar una dirección principal de Guía Empática cuando el foco está en escucha profunda, comprensión emocional, clarificación humana uno a uno y acompañamiento de procesos personales. La búsqueda de un marco laboral más claro o cierto lenguaje de organización/institución puede abrir frontera con Institutional Operator, pero no debe desplazar a Empathic Guide si no hay señales dominantes de operación formal, reglas, expedientes, jerarquías o procedimientos institucionales.",
       shouldInfluenceFutureCases: true,
     },
+    // QUARANTINE: language contains metadata/lab contamination; do not promote until rewritten in natural human language.
     {
       id: "learned_system_designer_institutional_edge_001",
       title: "Diseñador de sistemas con borde institucional",
@@ -702,6 +703,8 @@ export const LEARNED_DIAGNOSTIC_CASES: LearnedDiagnosticCase[] = [
         "el sistema cierre",
       ],
       missingCuesDetected: [
+        "metadata_contamination_review_required: inputText is third-person lab/catalog voice, not first-person intake",
+        "quarantine_language_contaminated",
         "mencionar áreas, roles, governance u organización no debe convertir automáticamente el caso en Institutional Operator",
         "si el foco está en diseñar el mecanismo, las reglas, los flujos y la arquitectura del proceso, debe sostener System Designer",
         "Technical Builder solo debería subir si el centro es construir técnicamente la herramienta, no diseñar el sistema de funcionamiento",
@@ -723,7 +726,7 @@ export const LEARNED_DIAGNOSTIC_CASES: LearnedDiagnosticCase[] = [
       verdict: "learning_candidate",
       lesson:
         "Este caso enseña que una persona puede mostrar lenguaje institucional, de áreas, roles, governance o coordinación organizacional, pero seguir siendo principalmente System Designer cuando el núcleo de evidencia es diseñar flujos, reglas, criterios, arquitectura de proceso y mecanismos para que el sistema funcione sin depender de héroes. Institutional Operator debe quedar como rival/adyacente cuando la persona se mueve dentro de estructuras, pero no desplazar a System Designer si la acción central es rediseñar el funcionamiento.",
-      shouldInfluenceFutureCases: true,
+      shouldInfluenceFutureCases: false,
     },
     {
       id: "learned_system_designer_public_communicator_frontier_001",
@@ -848,6 +851,7 @@ export const LEARNED_DIAGNOSTIC_CASES: LearnedDiagnosticCase[] = [
         "Este caso enseña que cuando la comunicación pública aparece junto a agenda, asuntos colectivos, marco institucional o reglas de funcionamiento público, la frontera secundaria puede ser Institutional Operator. No debe confundirse con System Designer salvo que el diseño de arquitectura, dependencias, módulos o flujos sea el núcleo dominante y no solo soporte de la voz pública.",
       shouldInfluenceFutureCases: true,
     },
+    // QUARANTINE: language contains metadata/lab contamination; do not promote until rewritten in natural human language.
     {
       id: "learned_empathic_guide_community_builder_frontier_inverted_order_001",
       title:
@@ -867,6 +871,8 @@ export const LEARNED_DIAGNOSTIC_CASES: LearnedDiagnosticCase[] = [
         "me agota llevar el clima",
       ],
       missingCuesDetected: [
+        "quarantine_language_contaminated: inputText mixes lab ranking labels with narrative",
+        "metadata_contamination_review_required",
         "risk: group_language_overactivates_community_builder",
         "marker: one_to_one_deep_listening_should_weight_empathic_guide",
         "marker: negative contrast against group maintenance should reduce community certainty",
@@ -950,6 +956,7 @@ export const LEARNED_DIAGNOSTIC_CASES: LearnedDiagnosticCase[] = [
         "Seed contrastivo para verificar frontera en sentido opuesto: la escucha individual cuenta como soporte, pero el objeto dominante es sostener comunidad.",
       shouldInfluenceFutureCases: false,
     },
+    // QUARANTINE: language contains metadata/lab contamination; do not promote until rewritten in natural human language.
     {
       id: "learned_institutional_operator_diplomatic_connector_language_contamination_warning_001",
       title:
@@ -983,6 +990,8 @@ export const LEARNED_DIAGNOSTIC_CASES: LearnedDiagnosticCase[] = [
         "acuerdos",
       ],
       missingCuesDetected: [
+        "quarantine_language_contaminated: inputText is calibration prose, not simulated user voice",
+        "metadata_contamination_review_required",
         "marker: institutional_operator_diplomatic_connector_language_contamination_warning",
         "learningTier: calibration_warning",
         "reviewStatus: frontier_support",
