@@ -1193,9 +1193,9 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
   },
   {
     id: "seed_institutional_operator_01",
-    label: "Semilla — Operador institucional (claro)",
+    label: "Semilla — Operador institucional (claro, naturalizado)",
     expectation:
-      "Debe tender a clear_direction con institutional_operator; navegación de estructura formal, reglas, cumplimiento práctico.",
+      'Debe tender a clear_direction con institutional_operator. expectedPrimaryFamily: institutional_operator. acceptableFamilies: institutional_operator, system_designer. rivalFamilies: diplomatic_social_connector, analytical_strategist. Uso recomendado: clean_seed / naturalized_seed / institutional_operator_clear.',
     payload: {
       profile: {
         age: 48,
@@ -1206,43 +1206,44 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
       },
       narrative: {
         childhoodMemories:
-          "Entendía antes que otros cómo funcionaban las reglas del colegio y cómo moverse sin romperlas del todo.",
+          "Desde chico me gustaba entender cómo funcionaban las reglas explícitas y los pasos que había que cumplir para que algo avanzara sin quedar en el aire.",
         earlyFascinations:
-          "Cómo las organizaciones grandes sobreviven aunque sean lentas.",
-        meaningfulSchoolSubjects: "Derecho del trabajo por curiosidad, administración pública, contabilidad básica.",
+          "Ver cómo una organización grande puede seguir funcionando aunque todo parezca lento desde afuera.",
+        meaningfulSchoolSubjects:
+          "Administración pública, derecho del trabajo por curiosidad, contabilidad básica.",
         repeatedWorkPatterns:
-          "Traduzco normativa a pasos concretos, gestiono trámites, hago viable lo que en papel parece imposible.",
+          "Me siento a revisar qué norma aplica, qué documento falta, qué área tiene que intervenir, qué plazo se está por vencer y cómo dejar el trámite ordenado para que no rebote después. No soy el que más habla en la reunión; soy el que después logra que lo hablado se convierta en pasos concretos.",
         naturalSocialRoles:
-          "El que sabe cómo se mueve la institución de verdad.",
+          "El que destraba lo trabado cuando nadie sabe por dónde seguir dentro del circuito formal.",
         lossesOrRenunciations:
-          "Menos creatividad visible porque el trabajo es contención y gestión.",
+          "Menos espacio para creatividad visible porque gran parte del trabajo es gestión, rigor y seguimiento.",
         whatFeelsCompressedNow:
-          "Ser visto como burocrata cuando en realidad destrabo cosas serias.",
+          "Me frustra que desde afuera parezca burocracia, porque cuando ese trabajo se hace mal se frena todo o el organismo queda expuesto.",
         additionalContext:
-          "No soy conector de actores en sentido político blando; soy operador de estructura formal.",
+          "Conozco los pasillos formales, entiendo cómo se mueve un expediente y suelo anticipar dónde puede trabarse algo antes de que explote.",
       },
       currentContext: {
         currentSituation:
-          "Área de gestión en organismo con auditorías y cambios regulatorios frecuentes.",
+          "Trabajo en un organismo donde todo parece lento: expedientes, firmas, áreas que se pasan la pelota, auditorías y cambios de criterio. Muchas veces me llaman cuando algo quedó trabado y nadie sabe por dónde seguir.",
         transitionGoal:
           "Modernizar trámites sin perder rigor legal ni exponer al organismo.",
         restrictions: [
-          "Marcos legales rígidos",
-          "Escasa autonomía presupuestaria",
+          "Normas rígidas, auditorías, cambios políticos, circuitos lentos y poco margen para improvisar",
         ],
         assets: [
-          "Red dentro del organismo",
-          "Conocimiento de circuitos",
-          "Paciencia administrativa",
+          "Conozco los pasillos formales",
+          "Entiendo cómo se mueve un expediente",
+          "Paciencia para ordenar documentación",
+          "Suelo anticipar dónde puede trabarse algo antes de que explote",
         ],
       },
     },
   },
   {
     id: "seed_institutional_operator_02",
-    label: "Semilla — Operador institucional (riesgo conector diplomático)",
+    label: "Semilla — Operador institucional (frontera mediación, naturalizado)",
     expectation:
-      "Debe tender a institutional_operator; riesgo de confundirlo con diplomatic_social_connector si domina negociación entre actores sobre trámite y norma.",
+      'Debe tender a institutional_operator con frontera diplomatic_social_connector. expectedPrimaryFamily: institutional_operator. acceptableFamilies: institutional_operator, diplomatic_social_connector. rivalFamilies: diplomatic_social_connector, commercial_connector, civic_advocate, system_designer. Uso recomendado: frontier_refinement / naturalized_seed / no strong learned unless result is validated.',
     payload: {
       profile: {
         age: 44,
@@ -1253,34 +1254,35 @@ export const SEED_DIAGNOSTIC_CASES: EvaluationCase[] = [
       },
       narrative: {
         childhoodMemories:
-          "Negociaba permisos y excepciones con autoridades sin pelear de más.",
+          "Aprendí temprano a pedir permisos y excepciones con autoridades sin pelear de más, pero siempre mirando qué documento o plazo quedaba pendiente.",
         earlyFascinations:
-          "Cómo alinear intereses sin que explote la institución.",
-        meaningfulSchoolSubjects: "Ciencia política, gestión, proyectos con estado.",
+          "Cómo hacer viable algo complejo sin que la institución quede expuesta ni el trámite quede en el aire.",
+        meaningfulSchoolSubjects:
+          "Ciencia política, gestión, proyectos con el Estado.",
         repeatedWorkPatterns:
-          "Termino en reuniones entre áreas cerrando acuerdos, pero el corazón del laburo es hacer viable el circuito formal.",
+          "Participo de reuniones con áreas distintas, pero mi parte fuerte viene después: agarrar lo acordado y convertirlo en papeles, responsables, plazos, requisitos y circuito cumplible. Si eso no pasa, todo queda en charla.",
         naturalSocialRoles:
-          "Interlocutor institucional que a veces parece político.",
+          "Interlocutor que baja lo hablado a procedimiento defendible, no solo quien sostiene la mesa.",
         lossesOrRenunciations:
-          "Menos tiempo en el detalle normativo fino porque las mesas me absorben.",
+          "Menos tiempo en el detalle normativo fino cuando las mesas me absorben sin cerrar expediente.",
         whatFeelsCompressedNow:
-          "Me confunden con diplomatic_social_connector; yo opero dentro de reglas y plazos, no solo articulo climas.",
+          "Me cansa que me vean como alguien que sólo hace trámites. En realidad, cuando nadie baja las decisiones a procedimiento, las cosas no avanzan o quedan expuestas.",
         additionalContext:
-          "La diplomacia me sirve, pero mi valor central es operar la máquina institucional con rigor.",
+          "Puedo conversar con actores distintos y eso ayuda, pero mi centro no es convencer a todo el mundo ni sostener el clima de la mesa. Mi centro es que lo hablado se vuelva ejecutable sin romper reglas.",
       },
       currentContext: {
         currentSituation:
-          "Proyecto público-privado con muchas mesas y poco avance en los expedientes de fondo.",
+          "Estoy en un proyecto público-privado donde hay muchas mesas, muchas promesas y poco avance real en los expedientes de fondo.",
         transitionGoal:
           "Bajar acuerdos a expedientes y cronogramas ejecutables con trazabilidad.",
         restrictions: [
-          "Elecciones que congelan decisiones",
-          "Compliance estricto",
+          "Cambios políticos, compliance estricto, auditorías, áreas que interpretan distinto los requisitos y poca tolerancia al error formal",
         ],
         assets: [
-          "Lenguaje de estado y de empresa",
-          "Templanza",
-          "Detalle en documentación",
+          "Entiendo lenguaje de Estado y de empresa",
+          "Sé leer normativa",
+          "Ordenar documentación",
+          "Anticipar objeciones y dejar un camino administrativo defendible",
         ],
       },
     },

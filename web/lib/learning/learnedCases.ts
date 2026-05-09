@@ -950,4 +950,49 @@ export const LEARNED_DIAGNOSTIC_CASES: LearnedDiagnosticCase[] = [
         "Seed contrastivo para verificar frontera en sentido opuesto: la escucha individual cuenta como soporte, pero el objeto dominante es sostener comunidad.",
       shouldInfluenceFutureCases: false,
     },
+    {
+      id: "learned_institutional_operator_diplomatic_connector_language_contamination_warning_001",
+      title:
+        "institutional_operator_diplomatic_connector_language_contamination_warning",
+      source: "manual_synthetic",
+      language: "es",
+      region: "LatAm",
+      inputText:
+        "Cuando un relato usa reuniones, acuerdos, actores, mesas, negociación o alinear intereses, el sistema puede sesgar hacia un perfil centrado en mediación entre personas. Para reconocer un operador institucional fuerte, buscar evidencia de conversión formal: expediente, norma aplicable, requisitos, plazos, documentación, auditoría, trazabilidad, circuito cumplible, procedimiento, responsables, cumplimiento y riesgo institucional. Si el valor aparece después de la reunión, bajando lo acordado a estructura formal, debe subir el operador institucional. Si el centro es mediar posiciones, cuidar vínculos o sostener acuerdos entre partes, debe subir la mediación entre actores.",
+      expectedPrimaryFamily: "institutional_operator",
+      acceptableFamilies: [
+        "institutional_operator",
+        "diplomatic_social_connector",
+      ],
+      rivalFamilies: [
+        "diplomatic_social_connector",
+        "commercial_connector",
+        "civic_advocate",
+      ],
+      keyHumanLanguage: [
+        "expediente",
+        "norma aplicable",
+        "requisitos",
+        "plazos",
+        "trazabilidad",
+        "circuito cumplible",
+        "procedimiento",
+        "auditoría",
+        "reuniones",
+        "mesas",
+        "acuerdos",
+      ],
+      missingCuesDetected: [
+        "marker: institutional_operator_diplomatic_connector_language_contamination_warning",
+        "learningTier: calibration_warning",
+        "reviewStatus: frontier_support",
+        "humanReviewSuggested: true",
+        "influenceWeight: 0",
+        "nota: no promover como learned fuerte; calibración y consulta",
+      ],
+      verdict: "borderline",
+      lesson:
+        "Advertencia de calibración: lenguaje de reuniones, acuerdos, actores o mesas puede sobreactivar un perfil de mediación. Contrastar con señales de operación formal (expediente, norma, plazos, trazabilidad, riesgo institucional). Si lo valioso es bajar lo acordado a papeles y circuito, priorizar operador institucional; si lo valioso es sostener relación y acuerdo entre partes, priorizar mediación.",
+      shouldInfluenceFutureCases: false,
+    },
 ];
