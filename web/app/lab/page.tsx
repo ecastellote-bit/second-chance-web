@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { FunctionalSubtype } from "@/lib/types/finalDiagnostic";
+import type { NegativeEvidenceReview } from "@/lib/types/negativeEvidenceJudge";
 import { HUMAN_LANGUAGE_CASES } from "@/lib/testing/humanLanguageCases";
 
 type DirectionItem =
@@ -110,6 +111,8 @@ type AnalyzeSuccess = {
   likelyContributionModes?: string[];
   likelyFlourishingConditions?: string[];
   trace?: unknown;
+  negativeEvidenceReview?: NegativeEvidenceReview;
+  discardJudgeReview?: NegativeEvidenceReview;
   diagnosticTrace?: unknown;
   debugTrace?: unknown;
   debug?: {
@@ -644,6 +647,10 @@ export default function LabPage() {
   const finalDiagnostic = result && result.ok ? result.data.finalDiagnostic : null;
   const profileSnapshot = finalDiagnostic?.profileSnapshot ?? null;
   const affinityDebug = getAffinityDebug(result);
+  const negativeEvidenceReview =
+    result && result.ok
+      ? result.data.negativeEvidenceReview ?? result.data.discardJudgeReview ?? null
+      : null;
 
   const topAffinities = affinityDebug.topAffinities;
   const buriedCapacities = affinityDebug.buriedCapacities;
@@ -1221,6 +1228,121 @@ export default function LabPage() {
             <pre className="whitespace-pre-wrap break-words text-xs text-neutral-700 font-sans">
               {formatUnknown(familyScores)}
             </pre>
+          </section>
+
+          <section className="rounded-2xl border p-5 space-y-4">
+            <h2 className="text-lg font-medium">
+              Juez de descarte — audit-only / shadow preview
+            </h2>
+
+            {!negativeEvidenceReview ? (
+              <p className="text-sm text-neutral-700">
+                No hay revisión de descarte disponible en esta corrida.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                <div className="rounded-xl border p-4 text-sm text-neutral-700 space-y-1">
+                  <p>
+                    <strong>mode:</strong> {negativeEvidenceReview.mode}
+                  </p>
+                  <p>
+                    <strong>wouldChangeTopFamily:</strong>{" "}
+                    {String(negativeEvidenceReview.wouldChangeTopFamily)}
+                  </p>
+                  <p>
+                    <strong>wouldOpenFrontier:</strong>{" "}
+                    {String(negativeEvidenceReview.wouldOpenFrontier)}
+                  </p>
+                  <p>
+                    <strong>wouldCloseFrontier:</strong>{" "}
+                    {String(negativeEvidenceReview.wouldCloseFrontier)}
+                  </p>
+                  <p>
+                    <strong>summary:</strong> {negativeEvidenceReview.summary}
+                  </p>
+                </div>
+
+                <div className="rounded-xl border p-4 space-y-2 text-sm text-neutral-700">
+                  <p className="font-medium">Ranking original</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    {negativeEvidenceReview.originalRanking.map((item) => (
+                      <li key={`original-${item.familyId}`}>
+                        #{item.rank} {item.familyId} — score {item.score.toFixed(3)}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="rounded-xl border p-4 space-y-2 text-sm text-neutral-700">
+                  <p className="font-medium">Ranking hipotético post-descarte (shadow)</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    {negativeEvidenceReview.shadowAdjustedRankingPreview.map((item) => (
+                      <li key={`shadow-${item.familyId}`}>
+                        #{item.shadowRank} {item.familyId} — shadow{" "}
+                        {item.shadowScore.toFixed(3)} (orig #{item.originalRank}{" "}
+                        {item.originalScore.toFixed(3)})
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {negativeEvidenceReview.evaluatedFamilies.map((finding, index) => (
+                  <div
+                    key={`${finding.familyId}-${index}`}
+                    className="rounded-xl border p-4 space-y-2 text-sm text-neutral-700"
+                  >
+                    <p>
+                      <strong>{finding.familyLabel}</strong> ({finding.familyId})
+                    </p>
+                    <p>
+                      <strong>verdict:</strong> {finding.verdict}
+                    </p>
+                    <p>
+                      <strong>originalRank/originalScore:</strong>{" "}
+                      {finding.originalRank ?? "n/a"} /{" "}
+                      {typeof finding.originalScore === "number"
+                        ? finding.originalScore.toFixed(3)
+                        : "n/a"}
+                    </p>
+                    <p>
+                      <strong>suggestedPenalty:</strong> {finding.suggestedPenalty}{" "}
+                      (informativo)
+                    </p>
+                    <p>
+                      <strong>shouldAffectScoreNow:</strong>{" "}
+                      {String(finding.shouldAffectScoreNow)}
+                    </p>
+                    {finding.reasons.length > 0 ? (
+                      <p>
+                        <strong>reasons:</strong> {finding.reasons.join(" | ")}
+                      </p>
+                    ) : null}
+                    {finding.supportingEvidence && finding.supportingEvidence.length > 0 ? (
+                      <p>
+                        <strong>supportingEvidence:</strong>{" "}
+                        {finding.supportingEvidence.join(", ")}
+                      </p>
+                    ) : null}
+                    {finding.contradictingEvidence &&
+                    finding.contradictingEvidence.length > 0 ? (
+                      <p>
+                        <strong>contradictingEvidence:</strong>{" "}
+                        {finding.contradictingEvidence.join(", ")}
+                      </p>
+                    ) : null}
+                    {finding.riskNotes && finding.riskNotes.length > 0 ? (
+                      <p>
+                        <strong>riskNotes:</strong> {finding.riskNotes.join(" | ")}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+
+                <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                  Este preview no modifica el resultado real.
+                </div>
+              </div>
+            )}
           </section>
         </>
       ) : null}

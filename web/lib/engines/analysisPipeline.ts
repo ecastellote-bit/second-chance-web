@@ -21,6 +21,7 @@ import {
 import { runDiagnosticJudgeEngine } from "./diagnosticJudgeEngine";
 import { runDiagnosticExperienceDistiller } from "./diagnosticExperienceDistiller";
 import { runContextualSituationJudge } from "./contextualSituationJudge";
+import { runNegativeEvidenceJudge } from "./negativeEvidenceJudge";
 import { ensureDiagnosticLearningTrace } from "./diagnosticLearningTrace";
 import { buildDiagnosticCaseStatistics } from "./diagnosticCaseStatistics";
 import { calibrateDiagnosticReviewIntensity } from "./diagnosticReviewCalibrator";
@@ -332,6 +333,14 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
     },
   );
 
+  const negativeEvidenceReview = runNegativeEvidenceJudge({
+    intake,
+    finalReading: provisionalReading,
+    familyScores: affinityBridge.familyScores ?? [],
+    affinityScores: affinityBridge.affinityScores ?? [],
+    similarCases,
+  });
+
   /**
    * Capa 3: cirujano de experiencia diagnóstica.
    *
@@ -408,6 +417,19 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
     finalAdjudication,
   } = ensureTraceCarriesFinalAdjudication(adjudicatedFinalReading);
 
+  const traceWithNegativeEvidenceReview =
+    adjudicatedTraceWithFinalAdjudication &&
+    typeof adjudicatedTraceWithFinalAdjudication === "object" &&
+    !Array.isArray(adjudicatedTraceWithFinalAdjudication)
+      ? {
+          ...(adjudicatedTraceWithFinalAdjudication as Record<string, unknown>),
+          negativeEvidenceReview,
+        }
+      : {
+          rawTrace: adjudicatedTraceWithFinalAdjudication ?? null,
+          negativeEvidenceReview,
+        };
+
   /**
    * Capa 7: traza estadística del caso.
    *
@@ -422,7 +444,7 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
     },
     finalReading: {
       ...adjudicatedFinalReading,
-      trace: adjudicatedTraceWithFinalAdjudication,
+      trace: traceWithNegativeEvidenceReview,
     } as FinalReading,
     familyScores: affinityBridge.familyScores ?? [],
     affinityScores: affinityBridge.affinityScores ?? [],
@@ -450,7 +472,7 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
   const finalReadingWithDiagnosticBridge = {
     ...adjudicatedFinalReading,
 
-    trace: adjudicatedTraceWithFinalAdjudication,
+    trace: traceWithNegativeEvidenceReview,
     finalAdjudication,
 
     familyScores: affinityBridge.familyScores ?? [],
@@ -466,6 +488,9 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
 
     diagnosticReview,
     diagnosticJudgeReview: diagnosticReview,
+
+    negativeEvidenceReview,
+    discardJudgeReview: negativeEvidenceReview,
 
     experienceDistillation,
     diagnosticExperienceDistillation: experienceDistillation,
