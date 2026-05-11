@@ -1,6 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import {
+  selectGuidedThemes,
+  type GuidedThemeSuggestion,
+} from "@/lib/engines/guidedThemeSelector";
 import type { FunctionalSubtype } from "@/lib/types/finalDiagnostic";
 import type { NegativeEvidenceReview } from "@/lib/types/negativeEvidenceJudge";
 import { HUMAN_LANGUAGE_CASES } from "@/lib/testing/humanLanguageCases";
@@ -660,6 +664,18 @@ export default function LabPage() {
   const affinityScores = affinityDebug.affinityScores;
   const familyScores = affinityDebug.familyScores;
 
+  const latestDiagnosticForThemes = useMemo(() => {
+    if (enrichedResult?.ok && enrichedResult.data) return enrichedResult.data;
+    if (originalResult?.ok && originalResult.data) return originalResult.data;
+    return null;
+  }, [enrichedResult, originalResult]);
+
+  const guidedThemeSuggestions: GuidedThemeSuggestion[] = useMemo(
+    () =>
+      latestDiagnosticForThemes ? selectGuidedThemes(latestDiagnosticForThemes, 5) : [],
+    [latestDiagnosticForThemes],
+  );
+
   return (
     <main className="mx-auto max-w-7xl p-6 space-y-6">
       <div className="space-y-2">
@@ -1228,6 +1244,134 @@ export default function LabPage() {
             <pre className="whitespace-pre-wrap break-words text-xs text-neutral-700 font-sans">
               {formatUnknown(familyScores)}
             </pre>
+          </section>
+
+          <section className="rounded-2xl border p-5 space-y-4">
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold">
+                Temáticas sugeridas — preview MVP
+              </h2>
+              <p className="text-sm text-neutral-600 border-l-4 border-amber-300 bg-amber-50/60 pl-3 py-2 rounded-r">
+                Estas sugerencias no modifican el diagnóstico, no alteran scores y no
+                cambian resultType. Sólo muestran posibles puertas temáticas para la capa
+                de selección guiada.
+              </p>
+            </div>
+
+            {guidedThemeSuggestions.length === 0 ? (
+              <p className="text-sm text-neutral-700">
+                Todavía no hay Temáticas sugeridas para esta salida.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {guidedThemeSuggestions.map((suggestion, index) => {
+                  const theme = suggestion.theme;
+                  const reasons = Array.isArray(suggestion.reasons)
+                    ? suggestion.reasons
+                    : [];
+                  const matchedFamilies = Array.isArray(suggestion.matchedFamilies)
+                    ? suggestion.matchedFamilies
+                    : [];
+                  const matchedAffinities = Array.isArray(suggestion.matchedAffinities)
+                    ? suggestion.matchedAffinities
+                    : [];
+                  const activationPaths = Array.isArray(theme?.suggestedActivationPaths)
+                    ? theme.suggestedActivationPaths
+                    : [];
+                  const communityHints = Array.isArray(theme?.communitySpaceHints)
+                    ? theme.communitySpaceHints
+                    : [];
+
+                  return (
+                    <div
+                      key={`${theme?.id ?? "theme"}-${index}`}
+                      className="rounded-2xl border p-5 space-y-3 text-sm text-neutral-700"
+                    >
+                      <p className="text-base font-medium text-neutral-900">
+                        #{index + 1} · {theme?.shortLabel ?? "sin etiqueta"}
+                      </p>
+                      <p>
+                        <strong>theme.id:</strong> {theme?.id ?? "n/a"}
+                      </p>
+                      <p>
+                        <strong>selector score:</strong>{" "}
+                        {typeof suggestion.score === "number"
+                          ? suggestion.score.toFixed(3)
+                          : "n/a"}
+                      </p>
+                      <p>
+                        <strong>userFacingText:</strong>{" "}
+                        {typeof theme?.userFacingText === "string"
+                          ? theme.userFacingText
+                          : "n/a"}
+                      </p>
+                      <p>
+                        <strong>recognitionPhrase:</strong>{" "}
+                        {typeof theme?.recognitionPhrase === "string"
+                          ? theme.recognitionPhrase
+                          : "n/a"}
+                      </p>
+                      <p>
+                        <strong>matchedFamilies:</strong>{" "}
+                        {matchedFamilies.length > 0 ? matchedFamilies.join(", ") : "—"}
+                      </p>
+                      <p>
+                        <strong>matchedAffinities:</strong>{" "}
+                        {matchedAffinities.length > 0
+                          ? matchedAffinities.join(", ")
+                          : "—"}
+                      </p>
+                      {reasons.length > 0 ? (
+                        <div className="space-y-1">
+                          <p className="font-medium text-neutral-900">reasons</p>
+                          <ul className="list-disc pl-5 space-y-1">
+                            {reasons.map((reason, reasonIndex) => (
+                              <li key={`reason-${index}-${reasonIndex}`}>{reason}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : (
+                        <p>
+                          <strong>reasons:</strong> —
+                        </p>
+                      )}
+                      {activationPaths.length > 0 ? (
+                        <div className="space-y-1">
+                          <p className="font-medium text-neutral-900">
+                            suggestedActivationPaths
+                          </p>
+                          <ul className="list-disc pl-5 space-y-1">
+                            {activationPaths.map((path, pathIndex) => (
+                              <li key={`path-${index}-${pathIndex}`}>{path}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : (
+                        <p>
+                          <strong>suggestedActivationPaths:</strong> —
+                        </p>
+                      )}
+                      {communityHints.length > 0 ? (
+                        <div className="space-y-1">
+                          <p className="font-medium text-neutral-900">
+                            communitySpaceHints
+                          </p>
+                          <ul className="list-disc pl-5 space-y-1">
+                            {communityHints.map((hint, hintIndex) => (
+                              <li key={`hint-${index}-${hintIndex}`}>{hint}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : (
+                        <p>
+                          <strong>communitySpaceHints:</strong> —
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </section>
 
           <section className="rounded-2xl border p-5 space-y-4">
