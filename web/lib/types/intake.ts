@@ -32,6 +32,8 @@ export interface CurrentContext {
 }
 
 export interface NarrativeAnswers {
+  /** Algunos flujos guardan la situación actual dentro de narrative. */
+  currentSituation?: string;
   childhoodMemories?: string;
   earlyFascinations?: string;
   meaningfulSchoolSubjects?: string;

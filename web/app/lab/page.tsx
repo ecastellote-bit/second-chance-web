@@ -8,6 +8,7 @@ import {
 import type { FunctionalSubtype } from "@/lib/types/finalDiagnostic";
 import type { NegativeEvidenceReview } from "@/lib/types/negativeEvidenceJudge";
 import { HUMAN_LANGUAGE_CASES } from "@/lib/testing/humanLanguageCases";
+import { runBiasMonitor } from "@/lib/engines/learnedCasesBiasMonitor";
 
 type DirectionItem =
   | string
@@ -1294,6 +1295,12 @@ export default function LabPage() {
                         <strong>theme.id:</strong> {theme?.id ?? "n/a"}
                       </p>
                       <p>
+                        <strong>themeLayer:</strong>{" "}
+                        {typeof theme?.themeLayer === "string"
+                          ? theme.themeLayer
+                          : "n/a"}
+                      </p>
+                      <p>
                         <strong>selector score:</strong>{" "}
                         {typeof suggestion.score === "number"
                           ? suggestion.score.toFixed(3)
@@ -1390,8 +1397,20 @@ export default function LabPage() {
                     <strong>mode:</strong> {negativeEvidenceReview.mode}
                   </p>
                   <p>
-                    <strong>wouldChangeTopFamily:</strong>{" "}
+                    <strong>wouldChangeTopFamily (gated):</strong>{" "}
                     {String(negativeEvidenceReview.wouldChangeTopFamily)}
+                  </p>
+                  <p>
+                    <strong>wouldAffectRealResult:</strong>{" "}
+                    {String(negativeEvidenceReview.wouldAffectRealResult)}
+                  </p>
+                  <p>
+                    <strong>humanReviewSuggested:</strong>{" "}
+                    {String(negativeEvidenceReview.humanReviewSuggested)}
+                  </p>
+                  <p>
+                    <strong>frontierPatternNeedsReview:</strong>{" "}
+                    {String(negativeEvidenceReview.frontierPatternNeedsReview)}
                   </p>
                   <p>
                     <strong>wouldOpenFrontier:</strong>{" "}
@@ -1418,7 +1437,7 @@ export default function LabPage() {
                 </div>
 
                 <div className="rounded-xl border p-4 space-y-2 text-sm text-neutral-700">
-                  <p className="font-medium">Ranking hipotético post-descarte (shadow)</p>
+                  <p className="font-medium">Ranking sombra (sólo penalizaciones con shouldAffectScoreNow)</p>
                   <ul className="list-disc pl-5 space-y-1">
                     {negativeEvidenceReview.shadowAdjustedRankingPreview.map((item) => (
                       <li key={`shadow-${item.familyId}`}>
@@ -1448,10 +1467,14 @@ export default function LabPage() {
                         ? finding.originalScore.toFixed(3)
                         : "n/a"}
                     </p>
-                    <p>
-                      <strong>suggestedPenalty:</strong> {finding.suggestedPenalty}{" "}
-                      (informativo)
-                    </p>
+                  <p>
+                    <strong>suggestedPenalty (audit):</strong>{" "}
+                    {finding.suggestedPenalty ?? 0}{" "}
+                    <span className="text-neutral-500">
+                      | sombra aplicable:{" "}
+                      {finding.shouldAffectScoreNow ? (finding.suggestedPenalty ?? 0) : 0}
+                    </span>
+                  </p>
                     <p>
                       <strong>shouldAffectScoreNow:</strong>{" "}
                       {String(finding.shouldAffectScoreNow)}
@@ -1482,14 +1505,166 @@ export default function LabPage() {
                   </div>
                 ))}
 
-                <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-                  Este preview no modifica el resultado real.
+                <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 space-y-2">
+                  <p>
+                    El preview no modifica familyScores ni el diagnóstico publicado. El ranking
+                    sombra usa sólo penalizaciones con <code className="text-xs">shouldAffectScoreNow</code>{" "}
+                    (gates estrictos).
+                  </p>
+                  {negativeEvidenceReview.warnings.length > 0 ? (
+                    <ul className="list-disc pl-5 space-y-1">
+                      {negativeEvidenceReview.warnings.map((w, i) => (
+                        <li key={`neg-warn-${i}`}>{w}</li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </div>
               </div>
             )}
           </section>
         </>
       ) : null}
+
+      <BiasMonitorPanel />
     </main>
+  );
+}
+
+function BiasMonitorPanel() {
+  const [open, setOpen] = useState(false);
+  const report = useMemo(() => (open ? runBiasMonitor() : null), [open]);
+
+  return (
+    <section className="mt-10 border-t border-gray-200 pt-6">
+      <button
+        onClick={() => setOpen(!open)}
+        className="text-sm font-semibold text-indigo-700 hover:text-indigo-900 underline"
+      >
+        {open ? "▾ Cerrar Monitor de Sesgo" : "▸ Monitor de Sesgo — Learned Cases"}
+      </button>
+
+      {open && report && (
+        <div className="mt-4 space-y-4 text-sm">
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="rounded-lg bg-gray-100 p-3">
+              <div className="text-2xl font-bold">{report.totalCases}</div>
+              <div className="text-gray-500">Total casos</div>
+            </div>
+            <div className="rounded-lg bg-green-50 p-3">
+              <div className="text-2xl font-bold text-green-700">{report.activeCases}</div>
+              <div className="text-gray-500">Activos (influyen)</div>
+            </div>
+            <div className="rounded-lg bg-yellow-50 p-3">
+              <div className="text-2xl font-bold text-yellow-700">{report.quarantinedCases}</div>
+              <div className="text-gray-500">Cuarentena / No influyen</div>
+            </div>
+          </div>
+
+          {report.alerts.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="font-semibold text-gray-800">Alertas</h4>
+              {report.alerts.map((alert, i) => (
+                <div
+                  key={`bias-alert-${i}`}
+                  className={`rounded-lg border p-3 ${
+                    alert.severity === "critical"
+                      ? "border-red-300 bg-red-50 text-red-900"
+                      : alert.severity === "warning"
+                        ? "border-amber-300 bg-amber-50 text-amber-900"
+                        : "border-blue-200 bg-blue-50 text-blue-900"
+                  }`}
+                >
+                  <span className="font-mono text-xs uppercase opacity-60">
+                    [{alert.severity}] {alert.category}
+                  </span>
+                  <p className="mt-1">{alert.message}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div>
+            <h4 className="font-semibold text-gray-800 mb-2">Distribución por Familia (todas)</h4>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr className="border-b text-left text-gray-500">
+                    <th className="p-1">Familia</th>
+                    <th className="p-1 text-center">Primary</th>
+                    <th className="p-1 text-center">Acceptable</th>
+                    <th className="p-1 text-center">Rival</th>
+                    <th className="p-1 text-center">Influencia</th>
+                    <th className="p-1 text-center">Quarantine</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {report.familyDistribution.map((d) => (
+                    <tr key={d.familyId} className="border-b border-gray-100">
+                      <td className="p-1 font-mono">{d.familyId}</td>
+                      <td className="p-1 text-center">{d.asPrimary}</td>
+                      <td className="p-1 text-center">{d.asAcceptable}</td>
+                      <td className="p-1 text-center">{d.asRival}</td>
+                      <td className="p-1 text-center font-semibold">{d.activeInfluence}</td>
+                      <td className="p-1 text-center text-yellow-600">{d.quarantined || ""}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {report.vocabularyConcentration.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-2">Concentración Léxica (tokens repetidos)</h4>
+              <div className="flex flex-wrap gap-2">
+                {report.vocabularyConcentration.slice(0, 15).map((v) => (
+                  <span
+                    key={v.token}
+                    className={`inline-block rounded-full px-2 py-0.5 text-xs ${
+                      v.isSingleFamilyDominant
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    &ldquo;{v.token}&rdquo; → {v.familiesPushed.join(", ")} ({v.occurrences}x)
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {report.contaminationFindings.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-2">Contaminación de Lenguaje</h4>
+              <div className="space-y-1">
+                {report.contaminationFindings.map((f) => (
+                  <div key={f.caseId} className="rounded border border-red-200 bg-red-50 p-2 text-xs text-red-800">
+                    <span className="font-mono">{f.caseId}</span>
+                    <span className="mx-1">→</span>
+                    <span>{f.matchedMarkers.join(", ")}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {report.hotFamilyShare !== null && (
+            <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-3">
+              <h4 className="font-semibold text-indigo-800 text-xs mb-1">Hot Families (CB, EG, PC, CS) — vigilancia secundaria</h4>
+              <p className="text-xs text-indigo-700">
+                Concentran {(report.hotFamilyShare * 100).toFixed(0)}% de la influencia activa.
+                {report.hotFamilyShare > 0.7
+                  ? " Alerta: posible sobre-calibración hacia esas familias."
+                  : " Dentro de rango aceptable."}
+              </p>
+            </div>
+          )}
+
+          <p className="text-xs text-gray-400">
+            Generado: {report.timestamp} | Audit-only — no modifica diagnóstico ni scores.
+          </p>
+        </div>
+      )}
+    </section>
   );
 }

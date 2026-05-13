@@ -3,6 +3,7 @@ import type { ProfileFamilyId } from "./profileFamilies";
 export type NegativeEvidenceVerdict =
   | "keep_candidate"
   | "watch_candidate"
+  | "frontier_candidate"
   | "soft_discard"
   | "strong_discard"
   | "insufficient_negative_evidence";
@@ -19,7 +20,8 @@ export type NegativeEvidenceFinding = {
   supportingEvidence?: string[];
   contradictingEvidence?: string[];
   riskNotes?: string[];
-  shouldAffectScoreNow: false;
+  /** True only when strict discard gates pass (rivalry control), never for audit-only flags alone. */
+  shouldAffectScoreNow: boolean;
 };
 
 export type NegativeEvidenceRankingItem = {
@@ -40,10 +42,16 @@ export type NegativeEvidenceReview = {
   mode: "audit_only_shadow_preview";
   evaluatedFamilies: NegativeEvidenceFinding[];
   originalRanking: NegativeEvidenceRankingItem[];
+  /** Ranking sombra: sólo resta penalizaciones con `shouldAffectScoreNow` (gates estrictos). */
   shadowAdjustedRankingPreview: NegativeEvidenceShadowRankingItem[];
+  /** True si el top sombra (gated) difiere del top original. */
   wouldChangeTopFamily: boolean;
   wouldOpenFrontier: boolean;
   wouldCloseFrontier: boolean;
+  /** Igual a `wouldChangeTopFamily` en modo gated; explícito para /lab. */
+  wouldAffectRealResult: boolean;
+  humanReviewSuggested: boolean;
+  frontierPatternNeedsReview: boolean;
   summary: string;
   warnings: string[];
 };

@@ -340,6 +340,18 @@ function buildSummary(
   const firstDirection = compatibleDirections[0]?.label;
 
   if (resultType === "compressed_life") {
+    if (dominantProfile.id === "community_builder") {
+      const baseDiagnostico =
+        "La lectura detecta una dirección comunitaria clara, pero aparece comprimida por cansancio, falta de resto o sobrecarga actual. No falta vocación: falta margen para reactivarla con límites.";
+      return {
+        headline: subtypeLabel
+          ? `Tu línea comunitaria aparece, pero hoy está comprimida: ${subtypeLabel}.`
+          : `Tu línea comunitaria aparece, pero hoy está comprimida: ${dominantProfile.label}.`,
+        diagnostico: firstDirection
+          ? `${baseDiagnostico} Como salida plausible compatible se lee ${firstDirection}.`
+          : baseDiagnostico,
+      };
+    }
     return {
       headline: subtypeLabel
         ? `Tu línea dominante aparece, pero hoy está comprimida: ${subtypeLabel}.`

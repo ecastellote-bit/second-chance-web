@@ -4,6 +4,12 @@ import type { DetectedSignal } from "../types/signals";
 import type { ResultType, TransitionAssessment } from "../types/result";
 import type { DiagnosticTrace, DecisionReasonCode } from "../types/debug";
 
+/**
+ * Esta capa no lee `negativeEvidenceReview` ni aplica `suggestedPenalty`.
+ * El juez de descarte vive aparte; cualquier integración futura debe respetar
+ * los mismos gates que `shouldApplyDiscardToFinal` en negativeEvidenceJudge.
+ */
+
 type ClarificationMeta = {
   roundsCompleted?: number;
 };
@@ -31,6 +37,178 @@ function normalizeText(text: string): string {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
+}
+
+const COLLECTIVE_INTAKE_MARKERS = [
+  "comunidad",
+  "comunidades",
+  "grupo",
+  "grupos",
+  "redes",
+  "clubes",
+  "juntar gente",
+  "armar grupos",
+  "armar grupo",
+  "sostener movidas",
+  "convocar",
+  "convocando",
+  "sostener el hilo",
+  "sosteniendo el hilo",
+  "si no muevo yo",
+  "se enfrían",
+  "se enfrian",
+  "participacion",
+  "participación",
+  "espacio compartido",
+  "espacio colectivo",
+  "continuidad colectiva",
+  "continuidad grupal",
+  "pertenencia",
+  "trabajos grupales",
+  "proyectos grupales",
+  "organizar personas",
+  "banda de amigos",
+  "convocatoria",
+];
+
+const STRAIN_OR_VACUUM_MARKERS = [
+  "estoy seco",
+  "estoy seca",
+  "bastante seco",
+  "bastante seca",
+  "no me queda resto",
+  "ahogado",
+  "ahogada",
+  "sin fuerza",
+  "aparece poco",
+  "comprimido",
+  "comprimida",
+  "no esta canalizado",
+  "no está canalizado",
+  "cansancio",
+  "sequedad",
+  "me quede sin energia",
+  "me quedé sin energía",
+  "impulso comunitario esta ahogado",
+  "impulso comunitario está ahogado",
+];
+
+const STRONG_ONE_TO_ONE_GUARD_MARKERS = [
+  "uno a uno",
+  "acompañamiento uno a uno",
+  "acompanamiento uno a uno",
+  "escuchar a una persona",
+  "contencion individual",
+  "contención individual",
+  "proceso personal",
+  "acompañar a alguien",
+  "acompanar a alguien",
+  "ordenar la situacion de alguien",
+  "ordenar la situación de alguien",
+  "acompañar a una persona",
+  "acompanar a una persona",
+];
+
+function buildIntakeNarrativeBundle(intake: UserIntake): string {
+  const n = intake.narrative;
+  const cc = intake.currentContext;
+  const parts = [
+    n.currentSituation,
+    n.childhoodMemories,
+    n.earlyFascinations,
+    n.meaningfulSchoolSubjects,
+    n.repeatedWorkPatterns,
+    n.naturalSocialRoles,
+    n.lossesOrRenunciations,
+    n.whatFeelsCompressedNow,
+    n.additionalContext,
+    cc.currentSituation,
+    ...(cc.restrictions ?? []),
+  ];
+  return normalizeText(parts.filter(Boolean).join(" "));
+}
+
+function familyScoreRowId(row: FamilyScoreLike | undefined): string {
+  if (!row) return "";
+  const raw = (row as { id?: unknown; familyId?: unknown }).id ?? (row as { familyId?: unknown }).familyId;
+  return typeof raw === "string" ? raw.trim() : "";
+}
+
+function countIntakeMarkerHits(haystack: string, markers: string[]): number {
+  const seen = new Set<string>();
+  for (const marker of markers) {
+    const n = normalizeText(marker);
+    if (n && haystack.includes(n)) seen.add(n);
+  }
+  return seen.size;
+}
+
+type CompressedCommunityPatternOpts = {
+  /**
+   * Si true: sólo aplica con community_builder como primera familia en el ranking
+   * (p. ej. downgrade de clear_direction). Si false: permite segundo muy cercano
+   * (rescate desde insufficient_evidence).
+   */
+  requireTopFamilyCommunity: boolean;
+};
+
+function shouldPreferCompressedCommunityPattern(
+  input: ResultDecisionInput,
+  opts: CompressedCommunityPatternOpts,
+): boolean {
+  const narrative = buildIntakeNarrativeBundle(input.intake);
+  if (!narrative.trim()) return false;
+
+  const collectiveHits = countIntakeMarkerHits(narrative, COLLECTIVE_INTAKE_MARKERS);
+  const strainHits = countIntakeMarkerHits(narrative, STRAIN_OR_VACUUM_MARKERS);
+  const oneToOneGuard = countIntakeMarkerHits(narrative, STRONG_ONE_TO_ONE_GUARD_MARKERS);
+
+  if (collectiveHits < 5 || strainHits < 2) return false;
+  if (oneToOneGuard >= 2) return false;
+
+  const sorted = [...(input.familyScores ?? [])].sort((a, b) => {
+    const sa = typeof a.score === "number" && Number.isFinite(a.score) ? a.score : 0;
+    const sb = typeof b.score === "number" && Number.isFinite(b.score) ? b.score : 0;
+    if (sb !== sa) return sb - sa;
+    const ca =
+      typeof a.confidence === "number" && Number.isFinite(a.confidence) ? a.confidence : 0;
+    const cb =
+      typeof b.confidence === "number" && Number.isFinite(b.confidence) ? b.confidence : 0;
+    return cb - ca;
+  });
+
+  const topId = familyScoreRowId(sorted[0]);
+  const second = sorted[1];
+  const secondId = familyScoreRowId(second);
+  const topScore =
+    typeof sorted[0]?.score === "number" && Number.isFinite(sorted[0].score)
+      ? sorted[0].score
+      : 0;
+  const secondScore =
+    typeof second?.score === "number" && Number.isFinite(second.score) ? second.score : 0;
+  const gap = topScore - secondScore;
+
+  if (opts.requireTopFamilyCommunity) {
+    if (topId !== "community_builder") return false;
+    if (topScore < 0.42) return false;
+    return true;
+  }
+
+  const communityInFront =
+    topId === "community_builder" ||
+    (secondId === "community_builder" &&
+      secondScore >= 0.34 &&
+      gap >= 0 &&
+      gap <= 0.09);
+
+  if (!communityInFront) return false;
+
+  const communityLeadScore =
+    topId === "community_builder" ? topScore : secondScore;
+
+  if (communityLeadScore < 0.33) return false;
+
+  return true;
 }
 
 function normalizeRoundsCompleted(value: unknown): number {
@@ -322,6 +500,28 @@ export function evaluateResultDecision(
       decisionReason = "FORCED_COMPRESSED_AFTER_CLARIFICATION";
       resultTypePreview = "compressed_life";
     }
+  }
+
+  if (
+    resultTypePreview === "insufficient_evidence" &&
+    useFamilyDecisionLayer &&
+    hasPlausibleDirections &&
+    signalCount >= 4 &&
+    shouldPreferCompressedCommunityPattern(input, { requireTopFamilyCommunity: false })
+  ) {
+    resultTypePreview = "compressed_life";
+    decisionReason = "COMPRESSED_COMMUNITY_VOCATIONAL_PATTERN";
+  }
+
+  if (
+    resultTypePreview === "clear_direction" &&
+    useFamilyDecisionLayer &&
+    hasPlausibleDirections &&
+    signalCount >= 4 &&
+    shouldPreferCompressedCommunityPattern(input, { requireTopFamilyCommunity: true })
+  ) {
+    resultTypePreview = "compressed_life";
+    decisionReason = "COMPRESSED_COMMUNITY_VOCATIONAL_PATTERN";
   }
 
   const traceTopLabel = useFamilyDecisionLayer

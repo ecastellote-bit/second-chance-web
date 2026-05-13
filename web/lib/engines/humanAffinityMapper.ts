@@ -153,11 +153,32 @@ const COMMUNITY_PHRASES = [
   "circulacion entre personas",
   "circulación entre personas",
   "espacios colectivos",
+  "espacio compartido",
   "clima grupal",
   "sosten de grupos",
   "sostén de grupos",
   "grupo no se rompa",
   "gente se sintiera parte",
+  "juntar gente",
+  "armar grupos",
+  "armar grupo",
+  "sostener movidas",
+  "convocar",
+  "convocando",
+  "sostener el hilo",
+  "sosteniendo el hilo",
+  "si no muevo yo",
+  "se enfrían",
+  "se enfrian",
+  "continuidad colectiva",
+  "proyectos grupales",
+  "trabajos grupales",
+  "organizar personas",
+  "clubes",
+  "redes",
+  "participacion",
+  "participación",
+  "hacer que todos participen",
 ];
 
 const NARRATIVE_EXPLICIT_PHRASES = [
@@ -228,12 +249,16 @@ const MULTI_ACTOR_CUES = [
 
 const GROUP_COMMUNITY_CUES = [
   "armar red",
+  "armar grupos",
+  "armar grupo",
   "juntar gente",
   "sostener comunidad",
   "sostener un grupo",
+  "sostener movidas",
   "coordinar grupos",
   "pertenencia",
   "continuidad grupal",
+  "continuidad colectiva",
   "que no se enfrie",
   "que no se enfríe",
   "que no se rompa",
@@ -241,12 +266,24 @@ const GROUP_COMMUNITY_CUES = [
   "hacer circular",
   "mover gente",
   "comunidad",
+  "clubes",
+  "redes",
   "barrio",
   "espacio colectivo",
+  "espacio compartido",
   "sostener un espacio",
   "que la gente se encuentre",
   "gente se sintiera parte",
   "clima grupal",
+  "convocar",
+  "convocando",
+  "proyectos grupales",
+  "trabajos grupales",
+  "organizar personas",
+  "actividades grupales",
+  "participacion",
+  "participación",
+  "hacer que todos participen",
 ];
 
 const INDIVIDUAL_GUIDE_CUES = [
@@ -462,8 +499,14 @@ const GROUP_CONTINUITY_CUES = [
   "sosteniendo comunidad",
   "coordinar grupos",
   "coordinando grupos",
+  "sostener el hilo",
+  "sosteniendo el hilo",
+  "si no muevo yo",
+  "muchas cosas se enfrían",
+  "muchas cosas se enfrian",
   "grupo se enfria",
   "grupo se enfría",
+  "grupo se desarma",
   "grupo se cae",
   "espacio se cae",
   "espacio colectivo",
@@ -473,6 +516,9 @@ const GROUP_CONTINUITY_CUES = [
   "circulación entre personas",
   "sosten de grupos",
   "sostén de grupos",
+  "continuidad",
+  "recordando",
+  "empujando",
 ];
 
 const PUBLIC_POSTURE_CUES = [
@@ -1146,6 +1192,9 @@ function getSemanticAdjustment(affinityId: string, cues: CueProfile): number {
       if (hasPersonDistress) bonus += 0.08;
       if (hasMultiActor && !hasGuide) bonus -= 0.08;
       if (hasGroupContinuity && !hasGuide) bonus -= 0.04;
+      if (hasExplicitCollectiveSignal(cues) && cues.groupHits + cues.groupContinuityHits >= 3) {
+        bonus -= 0.09;
+      }
       return bonus;
     }
 
@@ -1156,6 +1205,9 @@ function getSemanticAdjustment(affinityId: string, cues: CueProfile): number {
       if (hasPersonDistress) bonus += 0.07;
       if (hasMultiActor && !hasGuide) bonus -= 0.08;
       if (hasGroupContinuity && !hasGuide) bonus -= 0.04;
+      if (hasExplicitCollectiveSignal(cues) && cues.groupHits + cues.groupContinuityHits >= 3) {
+        bonus -= 0.07;
+      }
       return bonus;
     }
 
@@ -1272,6 +1324,9 @@ function getSemanticAdjustment(affinityId: string, cues: CueProfile): number {
       let bonus = 0;
       if (hasPublicPosture) bonus += 0.02;
       if (hasStructural) bonus += 0.01;
+      if (hasExplicitCollectiveSignal(cues)) bonus += 0.05;
+      if (hasGroupContinuity) bonus += 0.04;
+      if (hasMultiActor && hasExplicitCollectiveSignal(cues)) bonus += 0.02;
       return bonus;
     }
 
@@ -1335,6 +1390,13 @@ function getSuppressionMultiplier(
     case "empathic_attunement":
     case "restorative_support":
     case "care_orientation":
+      if (
+        hasExplicitCollectiveSignal(cues) &&
+        cues.groupHits + cues.groupContinuityHits >= 3 &&
+        cues.guideHits + cues.personDistressHits <= 4
+      ) {
+        return 0.72;
+      }
       if (
         cues.multiActorHits >= 2 &&
         cues.multiPartyFrictionHits >= 1 &&
@@ -1450,6 +1512,13 @@ function getAggregatePenalty(affinityId: string, cues: CueProfile): number {
     case "empathic_attunement":
     case "restorative_support":
     case "care_orientation":
+      if (
+        hasExplicitCollectiveSignal(cues) &&
+        cues.groupHits + cues.groupContinuityHits >= 3 &&
+        cues.guideHits + cues.personDistressHits <= 4
+      ) {
+        return 0.74;
+      }
       if (cues.guideHits === 0 && cues.personDistressHits === 0) {
         if (cues.multiActorHits >= 2) return 0.42;
         if (cues.groupHits >= 2) return 0.7;

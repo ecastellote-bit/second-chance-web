@@ -14,6 +14,14 @@ export type GuidedThemeStatus =
 
 export type GuidedThemeRule = string | Record<string, unknown>;
 
+/**
+ * Diagnostic-to-human layer for guided theme suggestions (preview / audit-only).
+ */
+export type GuidedThemeLayer =
+  | "mother"
+  | "subfamily"
+  | "compression_activation";
+
 export interface GuidedTheme {
   id: string;
 
@@ -62,6 +70,11 @@ export interface GuidedTheme {
 
   status?: GuidedThemeStatus;
   version?: string;
+
+  /**
+   * Which suggestion layer this theme belongs to (v0.2+).
+   */
+  themeLayer?: GuidedThemeLayer;
 
   notesForProduction?: string;
   notesForVocational?: string;

@@ -439,8 +439,8 @@ function applyFamilyCalibration(params: {
    */
   if (params.familyId === "community_builder") {
     const hasExplicitCollectiveCluster =
-      (collectiveCount >= 2 && collectiveStrength >= 0.24) ||
-      (collectiveCount >= 1 && collectiveStrength >= 0.46);
+      (collectiveCount >= 2 && collectiveStrength >= 0.22) ||
+      (collectiveCount >= 1 && collectiveStrength >= 0.42);
 
     const looksLikeOneToOneSupport =
       oneToOneSupportCount >= 2 && oneToOneSupportStrength >= 0.24;
@@ -481,6 +481,27 @@ function applyFamilyCalibration(params: {
       confidence = Math.min(confidence, 0.52);
       notes.push(
         "Ajuste de prudencia: sin señales colectivas explícitas, Community Builder puede quedar visible para auditoría, pero no debe cerrarse como dirección fuerte.",
+      );
+    }
+  }
+
+  /**
+   * Empathic Guide no debe ganar el centro cuando el objeto del caso es
+   * claramente grupal (red, convocatoria, continuidad colectiva) sin foco uno a uno.
+   */
+  if (params.familyId === "empathic_guide") {
+    const hasExplicitCollectiveCluster =
+      (collectiveCount >= 2 && collectiveStrength >= 0.22) ||
+      (collectiveCount >= 1 && collectiveStrength >= 0.42);
+
+    const looksLikeOneToOneSupport =
+      oneToOneSupportCount >= 2 && oneToOneSupportStrength >= 0.24;
+
+    if (hasExplicitCollectiveCluster && !looksLikeOneToOneSupport) {
+      score = Math.min(score - 0.07, 0.62);
+      confidence = Math.min(confidence - 0.05, 0.58);
+      notes.push(
+        "Ajuste de frontera comunitaria: el relato enfatiza grupo, red o continuidad colectiva más que acompañamiento uno a uno; Empathic Guide no debe absorber el centro sólo por vocabulario de sostén o ayuda compartida.",
       );
     }
   }
