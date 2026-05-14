@@ -175,6 +175,62 @@ export const guidedThemesMotherV02: GuidedTheme[] = [
       avoidIfSignals: ["sostener comunidad a largo plazo como centro", "obra artística individual como foco", "organización operativa sin sensibilidad experiencial"]
     },
     {
+      id: "investigar_hasta_entender",
+      shortLabel: "Investigar hasta entender",
+      userFacingText: "Buscar evidencia, probar hipótesis y llegar al fondo de algo que no cierra.",
+      recognitionPhrase: "Cuando algo no te cierra, no podés dejarlo pasar — necesitás buscar hasta encontrar una respuesta que se sostenga.",
+      linkedFamilies: ["scientific_investigator", "analytical_strategist", "cultural_explorer"],
+      coreAffinities: ["evidence_validation", "curiosity_depth", "experimental_play"],
+      supportingAffinities: ["pattern_analysis", "conceptual_abstraction", "exploratory_drive"],
+      compressionSensitive: true,
+      suggestedActivationPaths: ["formarme_en_algo_nuevo", "integrar_proyectos_existentes", "explorar_primero_comunidad"],
+      communitySpaceHints: ["investigacion_y_metodo", "ciencia_y_descubrimiento", "aprendizaje_profundo"],
+      exampleUserSignals: ["necesito entender por qué", "me gusta probar cosas y ver qué pasa", "no me quedo con la primera explicación"],
+      avoidIfSignals: ["curiosidad superficial sin voluntad de profundizar", "exploración cultural sin método", "análisis sin búsqueda de evidencia"]
+    },
+    {
+      id: "entrenar_y_superar_limites",
+      shortLabel: "Entrenar y superar límites",
+      userFacingText: "Usar tu cuerpo como instrumento para mejorar, competir o alcanzar algo que antes no podías.",
+      recognitionPhrase: "Hay algo en el entrenamiento, el esfuerzo físico o la superación corporal que te conecta con lo mejor de vos.",
+      linkedFamilies: ["athletic_performer", "body_care_healer"],
+      coreAffinities: ["physical_mastery", "discipline_endurance", "competitive_push"],
+      supportingAffinities: ["pressure_functioning", "energy_transmission", "sensory_awareness"],
+      compressionSensitive: true,
+      suggestedActivationPaths: ["formarme_en_algo_nuevo", "integrar_proyectos_existentes", "armar_mi_propio_proyecto"],
+      communitySpaceHints: ["deporte_y_rendimiento", "entrenamiento_y_disciplina", "superacion_fisica"],
+      exampleUserSignals: ["me gusta entrenar", "cuando empujo el límite me siento vivo", "el deporte me ordena la cabeza"],
+      avoidIfSignals: ["interés solo mental sin relación con el cuerpo", "cuidado de otros como centro", "expresión artística como foco"]
+    },
+    {
+      id: "cuidar_el_cuerpo_de_otros",
+      shortLabel: "Cuidar el cuerpo de otros",
+      userFacingText: "Usar tus manos, tu presencia o tu conocimiento para que otra persona se sienta mejor físicamente.",
+      recognitionPhrase: "Te importa el bienestar corporal del otro — no como abstracción, sino como algo que podés tocar y mejorar.",
+      linkedFamilies: ["body_care_healer", "empathic_guide"],
+      coreAffinities: ["care_orientation", "physical_mastery", "energy_transmission"],
+      supportingAffinities: ["sensory_awareness", "trust_building", "restorative_support"],
+      compressionSensitive: true,
+      suggestedActivationPaths: ["formarme_en_algo_nuevo", "integrar_proyectos_existentes", "armar_mi_propio_proyecto"],
+      communitySpaceHints: ["salud_y_bienestar", "cuidado_corporal", "terapias_y_sanacion"],
+      exampleUserSignals: ["me gusta ayudar con el cuerpo", "quiero aprender masajes o terapias", "siento la energía del otro"],
+      avoidIfSignals: ["escucha emocional sin relación con el cuerpo", "deporte competitivo como centro", "análisis intelectual como foco"]
+    },
+    {
+      id: "conectar_con_la_naturaleza",
+      shortLabel: "Conectar con la naturaleza",
+      userFacingText: "Trabajar con la tierra, los animales, los ecosistemas o los ciclos naturales como forma de vida.",
+      recognitionPhrase: "Sentís que tu lugar está más cerca de lo vivo, lo natural y lo orgánico que de lo urbano o lo digital.",
+      linkedFamilies: ["ecological_steward", "resource_steward", "community_builder"],
+      coreAffinities: ["stewardship", "sensory_awareness", "care_orientation"],
+      supportingAffinities: ["exploratory_drive", "practical_execution", "protective_instinct"],
+      compressionSensitive: true,
+      suggestedActivationPaths: ["integrar_proyectos_existentes", "armar_mi_propio_proyecto", "asociarme_con_otras_personas"],
+      communitySpaceHints: ["ecologia_y_sustentabilidad", "huerta_y_naturaleza", "proyectos_ambientales"],
+      exampleUserSignals: ["me conecto con la tierra", "quiero hacer algo con la naturaleza", "me interesa la sustentabilidad"],
+      avoidIfSignals: ["interés urbano sin conexión ambiental", "tecnología como foco principal", "análisis abstracto sin contacto con lo vivo"]
+    },
+    {
       id: "escuchar_y_acompanar_sin_volverlo_trabajo",
       shortLabel: "Escuchar sin volverlo trabajo",
       userFacingText:

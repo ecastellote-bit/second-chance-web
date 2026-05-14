@@ -2,7 +2,8 @@ export type LearningSource =
   | "user_test"
   | "internet_research"
   | "manual_synthetic"
-  | "real_user";
+  | "real_user"
+  | "local_archive";
 
 export type LearningReviewStatus =
   | "unreviewed"
@@ -62,6 +63,12 @@ export type DiagnosticLearningLog = {
   reviewStatus: LearningReviewStatus;
 };
 
+export type CaseDifficultyTier =
+  | "anchor"
+  | "frontier"
+  | "hard"
+  | "failure_reference";
+
 export type LearnedDiagnosticCase = {
   id: string;
   title: string;
@@ -88,6 +95,15 @@ export type LearnedDiagnosticCase = {
   lesson: string;
 
   shouldInfluenceFutureCases: boolean;
+
+  difficultyTier?: CaseDifficultyTier;
+  failureContext?: {
+    whatWentWrong: string;
+    confusedWith?: string[];
+    missingSignals?: string[];
+    correctedFamily?: string;
+    humanVerified?: boolean;
+  };
 };
 
 export type SimilarCaseMatch = {
@@ -111,6 +127,12 @@ export type LearningSignal = {
       reason: string;
       confidence: number;
       basedOnCases: number;
+    };
+    cautionFromFailures?: {
+      active: boolean;
+      matchedFailures: string[];
+      avoidFamilies: string[];
+      lesson: string;
     };
 }; 
 

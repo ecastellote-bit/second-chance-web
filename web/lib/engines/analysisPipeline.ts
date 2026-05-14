@@ -18,6 +18,7 @@ import {
   buildLearningSignal,
   findSimilarLearnedCases,
 } from "./similarCaseEngine";
+import { mergeSemanticMatchesIntoLearningSignal } from "./semanticSimilarityEngine";
 import { runDiagnosticJudgeEngine } from "./diagnosticJudgeEngine";
 import { runDiagnosticExperienceDistiller } from "./diagnosticExperienceDistiller";
 import { runContextualSituationJudge } from "./contextualSituationJudge";
@@ -34,6 +35,8 @@ type ClarificationMetaPayload = {
 
 type PipelineInput = Partial<UserIntake> & {
   clarificationMeta?: ClarificationMetaPayload;
+  _semanticSignals?: import("../types/semantic").SemanticExtractionResult;
+  _semanticSimilarity?: import("./semanticSimilarityEngine").SemanticSimilarityResult;
 };
 
 export type PipelineSuccess = {
@@ -265,7 +268,10 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
   }
 
   const signals = runCVME(intake);
-  const affinityBridge = runAffinityPipelineBridge({ intake });
+  const affinityBridge = runAffinityPipelineBridge({
+    intake,
+    semanticSignals: rawInput._semanticSignals,
+  });
   const profiles = runTDM(signals, affinityBridge.affinityScores);
   const transitionAssessment = runLTE(intake);
   const plausibleDirections = runSEL(profiles, affinityBridge.familyScores);
@@ -295,10 +301,18 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
    */
   const learningInputText = buildLearningInputText(rawInput, intake);
 
-  const similarCases = findSimilarLearnedCases(learningInputText, undefined, {
+  const tokenSimilarCases = findSimilarLearnedCases(learningInputText, undefined, {
     minSimilarity: 0.08,
     limit: 5,
   });
+
+  const similarCases =
+    rawInput._semanticSimilarity?.ok && rawInput._semanticSimilarity.matches.length > 0
+      ? mergeSemanticMatchesIntoLearningSignal(
+          rawInput._semanticSimilarity.matches,
+          tokenSimilarCases,
+        )
+      : tokenSimilarCases;
 
   const learningSignal = buildLearningSignal(
     similarCases,

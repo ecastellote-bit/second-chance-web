@@ -18,7 +18,11 @@ export type ProfileFamilyId =
   | "venture_builder"
   | "resource_steward"
   | "experience_host"
-  | "artistic_creator";
+  | "artistic_creator"
+  | "scientific_investigator"
+  | "body_care_healer"
+  | "ecological_steward"
+  | "athletic_performer";
 
 export type ProfileFamilyDefinition = {
   id: ProfileFamilyId;

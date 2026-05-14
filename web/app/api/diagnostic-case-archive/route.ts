@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { mkdir, readFile, appendFile } from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
+import { computeAndCacheEmbedding } from "@/lib/engines/learningCycleEnricher";
 
 type ArchivePayload = {
   archiveVersion?: string;
@@ -46,6 +47,28 @@ type ArchiveRecord = {
 
   payload: ArchivePayload;
 };
+
+function extractInputTextForEmbedding(payload: ArchivePayload): string {
+  const parts: string[] = [];
+  const sourceInput = payload.sourceInput as any;
+
+  if (!sourceInput) return "";
+
+  const narrative =
+    sourceInput?.rawInput?.narrative ??
+    sourceInput?.intake?.narrative ??
+    sourceInput?.narrative;
+
+  if (narrative && typeof narrative === "object") {
+    for (const value of Object.values(narrative)) {
+      if (typeof value === "string" && value.trim().length > 0) {
+        parts.push(value.trim());
+      }
+    }
+  }
+
+  return parts.join(" ");
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -298,6 +321,11 @@ export async function POST(request: Request) {
 
     if (record.storagePolicy.shouldStoreAsValidatedLearningCase) {
       validatedResult = await appendJsonlIfNew(validatedPath, record);
+    }
+
+    const inputText = extractInputTextForEmbedding(payload);
+    if (inputText.length >= 20) {
+      computeAndCacheEmbedding(`archive_${record.archiveId}`, inputText).catch(() => {});
     }
 
     return NextResponse.json({

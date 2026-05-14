@@ -733,6 +733,22 @@ export function buildLearningSignal(
     currentIsWeak &&
     topInfluentialSimilarity >= 0.28;
 
+  const failureMatches = similarCases.filter(
+    (m) => m.caseId.startsWith("fail_ref_") && m.similarityScore >= 0.25,
+  );
+
+  const cautionFromFailures =
+    failureMatches.length > 0
+      ? {
+          active: true,
+          matchedFailures: failureMatches.map((m) => m.caseId),
+          avoidFamilies: failureMatches.flatMap((m) => m.rivalFamilies),
+          lesson: failureMatches
+            .map((m) => m.lesson)
+            .join(" | "),
+        }
+      : undefined;
+
   return {
     strongestHistoricalFamily,
     similarCases,
@@ -741,7 +757,7 @@ export function buildLearningSignal(
         ? `El diagnóstico principal no encontró una dirección suficientemente fuerte, pero los casos aprendidos similares apuntan a ${strongestInfluentialFamily}.`
         : `El caso se parece a casos aprendidos donde ganó ${strongestInfluentialFamily}, pero el diagnóstico actual apunta a ${currentCorePattern}.`
       : undefined,
-    shouldRaiseRedFlag,
+    shouldRaiseRedFlag: shouldRaiseRedFlag || (failureMatches.length > 0),
     learningAssistedHypothesis: shouldCreateLearningHypothesis
       ? {
           family: strongestInfluentialFamily,
@@ -754,5 +770,6 @@ export function buildLearningSignal(
           basedOnCases: similarCases.length,
         }
       : undefined,
+    cautionFromFailures,
   };
 }

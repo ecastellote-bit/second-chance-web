@@ -1436,4 +1436,152 @@ export const LEARNED_DIAGNOSTIC_CASES: LearnedDiagnosticCase[] = [
         "Caso de frontera útil: puede ganar el perfil institucional cuando dominan reglas, estructura, reputación y avance formal, aunque exista una señal relacional fuerte como segunda familia.",
       shouldInfluenceFutureCases: true,
     },
+
+    // =========================================================================
+    // FAILURE REFERENCE CASES
+    // Casos que el motor determinístico no resuelve bien. Sirven como señales
+    // de alerta y guía para futuros casos similares.
+    // =========================================================================
+
+    {
+      id: "fail_ref_system_designer_parches",
+      title: "FAIL REF: System designer confundido con technical_builder por lenguaje práctico",
+      source: "manual_synthetic",
+      language: "es",
+      region: "Argentina",
+      inputText:
+        "En el trabajo vivo viendo que muchos problemas se arreglan con parches. Se soluciona lo urgente, pero nadie mira que el sistema está armado para volver a fallar. Me pasa con procesos, equipos, planillas, circuitos. Empiezo mirando una falla y termino pensando cómo habría que rediseñar todo.",
+      expectedPrimaryFamily: "system_designer",
+      acceptableFamilies: ["system_designer", "analytical_strategist"],
+      rivalFamilies: ["technical_builder"],
+      keyHumanLanguage: [
+        "sistema armado para volver a fallar",
+        "rediseñar todo",
+        "parches",
+        "nadie mira la estructura",
+        "apagando incendios",
+      ],
+      missingCuesDetected: [
+        "rediseñar todo debe pesar como señal de system_designer no de technical_builder",
+        "parches + estructura = diseño sistémico no ejecución técnica",
+      ],
+      verdict: "failed",
+      lesson:
+        "Cuando alguien habla de parches, rediseñar, y la estructura que genera el problema, es system_designer. El vocabulario práctico (arreglar, falla) confunde al motor con technical_builder.",
+      shouldInfluenceFutureCases: true,
+      difficultyTier: "failure_reference",
+      failureContext: {
+        whatWentWrong: "technical_builder gana por vocabulario práctico (arreglar, falla, funcionar) pese a que la intención es rediseñar sistemas",
+        confusedWith: ["technical_builder"],
+        missingSignals: ["system_ordering", "structural_reasoning"],
+        correctedFamily: "system_designer",
+        humanVerified: true,
+      },
+    },
+    {
+      id: "fail_ref_creative_storyteller_compressed",
+      title: "FAIL REF: Creative storyteller con compresión que no se detecta como compressed_life",
+      source: "manual_synthetic",
+      language: "es",
+      region: "Argentina",
+      inputText:
+        "Trabajo en algo que me sostiene pero que no tiene casi nada que ver conmigo. Cumplo, respondo, llego a fin de mes, pero siento que una parte muy mía quedó guardada en un cajón. Cada tanto vuelvo a escribir escenas, frases, recuerdos. No lo hago de manera ordenada ni profesional, pero cuando aparece siento que ahí hay algo más vivo.",
+      expectedPrimaryFamily: "creative_storyteller",
+      acceptableFamilies: ["creative_storyteller", "artistic_creator"],
+      rivalFamilies: ["public_communicator"],
+      keyHumanLanguage: [
+        "guardada en un cajón",
+        "parte muy mía",
+        "escribir escenas",
+        "algo más vivo",
+        "no tiene nada que ver conmigo",
+      ],
+      missingCuesDetected: [
+        "guardada en un cajón es señal de compresión creativa fuerte",
+        "el contraste entre sostenimiento funcional y vitalidad creativa debe detectarse",
+      ],
+      verdict: "failed",
+      lesson:
+        "Cuando alguien describe su trabajo como funcional-vacío y luego menciona momentos de escritura/creación como lo más vivo, es compressed_life + creative_storyteller. La compresión es tan fuerte como la dirección.",
+      shouldInfluenceFutureCases: true,
+      difficultyTier: "failure_reference",
+      failureContext: {
+        whatWentWrong: "El motor no detecta compressed_life cuando la compresión se expresa con metáforas (cajón, arrinconado) en lugar de vocabulario directo",
+        confusedWith: ["public_communicator"],
+        missingSignals: ["narrative_creation", "compression_signals"],
+        correctedFamily: "creative_storyteller",
+        humanVerified: true,
+      },
+    },
+    {
+      id: "fail_ref_operational_organizer_burnout",
+      title: "FAIL REF: Operational organizer en burnout funcional no detectado como compressed_life",
+      source: "manual_synthetic",
+      language: "es",
+      region: "Argentina",
+      inputText:
+        "Sigo funcionando, que es casi lo peor. Cumplo, ordeno, resuelvo, tapo agujeros, hago que las cosas salgan, pero cada vez con menos resto por dentro. En todos los trabajos termino siendo la persona que sabe qué falta y cómo sacar algo adelante aunque falten recursos. Mi capacidad está usada en modo supervivencia.",
+      expectedPrimaryFamily: "operational_organizer",
+      acceptableFamilies: ["operational_organizer", "resource_steward"],
+      rivalFamilies: ["technical_builder", "system_designer"],
+      keyHumanLanguage: [
+        "sigo funcionando",
+        "modo supervivencia",
+        "cada vez con menos resto",
+        "tapo agujeros",
+        "sacar algo adelante",
+      ],
+      missingCuesDetected: [
+        "modo supervivencia es compresión clara",
+        "menos resto por dentro = desgaste sin colapso",
+        "funcionar sin entusiasmo = compressed_life",
+      ],
+      verdict: "failed",
+      lesson:
+        "El burnout funcional (sigo cumpliendo pero vacío por dentro) es compressed_life. La persona tiene operational_organizer como familia pero la está usando en modo supervivencia, no en modo construcción.",
+      shouldInfluenceFutureCases: true,
+      difficultyTier: "failure_reference",
+      failureContext: {
+        whatWentWrong: "El motor detecta clear_direction porque las señales de organización son fuertes, pero no reconoce que están siendo usadas en modo desgaste",
+        confusedWith: ["technical_builder"],
+        missingSignals: ["compression_signals", "burnout_functional"],
+        correctedFamily: "operational_organizer",
+        humanVerified: true,
+      },
+    },
+    {
+      id: "fail_ref_empathic_guide_overload",
+      title: "FAIL REF: Empathic guide sobrecargado por sostener a otros",
+      source: "manual_synthetic",
+      language: "es",
+      region: "Argentina",
+      inputText:
+        "Siempre fui la persona a la que todos le cuentan todo. Me buscan cuando están mal, cuando necesitan que alguien los escuche sin juzgar. Pero llegué a un punto donde estoy agotado de absorber dolor ajeno sin espacio para mí. Lo que hago importa pero me está vaciando.",
+      expectedPrimaryFamily: "empathic_guide",
+      acceptableFamilies: ["empathic_guide"],
+      rivalFamilies: ["diplomatic_social_connector"],
+      keyHumanLanguage: [
+        "todos le cuentan todo",
+        "escuche sin juzgar",
+        "absorber dolor ajeno",
+        "me está vaciando",
+        "sin espacio para mí",
+      ],
+      missingCuesDetected: [
+        "absorber dolor ajeno sin espacio para mí es compresión del guía empático",
+        "vaciamiento por exceso de escucha = compressed_life del empathic_guide",
+      ],
+      verdict: "failed",
+      lesson:
+        "Un empathic_guide que dice estar vaciándose por absorber demasiado dolor ajeno es compressed_life, no clear_direction. La compresión viene del exceso, no de la falta de identidad vocacional.",
+      shouldInfluenceFutureCases: true,
+      difficultyTier: "failure_reference",
+      failureContext: {
+        whatWentWrong: "El motor ve señales de empathic_guide fuertes y declara clear_direction, pero no detecta que la persona está desbordada — es compressed_life por sobreuso",
+        confusedWith: ["diplomatic_social_connector"],
+        missingSignals: ["compression_by_overuse", "empathic_fatigue"],
+        correctedFamily: "empathic_guide",
+        humanVerified: true,
+      },
+    },
 ];
