@@ -92,6 +92,7 @@ type FinalAdjudicationTrace = {
   rawOrCalibrationOnlyMatches: number;
   contextualSuggestsReview: boolean;
   contextualSuggestsFrontier: boolean;
+  compressionGatePreserved?: boolean;
 };
 
 const FAMILY_LABELS: Record<string, string> = {
@@ -1351,6 +1352,16 @@ function hasClearFamilyDirection(familyRace: FamilyRaceAnalysis): boolean {
   );
 }
 
+function isCompressionGateBacked(trace: unknown): boolean {
+  if (!trace || typeof trace !== "object" || Array.isArray(trace)) return false;
+  const t = trace as Record<string, unknown>;
+  return (
+    t.decisionReason === "COMPRESSION_GATE_OVERRIDE" ||
+    t.decisionReason === "COMPRESSION_GATE_RESCUE" ||
+    t.compressionGateApplied === true
+  );
+}
+
 function shouldUpgradeCompressedLifeToClearDirection(params: {
   provisionalReading: FinalReading;
   familyRace: FamilyRaceAnalysis;
@@ -1364,6 +1375,8 @@ function shouldUpgradeCompressedLifeToClearDirection(params: {
   transitionAssessment: TransitionAssessment;
 }): boolean {
   if (params.provisionalReading.resultType !== "compressed_life") return false;
+
+  if (isCompressionGateBacked(params.provisionalReading.trace)) return false;
 
   if (!hasClearFamilyDirection(params.familyRace)) return false;
 
@@ -1472,6 +1485,10 @@ export function finalizeReadingAfterDiagnosticReview(
   const influentialSimilarCases = countInfluentialSimilarCases(similarCases);
   const rawOrCalibrationOnlyMatches = countRawOrCalibrationOnlyMatches(similarCases);
 
+  const compressionGatePreserved =
+    input.provisionalReading.resultType === "compressed_life" &&
+    isCompressionGateBacked(input.provisionalReading.trace);
+
   const shouldUpgradeToClear = shouldUpgradeCompressedLifeToClearDirection({
     provisionalReading: input.provisionalReading,
     familyRace,
@@ -1506,9 +1523,11 @@ export function finalizeReadingAfterDiagnosticReview(
         : "keep",
     reason: shouldUpgradeToClear
       ? "La lectura inicial era compressed_life, pero la familia principal es clara, los jueces están alineados y la memoria no contradice la dirección. Se conserva la advertencia de compresión sin dejar que tape la dirección."
-      : shouldOpenFrontierOrReview
-        ? "La auditoría detecta tensión relevante entre diagnóstico, memoria histórica o contexto. No se cambia necesariamente el resultType, pero se marca frontera/revisión."
-        : "La auditoría no aporta fuerza suficiente para modificar la lectura provisoria.",
+      : compressionGatePreserved
+        ? "La lectura compressed_life viene respaldada por señales explícitas de compresión vital detectadas por el compression gate. No se ejecuta upgrade a clear_direction."
+        : shouldOpenFrontierOrReview
+          ? "La auditoría detecta tensión relevante entre diagnóstico, memoria histórica o contexto. No se cambia necesariamente el resultType, pero se marca frontera/revisión."
+          : "La auditoría no aporta fuerza suficiente para modificar la lectura provisoria.",
     previousResultType: input.provisionalReading.resultType,
     finalResultType,
     topFamilyLabel: familyRace.topLabel,
@@ -1525,6 +1544,7 @@ export function finalizeReadingAfterDiagnosticReview(
     rawOrCalibrationOnlyMatches,
     contextualSuggestsReview: contextualReview,
     contextualSuggestsFrontier: contextualFrontier,
+    compressionGatePreserved,
   };
 
   if (shouldUpgradeToClear) {
