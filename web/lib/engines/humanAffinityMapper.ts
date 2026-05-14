@@ -26,6 +26,14 @@ type CueProfile = {
   groupContinuityHits: number;
   publicPostureHits: number;
   narrativeFormHits: number;
+  technicalPracticalHits: number;
+  civicCauseHits: number;
+  commercialValueHits: number;
+  artisticFormHits: number;
+  operationalExecutionHits: number;
+  ventureInitiativeHits: number;
+  resourceCareHits: number;
+  experienceHostHits: number;
 };
 
 function normalizeText(text: string): string {
@@ -79,6 +87,14 @@ function emptyCueProfile(): CueProfile {
     groupContinuityHits: 0,
     publicPostureHits: 0,
     narrativeFormHits: 0,
+    technicalPracticalHits: 0,
+    civicCauseHits: 0,
+    commercialValueHits: 0,
+    artisticFormHits: 0,
+    operationalExecutionHits: 0,
+    ventureInitiativeHits: 0,
+    resourceCareHits: 0,
+    experienceHostHits: 0,
   };
 }
 
@@ -100,6 +116,14 @@ function mergeCueProfiles(a: CueProfile, b: CueProfile): CueProfile {
     groupContinuityHits: a.groupContinuityHits + b.groupContinuityHits,
     publicPostureHits: a.publicPostureHits + b.publicPostureHits,
     narrativeFormHits: a.narrativeFormHits + b.narrativeFormHits,
+    technicalPracticalHits: a.technicalPracticalHits + b.technicalPracticalHits,
+    civicCauseHits: a.civicCauseHits + b.civicCauseHits,
+    commercialValueHits: a.commercialValueHits + b.commercialValueHits,
+    artisticFormHits: a.artisticFormHits + b.artisticFormHits,
+    operationalExecutionHits: a.operationalExecutionHits + b.operationalExecutionHits,
+    ventureInitiativeHits: a.ventureInitiativeHits + b.ventureInitiativeHits,
+    resourceCareHits: a.resourceCareHits + b.resourceCareHits,
+    experienceHostHits: a.experienceHostHits + b.experienceHostHits,
   };
 }
 
@@ -307,6 +331,17 @@ const INDIVIDUAL_GUIDE_CUES = [
   "ayudar a entender",
   "ordenar lo que le pasa",
   "presencia humana",
+  "conversacion individual",
+  "proceso personal",
+  "situacion personal",
+  "lo que le pasa por dentro",
+  "escuchar de verdad",
+  "acompanar a una persona",
+  "acompañar a una persona",
+  "estar para alguien",
+  "sostener a alguien",
+  "confidencia",
+  "confianza personal",
 ];
 
 const STRUCTURAL_CUES = [
@@ -333,6 +368,20 @@ const STRUCTURAL_CUES = [
   "leer escenarios",
   "leer estructura",
   "ordenar complejidad",
+  "mecanismo",
+  "mecanismos",
+  "roles",
+  "responsabilidades",
+  "circuito",
+  "procedimiento",
+  "procedimientos",
+  "proceso",
+  "reglas",
+  "diseño de sistema",
+  "disenar sistema",
+  "diseñar sistema",
+  "que funcione sin depender de una persona",
+  "sin depender de una persona",
 ];
 
 const INSTITUTIONAL_CUES = [
@@ -435,6 +484,22 @@ const EXPLORATION_CUES = [
   "profundizar",
   "idiomas",
   "mapas",
+  "viajes",
+  "viajar",
+  "tradiciones",
+  "cine",
+  "peliculas",
+  "películas",
+  "mundo simbolico",
+  "mundo simbólico",
+  "culturas distintas",
+  "ampliar mirada",
+  "exposicion cultural",
+  "exposición cultural",
+  "otras culturas",
+  "museos",
+  "festivales",
+  "referencias culturales",
 ];
 
 const PEDAGOGIC_CUES = [
@@ -455,6 +520,254 @@ const PEDAGOGIC_CUES = [
   "claridad para otros",
 ];
 
+const TECHNICAL_PRACTICAL_CUES = [
+  "arreglar",
+  "reparar",
+  "instalar",
+  "desarmar",
+  "cablear",
+  "configurar",
+  "herramientas",
+  "taller",
+  "meter mano",
+  "dejar funcionando",
+  "dejar andando",
+  "probar hasta que anda",
+  "probar hasta que funciona",
+  "falla",
+  "fallas",
+  "no funciona",
+  "no anda",
+  "hacer andar",
+  "armar algo concreto",
+  "maña",
+  "habilidad manual",
+  "habilidad practica",
+  "habilidad práctica",
+  "aparatos",
+  "maquinas",
+  "máquinas",
+  "cables",
+  "motores",
+  "computadoras",
+  "tecnologia",
+  "tecnología",
+  "debuggear",
+  "automatizar",
+  "implementar",
+  "implementacion",
+  "implementación",
+  "codigo",
+  "código",
+  "dispositivo",
+  "herramienta funcional",
+  "construir herramienta",
+  "probar hasta",
+  "solucionar fallas",
+];
+
+const CIVIC_CAUSE_CUES = [
+  "injusticia",
+  "causa",
+  "derechos",
+  "abuso",
+  "reclamo",
+  "organizarse para",
+  "defender a",
+  "no puede quedar asi",
+  "no puede quedar así",
+  "mover algo concreto",
+  "accion concreta",
+  "acción concreta",
+  "problema social",
+  "problema del barrio",
+  "ciudadania",
+  "ciudadanía",
+  "bronca",
+  "indigna",
+  "lucha social",
+  "luchas sociales",
+  "referentes barriales",
+  "tratado mal",
+  "tratado injustamente",
+  "no mirar al costado",
+];
+
+const COMMERCIAL_VALUE_CUES = [
+  "vender",
+  "venta",
+  "ventas",
+  "cliente",
+  "clientes",
+  "negociar",
+  "negociacion",
+  "negociación",
+  "propuesta",
+  "ofrecer",
+  "cerrar algo",
+  "cerrar acuerdos",
+  "detectar necesidad",
+  "necesidad del otro",
+  "explicar valor",
+  "generar confianza",
+  "comision",
+  "comisión",
+  "intercambio",
+  "convencer",
+  "presentar propuesta",
+  "conectar necesidad",
+  "servicio",
+  "atencion al cliente",
+  "atención al cliente",
+  "valor real",
+  "confianza comercial",
+  "abrir oportunidades",
+  "oportunidades comerciales",
+  "sin presion",
+  "sin presión",
+  "traducir valor",
+  "sin humo",
+  "necesidad real",
+  "lo que necesita el otro",
+  "comprador",
+  "oferta honesta",
+];
+
+const ARTISTIC_FORM_CUES = [
+  "musica",
+  "música",
+  "dibujo",
+  "pintar",
+  "cantar",
+  "tocar",
+  "actuar",
+  "fotos",
+  "visual",
+  "escenario",
+  "obra",
+  "pieza",
+  "crear algo que no estaba",
+  "composicion",
+  "composición",
+  "color",
+  "sonido",
+  "imagen",
+  "cuerpo",
+  "forma sensible",
+  "impulso creativo",
+  "creacion artistica",
+  "creación artística",
+  "expresion artistica",
+  "expresión artística",
+  "sensibilidad artistica",
+  "sensibilidad artística",
+];
+
+const OPERATIONAL_EXECUTION_CUES = [
+  "tareas",
+  "lista",
+  "listas",
+  "prioridades",
+  "horarios",
+  "seguimiento",
+  "responsables",
+  "repartir tareas",
+  "logistica",
+  "logística",
+  "que salga",
+  "hacer que salga",
+  "que las cosas pasen",
+  "sacar adelante",
+  "coordinacion practica",
+  "coordinación práctica",
+  "resolver detalles",
+  "que no se caiga",
+  "ejecucion organizada",
+  "ejecución organizada",
+  "administrar",
+  "mover cajas",
+  "llamar a alguien",
+  "conseguir algo",
+  "proveedores",
+  "turnos",
+  "plazos",
+  "dia a dia",
+  "día a día",
+  "operativo",
+  "operativa",
+  "cumplir con plazos",
+  "resolver el dia",
+  "resolver el día",
+  "cronograma",
+  "entregas",
+  "deadline",
+];
+
+const VENTURE_INITIATIVE_CUES = [
+  "emprender",
+  "proyecto propio",
+  "mi propio",
+  "arrancar algo",
+  "armar un negocio",
+  "oportunidad",
+  "oportunidades",
+  "modelo de negocio",
+  "validar",
+  "lanzar",
+  "escalar",
+  "socios",
+  "idea propia",
+  "formato propio",
+  "ingresos propios",
+  "armar empresa",
+];
+
+const RESOURCE_CARE_CUES = [
+  "que alcance",
+  "presupuesto",
+  "no desperdiciar",
+  "cuidar recursos",
+  "administrar",
+  "inventario",
+  "prever",
+  "reservar",
+  "hacer rendir",
+  "eficiencia",
+  "gastando de mas",
+  "gastando de más",
+  "fondos",
+  "cuentas",
+  "economia domestica",
+  "economía doméstica",
+  "cuidar que no falte",
+  "asegurar que alcance",
+];
+
+const EXPERIENCE_HOST_CUES = [
+  "clima",
+  "ambiente",
+  "bienvenida",
+  "recibir gente",
+  "anfitrion",
+  "anfitrión",
+  "hospitalidad",
+  "evento",
+  "detalles",
+  "como se siente el lugar",
+  "cómo se siente el lugar",
+  "experiencia",
+  "que todos la pasen bien",
+  "preparar el espacio",
+  "crear ambiente",
+  "recorrido",
+  "calidez",
+  "comodos",
+  "cómodos",
+  "hoteles",
+  "restaurantes",
+  "mesa",
+];
+
 const PERSON_DISTRESS_CUES = [
   "cuando alguien esta mal",
   "cuando alguien está mal",
@@ -473,6 +786,12 @@ const PERSON_DISTRESS_CUES = [
   "situaciones personales complejas",
   "escuchar a fondo",
   "preguntas justas",
+  "sobrepasado",
+  "sobrepasada",
+  "perdido",
+  "perdida",
+  "no sabe que hacer",
+  "no sabe qué hacer",
 ];
 
 const MULTI_PARTY_FRICTION_CUES = [
@@ -492,6 +811,14 @@ const MULTI_PARTY_FRICTION_CUES = [
   "quedar en el medio",
   "hago que se entiendan",
   "hacer que se entiendan",
+  "partes enfrentadas",
+  "intereses contrapuestos",
+  "posiciones opuestas",
+  "acuerdo entre partes",
+  "conflicto entre areas",
+  "conflicto entre áreas",
+  "negociacion entre",
+  "negociación entre",
 ];
 
 const GROUP_CONTINUITY_CUES = [
@@ -901,6 +1228,223 @@ const AFFINITY_PHRASE_BANKS: Record<string, string[]> = {
     "moverme",
     "conocer lugares",
   ],
+  technical_assembly: [
+    "arreglar",
+    "desarmar",
+    "instalar",
+    "ajustar",
+    "configurar",
+    "cablear",
+    "conectar cables",
+    "hacer funcionar",
+    "dejar andando",
+    "meter mano",
+    "armar algo",
+    "probar hasta que anda",
+    "entender la falla",
+    "leer la falla",
+    "ver por que no funciona",
+    "ver por qué no funciona",
+    "herramientas",
+    "taller",
+    "reparar",
+  ],
+  operational_rhythm: [
+    "seguimiento",
+    "hacer que salga",
+    "que las cosas pasen",
+    "armar listas",
+    "prioridades",
+    "tareas",
+    "repartir tareas",
+    "horarios",
+    "agenda",
+    "responsables",
+    "logistica",
+    "logística",
+    "hacer funcionar",
+    "que no se caiga",
+    "sacar adelante",
+    "coordinacion operativa",
+    "coordinación operativa",
+  ],
+  resource_optimization: [
+    "que alcance",
+    "no desperdiciar",
+    "administrar",
+    "cuidar recursos",
+    "presupuesto",
+    "inventario",
+    "prever",
+    "reservar",
+    "hacer rendir",
+    "eficiencia",
+    "ahorro",
+    "gastando de mas",
+    "gastando de más",
+    "fondos",
+    "cuentas",
+    "custodiar",
+  ],
+  venture_activation: [
+    "emprender",
+    "armar algo propio",
+    "arrancar un proyecto",
+    "modelo de negocio",
+    "lanzar",
+    "mi propio proyecto",
+    "oportunidad de negocio",
+    "detectar oportunidades",
+    "escalar",
+    "ingresos propios",
+    "armar empresa",
+    "armar negocio",
+    "validar idea",
+    "buscar socios",
+    "combinar recursos",
+  ],
+  craft_precision: [
+    "detalle",
+    "cuidar la forma",
+    "prolijidad",
+    "terminacion",
+    "terminación",
+    "pulir",
+    "pieza",
+    "obra",
+    "composicion",
+    "composición",
+    "dibujar",
+    "pintar",
+    "esculpir",
+    "diseñar",
+    "musica",
+    "música",
+    "tocar",
+    "cantar",
+    "actuar",
+    "cuerpo",
+  ],
+  sensory_awareness: [
+    "clima",
+    "ambiente",
+    "luz",
+    "bienvenida",
+    "recibir gente",
+    "que se sientan comodos",
+    "que se sientan cómodos",
+    "anfitrion",
+    "anfitrión",
+    "hospitalidad",
+    "experiencia",
+    "detalles del lugar",
+    "recorrido",
+    "como se siente el espacio",
+    "cómo se siente el espacio",
+    "preparar el espacio",
+    "calidez",
+    "evento",
+  ],
+  civic_conflict_engagement: [
+    "injusticia",
+    "causa",
+    "reclamo",
+    "derechos",
+    "abuso",
+    "barrio",
+    "organizarse",
+    "no puede quedar asi",
+    "no puede quedar así",
+    "mover algo",
+    "accion concreta",
+    "acción concreta",
+    "problema social",
+    "defender",
+    "bronca por injusticia",
+    "ciudadania",
+    "ciudadanía",
+  ],
+  protective_instinct: [
+    "defender a otros",
+    "no mirar al costado",
+    "proteger",
+    "cuidar que no pase",
+    "alguien tratado mal",
+    "que nadie quede afuera",
+    "ponerse al frente cuando hay abuso",
+  ],
+  stewardship: [
+    "cuidar lo que hay",
+    "que no se pierda",
+    "responsabilidad",
+    "sostener lo que funciona",
+    "prevenir problemas",
+    "evitar desperdicio",
+    "cuidar continuidad",
+    "asegurar que alcance",
+    "mantener lo que anda",
+  ],
+  duty_reliability: [
+    "responsable",
+    "cumplir",
+    "constancia",
+    "no dejar colgado",
+    "compromiso",
+    "puntualidad",
+    "seguimiento",
+    "no aflojo",
+  ],
+  material_transformation: [
+    "con las manos",
+    "transformar material",
+    "crear objetos",
+    "fabricar",
+    "moldear",
+    "dar forma fisica",
+    "dar forma física",
+    "produccion",
+    "producción",
+    "carpinteria",
+    "carpintería",
+  ],
+  performance_presence: [
+    "actuar",
+    "escena",
+    "presencia",
+    "frente a otros",
+    "escenario",
+    "interpretar",
+    "poner el cuerpo",
+    "cantar",
+    "tocar",
+    "mostrar",
+  ],
+  aesthetic_sensitivity: [
+    "forma",
+    "belleza",
+    "estetica",
+    "estética",
+    "composicion",
+    "composición",
+    "color",
+    "textura",
+    "atmósfera",
+    "atmosfera",
+    "imagen",
+    "ojo para el detalle",
+    "mirada estética",
+    "sensibilidad visual",
+    "visual",
+  ],
+  decision_ownership: [
+    "hacerme cargo",
+    "tomar decisiones",
+    "bancarmela",
+    "bancármela",
+    "no esperar que otro decida",
+    "asumir responsabilidad",
+    "decidir",
+  ],
 };
 
 const AFFINITY_FIELD_BOOSTS: Record<string, string[]> = {
@@ -1047,6 +1591,90 @@ const AFFINITY_FIELD_BOOSTS: Record<string, string[]> = {
     "repeatedworkpatterns",
     "additionalcontext",
   ],
+  technical_assembly: [
+    "currentsituation",
+    "repeatedworkpatterns",
+    "childhoodmemories",
+    "earlyfascinations",
+    "additionalcontext",
+  ],
+  operational_rhythm: [
+    "currentsituation",
+    "repeatedworkpatterns",
+    "naturalsocialroles",
+    "additionalcontext",
+  ],
+  resource_optimization: [
+    "currentsituation",
+    "repeatedworkpatterns",
+    "additionalcontext",
+  ],
+  venture_activation: [
+    "currentsituation",
+    "repeatedworkpatterns",
+    "earlyfascinations",
+    "additionalcontext",
+  ],
+  craft_precision: [
+    "childhoodmemories",
+    "earlyfascinations",
+    "currentsituation",
+    "repeatedworkpatterns",
+  ],
+  sensory_awareness: [
+    "currentsituation",
+    "repeatedworkpatterns",
+    "earlyfascinations",
+    "additionalcontext",
+  ],
+  civic_conflict_engagement: [
+    "currentsituation",
+    "repeatedworkpatterns",
+    "childhoodmemories",
+    "earlyfascinations",
+    "naturalsocialroles",
+    "additionalcontext",
+  ],
+  protective_instinct: [
+    "currentsituation",
+    "repeatedworkpatterns",
+    "childhoodmemories",
+    "naturalsocialroles",
+  ],
+  stewardship: [
+    "currentsituation",
+    "repeatedworkpatterns",
+    "additionalcontext",
+  ],
+  duty_reliability: [
+    "currentsituation",
+    "repeatedworkpatterns",
+    "naturalsocialroles",
+  ],
+  material_transformation: [
+    "childhoodmemories",
+    "earlyfascinations",
+    "currentsituation",
+    "repeatedworkpatterns",
+  ],
+  performance_presence: [
+    "childhoodmemories",
+    "earlyfascinations",
+    "currentsituation",
+    "repeatedworkpatterns",
+  ],
+  aesthetic_sensitivity: [
+    "childhoodmemories",
+    "earlyfascinations",
+    "currentsituation",
+    "repeatedworkpatterns",
+    "additionalcontext",
+  ],
+  decision_ownership: [
+    "currentsituation",
+    "repeatedworkpatterns",
+    "naturalsocialroles",
+  ],
 };
 
 function getCueProfile(text: string): CueProfile {
@@ -1066,6 +1694,14 @@ function getCueProfile(text: string): CueProfile {
     groupContinuityHits: countPhraseHits(text, GROUP_CONTINUITY_CUES),
     publicPostureHits: countPhraseHits(text, PUBLIC_POSTURE_CUES),
     narrativeFormHits: countPhraseHits(text, NARRATIVE_FORM_CUES),
+    technicalPracticalHits: countPhraseHits(text, TECHNICAL_PRACTICAL_CUES),
+    civicCauseHits: countPhraseHits(text, CIVIC_CAUSE_CUES),
+    commercialValueHits: countPhraseHits(text, COMMERCIAL_VALUE_CUES),
+    artisticFormHits: countPhraseHits(text, ARTISTIC_FORM_CUES),
+    operationalExecutionHits: countPhraseHits(text, OPERATIONAL_EXECUTION_CUES),
+    ventureInitiativeHits: countPhraseHits(text, VENTURE_INITIATIVE_CUES),
+    resourceCareHits: countPhraseHits(text, RESOURCE_CARE_CUES),
+    experienceHostHits: countPhraseHits(text, EXPERIENCE_HOST_CUES),
   };
 }
 
@@ -1140,6 +1776,7 @@ function getSemanticAdjustment(affinityId: string, cues: CueProfile): number {
       if (hasMultiPartyFriction) bonus += 0.05;
       if (hasInstitutional) bonus += 0.03;
       if (hasCommercial) bonus += 0.04;
+      if (cues.commercialValueHits >= 2) bonus += 0.05;
       if (hasGuide && !hasMultiActor && !hasCommercial) bonus -= 0.08;
       if (hasNarrativeForm && !hasPublicPosture && !hasCommercial) bonus -= 0.03;
       return bonus;
@@ -1190,6 +1827,7 @@ function getSemanticAdjustment(affinityId: string, cues: CueProfile): number {
       let bonus = 0;
       if (hasGuide) bonus += 0.08;
       if (hasPersonDistress) bonus += 0.08;
+      if (cues.guideHits >= 2 && cues.personDistressHits >= 1) bonus += 0.06;
       if (hasMultiActor && !hasGuide) bonus -= 0.08;
       if (hasGroupContinuity && !hasGuide) bonus -= 0.04;
       if (hasExplicitCollectiveSignal(cues) && cues.groupHits + cues.groupContinuityHits >= 3) {
@@ -1224,6 +1862,7 @@ function getSemanticAdjustment(affinityId: string, cues: CueProfile): number {
       let bonus = 0;
       if (hasStructural) bonus += 0.1;
       if (cues.structuralHits >= 2) bonus += 0.04;
+      if (cues.structuralHits >= 3 && cues.technicalPracticalHits <= 1) bonus += 0.05;
       if ((hasMultiActor || hasGroup) && !hasStructural) bonus -= 0.12;
       if (hasGuide && !hasStructural) bonus -= 0.06;
       if (hasNarrativeForm && !hasStructural) bonus -= 0.04;
@@ -1337,6 +1976,87 @@ function getSemanticAdjustment(affinityId: string, cues: CueProfile): number {
       return bonus;
     }
 
+    case "technical_assembly":
+    case "craft_precision": {
+      let bonus = 0;
+      if (cues.technicalPracticalHits > 0) bonus += 0.1;
+      if (cues.technicalPracticalHits >= 3) bonus += 0.06;
+      if (cues.structuralHits >= 2 && cues.technicalPracticalHits === 0) bonus -= 0.06;
+      if (hasNarrativeForm && !cues.technicalPracticalHits) bonus -= 0.06;
+      if (hasStructural && !cues.technicalPracticalHits) bonus -= 0.04;
+      return bonus;
+    }
+
+    case "operational_rhythm": {
+      let bonus = 0;
+      if (cues.operationalExecutionHits > 0) bonus += 0.1;
+      if (cues.operationalExecutionHits >= 3) bonus += 0.06;
+      if (hasStructural && !cues.operationalExecutionHits) bonus -= 0.05;
+      return bonus;
+    }
+
+    case "resource_optimization":
+    case "stewardship": {
+      let bonus = 0;
+      if (cues.resourceCareHits > 0) bonus += 0.1;
+      if (cues.resourceCareHits >= 3) bonus += 0.06;
+      return bonus;
+    }
+
+    case "venture_activation": {
+      let bonus = 0;
+      if (cues.ventureInitiativeHits > 0) bonus += 0.1;
+      if (cues.ventureInitiativeHits >= 3) bonus += 0.06;
+      if (hasCommercial && cues.ventureInitiativeHits > 0) bonus += 0.04;
+      return bonus;
+    }
+
+    case "civic_conflict_engagement":
+    case "protective_instinct": {
+      let bonus = 0;
+      if (cues.civicCauseHits > 0) bonus += 0.1;
+      if (cues.civicCauseHits >= 3) bonus += 0.06;
+      if (hasPublic && cues.civicCauseHits > 0) bonus += 0.03;
+      return bonus;
+    }
+
+    case "sensory_awareness": {
+      let bonus = 0;
+      if (cues.experienceHostHits > 0) bonus += 0.1;
+      if (cues.experienceHostHits >= 3) bonus += 0.06;
+      if (cues.artisticFormHits > 0) bonus += 0.04;
+      return bonus;
+    }
+
+    case "material_transformation": {
+      let bonus = 0;
+      if (cues.technicalPracticalHits > 0) bonus += 0.04;
+      if (cues.artisticFormHits > 0) bonus += 0.06;
+      return bonus;
+    }
+
+    case "performance_presence": {
+      let bonus = 0;
+      if (cues.artisticFormHits > 0) bonus += 0.08;
+      if (cues.artisticFormHits >= 3) bonus += 0.04;
+      return bonus;
+    }
+
+    case "aesthetic_sensitivity": {
+      let bonus = 0;
+      if (cues.artisticFormHits > 0) bonus += 0.08;
+      if (cues.artisticFormHits >= 3) bonus += 0.06;
+      if (cues.experienceHostHits > 0) bonus += 0.04;
+      return bonus;
+    }
+
+    case "decision_ownership": {
+      let bonus = 0;
+      if (cues.ventureInitiativeHits > 0) bonus += 0.04;
+      if (hasStructural) bonus += 0.02;
+      return bonus;
+    }
+
     default:
       return 0;
   }
@@ -1349,7 +2069,6 @@ function getSuppressionMultiplier(
   switch (affinityId) {
     case "relational_bridge_building":
     case "conflict_mediation":
-    case "influence_negotiation":
       if (
         cues.guideHits >= 2 &&
         cues.multiActorHits === 0 &&
@@ -1363,6 +2082,31 @@ function getSuppressionMultiplier(
         cues.multiPartyFrictionHits === 0
       ) {
         return 0.82;
+      }
+      return 1;
+
+    case "influence_negotiation":
+      if (cues.commercialValueHits >= 2) return 1;
+      if (
+        cues.guideHits >= 2 &&
+        cues.multiActorHits === 0 &&
+        cues.multiPartyFrictionHits === 0
+      ) {
+        return 0.78;
+      }
+      if (
+        cues.groupHits >= 2 &&
+        cues.multiActorHits === 0 &&
+        cues.multiPartyFrictionHits === 0
+      ) {
+        return 0.82;
+      }
+      if (
+        cues.multiActorHits === 0 &&
+        cues.multiPartyFrictionHits === 0 &&
+        cues.guideHits < 2
+      ) {
+        return 0.80;
       }
       return 1;
 
@@ -1427,6 +2171,19 @@ function getSuppressionMultiplier(
       return 1;
 
     case "public_expression":
+      if (
+        cues.publicHits === 0 &&
+        cues.publicPostureHits === 0 &&
+        cues.narrativeFormHits >= 2
+      ) {
+        return 0.55;
+      }
+      if (
+        cues.publicHits === 0 &&
+        cues.publicPostureHits === 0
+      ) {
+        return 0.72;
+      }
       if (cues.narrativeFormHits >= 2 && cues.publicPostureHits === 0) return 0.64;
       if (
         cues.pedagogicHits >= 2 &&
@@ -1471,6 +2228,75 @@ function getSuppressionMultiplier(
       if (cues.pedagogicHits === 0 && cues.narrativeFormHits >= 2) return 0.76;
       return 1;
 
+    case "technical_assembly":
+    case "craft_precision":
+      if (cues.technicalPracticalHits === 0 && cues.artisticFormHits === 0) {
+        if (cues.structuralHits >= 2) return 0.7;
+        if (cues.narrativeFormHits >= 2) return 0.6;
+        return 0.85;
+      }
+      return 1;
+
+    case "operational_rhythm":
+      if (cues.operationalExecutionHits === 0) {
+        if (cues.structuralHits >= 2) return 0.65;
+        if (cues.narrativeFormHits >= 2) return 0.6;
+        return 0.82;
+      }
+      return 1;
+
+    case "resource_optimization":
+    case "stewardship":
+      if (cues.resourceCareHits === 0) {
+        if (cues.operationalExecutionHits >= 2) return 0.8;
+        return 0.85;
+      }
+      return 1;
+
+    case "venture_activation":
+      if (cues.ventureInitiativeHits === 0) {
+        if (cues.commercialValueHits >= 2) return 0.8;
+        return 0.82;
+      }
+      return 1;
+
+    case "civic_conflict_engagement":
+    case "protective_instinct":
+      if (cues.civicCauseHits === 0) {
+        if (cues.publicPostureHits >= 2) return 0.7;
+        return 0.82;
+      }
+      return 1;
+
+    case "sensory_awareness":
+      if (cues.experienceHostHits === 0 && cues.artisticFormHits === 0) return 0.8;
+      return 1;
+
+    case "material_transformation":
+      if (cues.technicalPracticalHits === 0 && cues.artisticFormHits === 0) return 0.7;
+      return 1;
+
+    case "performance_presence":
+      if (cues.artisticFormHits === 0) {
+        if (cues.publicPostureHits >= 2) return 0.8;
+        return 0.82;
+      }
+      return 1;
+
+    case "aesthetic_sensitivity":
+      if (cues.artisticFormHits === 0 && cues.experienceHostHits === 0) {
+        if (cues.narrativeFormHits >= 2) return 0.65;
+        return 0.72;
+      }
+      return 1;
+
+    case "creative_expression":
+      if (cues.artisticFormHits === 0) {
+        if (cues.narrativeFormHits >= 2) return 0.70;
+        return 0.76;
+      }
+      return 1;
+
     default:
       return 1;
   }
@@ -1480,12 +2306,21 @@ function getAggregatePenalty(affinityId: string, cues: CueProfile): number {
   switch (affinityId) {
     case "relational_bridge_building":
     case "conflict_mediation":
-    case "influence_negotiation":
       if (cues.multiActorHits === 0 && cues.multiPartyFrictionHits === 0) {
         if (cues.guideHits >= 2) return 0.48;
         if (cues.groupHits >= 2) return 0.72;
         return 0.84;
       }
+      return 1;
+
+    case "influence_negotiation":
+      if (cues.multiActorHits === 0 && cues.multiPartyFrictionHits === 0) {
+        if (cues.commercialValueHits >= 2) return 0.92;
+        if (cues.guideHits >= 2) return 0.42;
+        if (cues.groupHits >= 2) return 0.72;
+        return 0.76;
+      }
+      if (cues.guideHits >= 2 && cues.multiActorHits === 0) return 0.42;
       return 1;
 
     case "social_coordination":
@@ -1556,8 +2391,8 @@ function getAggregatePenalty(affinityId: string, cues: CueProfile): number {
 
     case "public_expression":
       if (cues.publicHits === 0 && cues.publicPostureHits === 0) {
-        if (cues.narrativeFormHits >= 2) return 0.6;
-        return 0.8;
+        if (cues.narrativeFormHits >= 2) return 0.50;
+        return 0.68;
       }
       return 1;
 
@@ -1603,6 +2438,58 @@ function getAggregatePenalty(affinityId: string, cues: CueProfile): number {
       if (cues.explorationHits === 0 && cues.structuralHits === 0) {
         if (cues.multiActorHits >= 2 || cues.guideHits >= 2) return 0.7;
         return 0.86;
+      }
+      return 1;
+
+    case "technical_assembly":
+    case "craft_precision":
+      if (cues.technicalPracticalHits === 0 && cues.artisticFormHits === 0) {
+        if (cues.structuralHits >= 2) return 0.6;
+        if (cues.narrativeFormHits >= 2) return 0.5;
+        return 0.78;
+      }
+      return 1;
+
+    case "operational_rhythm":
+      if (cues.operationalExecutionHits === 0) {
+        if (cues.structuralHits >= 2) return 0.55;
+        return 0.75;
+      }
+      return 1;
+
+    case "resource_optimization":
+    case "stewardship":
+      if (cues.resourceCareHits === 0) return 0.78;
+      return 1;
+
+    case "venture_activation":
+      if (cues.ventureInitiativeHits === 0) return 0.75;
+      return 1;
+
+    case "civic_conflict_engagement":
+    case "protective_instinct":
+      if (cues.civicCauseHits === 0) {
+        if (cues.publicPostureHits >= 2) return 0.62;
+        return 0.75;
+      }
+      return 1;
+
+    case "sensory_awareness":
+      if (cues.experienceHostHits === 0 && cues.artisticFormHits === 0) return 0.72;
+      return 1;
+
+    case "material_transformation":
+      if (cues.technicalPracticalHits === 0 && cues.artisticFormHits === 0) return 0.62;
+      return 1;
+
+    case "performance_presence":
+      if (cues.artisticFormHits === 0) return 0.76;
+      return 1;
+
+    case "aesthetic_sensitivity":
+      if (cues.artisticFormHits === 0 && cues.experienceHostHits === 0) {
+        if (cues.narrativeFormHits >= 2) return 0.58;
+        return 0.66;
       }
       return 1;
 
@@ -1767,6 +2654,20 @@ export function mapEvidenceToHumanAffinities(
                     fragment.normalizedText,
                     NARRATIVE_EXPLICIT_PHRASES,
                   ) * 0.025
+                : affinityId === "technical_assembly" || affinityId === "craft_precision"
+                ? countPhraseHits(fragment.normalizedText, TECHNICAL_PRACTICAL_CUES) * 0.025
+                : affinityId === "civic_conflict_engagement" || affinityId === "protective_instinct"
+                ? countPhraseHits(fragment.normalizedText, CIVIC_CAUSE_CUES) * 0.025
+                : affinityId === "operational_rhythm"
+                ? countPhraseHits(fragment.normalizedText, OPERATIONAL_EXECUTION_CUES) * 0.025
+                : affinityId === "venture_activation"
+                ? countPhraseHits(fragment.normalizedText, VENTURE_INITIATIVE_CUES) * 0.025
+                : affinityId === "resource_optimization" || affinityId === "stewardship"
+                ? countPhraseHits(fragment.normalizedText, RESOURCE_CARE_CUES) * 0.025
+                : affinityId === "sensory_awareness"
+                ? countPhraseHits(fragment.normalizedText, EXPERIENCE_HOST_CUES) * 0.025
+                : affinityId === "aesthetic_sensitivity" || affinityId === "performance_presence"
+                ? countPhraseHits(fragment.normalizedText, ARTISTIC_FORM_CUES) * 0.025
                 : 0;
 
       const baseSignalHits = registryHits + semanticHits;

@@ -13,7 +13,12 @@ export type ProfileFamilyId =
   | "civic_advocate"
   | "educator_interpreter"
   | "commercial_connector"
-  | "system_designer";
+  | "system_designer"
+  | "operational_organizer"
+  | "venture_builder"
+  | "resource_steward"
+  | "experience_host"
+  | "artistic_creator";
 
 export type ProfileFamilyDefinition = {
   id: ProfileFamilyId;

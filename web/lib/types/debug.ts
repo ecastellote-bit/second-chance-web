@@ -12,7 +12,9 @@ export type DecisionReasonCode =
   | "CLEAR_DIRECTION"
   | "FORCED_CLEAR_AFTER_CLARIFICATION"
   | "FORCED_COMPRESSED_AFTER_CLARIFICATION"
-  | "COMPRESSED_COMMUNITY_VOCATIONAL_PATTERN";
+  | "COMPRESSED_COMMUNITY_VOCATIONAL_PATTERN"
+  | "COMPRESSION_GATE_OVERRIDE"
+  | "COMPRESSION_GATE_RESCUE";
 
 export interface DiagnosticTrace {
   signalCount: number;
@@ -26,4 +28,8 @@ export interface DiagnosticTrace {
   hasCompressionNarrative: boolean;
   decisionReason: DecisionReasonCode;
   resultTypePreview: ResultType;
+  compressionGateApplied?: boolean;
+  compressionMarkerCount?: number;
+  compressionMarkers?: string[];
+  compressionGateReason?: string | null;
 }

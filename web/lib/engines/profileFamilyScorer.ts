@@ -497,6 +497,13 @@ function applyFamilyCalibration(params: {
     const looksLikeOneToOneSupport =
       oneToOneSupportCount >= 2 && oneToOneSupportStrength >= 0.24;
 
+    if (looksLikeOneToOneSupport && !hasExplicitCollectiveCluster) {
+      score += 0.08;
+      confidence += 0.05;
+      hasEnoughCore = true;
+      notes.push("Ajuste de cobertura empática: señales claras de escucha y acompañamiento uno a uno sin objeto comunitario; Empathic Guide gana cobertura legítima.");
+    }
+
     if (hasExplicitCollectiveCluster && !looksLikeOneToOneSupport) {
       score = Math.min(score - 0.07, 0.62);
       confidence = Math.min(confidence - 0.05, 0.58);
@@ -617,6 +624,193 @@ function applyFamilyCalibration(params: {
       notes.push(
         "Ajuste anti-sobreactura expresiva: la evidencia narrativa/comunicacional es débil frente a señales técnicas/concretas.",
       );
+    }
+
+    if (params.familyId === "public_communicator") {
+      const publicCoreInAll = signalCount(all, ["public", "expression", "editorial", "agenda", "audience"]);
+
+      if (publicCoreInAll <= 1 && expressiveCount >= 2) {
+        score -= 0.06;
+        confidence -= 0.03;
+        notes.push("Ajuste anti-inflado público: señales expresivas genéricas sin evidencia de público/audiencia/postura; Public Communicator queda limitado frente a Creative Storyteller.");
+      }
+    }
+  }
+
+  /**
+   * Operational Organizer: must show concrete execution/logistics signals.
+   * Suppresses if evidence is purely structural/abstract.
+   */
+  if (params.familyId === "operational_organizer") {
+    const opExecutionCount = signalCount(all, [
+      "operational", "execution", "practical", "task", "coordination",
+      "logistics", "rhythm", "follow", "tracking",
+    ]);
+    const opExecutionStrength = signalStrength(all, [
+      "operational", "execution", "practical", "task", "coordination",
+      "logistics", "rhythm",
+    ]);
+
+    if (opExecutionCount >= 2 && opExecutionStrength >= 0.24) {
+      score += 0.06;
+      confidence += 0.04;
+      hasEnoughCore = true;
+      notes.push("Operational execution cluster detected.");
+    }
+
+    if (abstractSystemCount >= 2 && opExecutionCount <= 1) {
+      score -= 0.06;
+      confidence -= 0.03;
+      notes.push("Abstract system signals dominate over operational execution; suppressing.");
+    }
+  }
+
+  /**
+   * Venture Builder: must show initiative/opportunity signals.
+   */
+  if (params.familyId === "venture_builder") {
+    const ventureItems = matchingSignalItems(all, [
+      "venture", "initiative", "opportunity", "activation",
+    ]);
+    if (ventureItems.length >= 2) {
+      score += 0.06;
+      confidence += 0.04;
+      hasEnoughCore = true;
+      notes.push("Venture/initiative cluster detected.");
+    }
+  }
+
+  /**
+   * Resource Steward: must show resource/stewardship signals.
+   */
+  if (params.familyId === "resource_steward") {
+    const resourceItems = matchingSignalItems(all, [
+      "resource", "stewardship", "optimization", "duty",
+    ]);
+    if (resourceItems.length >= 2) {
+      score += 0.06;
+      confidence += 0.04;
+      hasEnoughCore = true;
+      notes.push("Resource stewardship cluster detected.");
+    }
+  }
+
+  /**
+   * Experience Host: must show sensory/aesthetic/care signals oriented to space/people.
+   */
+  if (params.familyId === "experience_host") {
+    const experienceItems = matchingSignalItems(all, [
+      "sensory", "aesthetic", "care", "awareness",
+    ]);
+    if (experienceItems.length >= 2) {
+      score += 0.06;
+      confidence += 0.04;
+      hasEnoughCore = true;
+      notes.push("Experience/atmosphere cluster detected.");
+    }
+  }
+
+  /**
+   * Artistic Creator: must show aesthetic/craft/performance signals beyond just narrative.
+   */
+  if (params.familyId === "artistic_creator") {
+    const artisticItems = matchingSignalItems(all, [
+      "aesthetic", "craft", "performance", "sensory", "material",
+    ]);
+    if (artisticItems.length >= 2) {
+      score += 0.06;
+      confidence += 0.04;
+      hasEnoughCore = true;
+      notes.push("Artistic creation cluster detected.");
+    }
+
+    if (expressiveCount >= 2 && expressiveStrength >= 0.26) {
+      score += 0.04;
+      confidence += 0.02;
+      notes.push("Expressive signals support artistic creator.");
+    }
+
+    const ARTISTIC_SPECIFIC_MARKERS = [
+      "aesthetic", "craft", "performance", "sensory", "material",
+      "transformation", "precision", "presence", "awareness",
+    ];
+    const artisticSpecificCount = signalCount(all, ARTISTIC_SPECIFIC_MARKERS);
+    const artisticSpecificStrength = signalStrength(all, ARTISTIC_SPECIFIC_MARKERS);
+
+    if (artisticSpecificCount <= 1 && expressiveCount >= 2 && expressiveStrength >= 0.24) {
+      score -= 0.08;
+      confidence -= 0.04;
+      notes.push("Ajuste anti-pegajosidad artística: señales expresivas genéricas (narrativa, voz, escritura) sin evidencia artística específica (estética, materia, forma visual, composición); Artistic Creator queda limitado.");
+    }
+
+    if (artisticSpecificCount === 0) {
+      score = Math.min(score, 0.60);
+      confidence = Math.min(confidence, 0.56);
+      notes.push("Ajuste de prudencia artística: sin ninguna señal artística específica, Artistic Creator no debe cerrarse como dirección fuerte.");
+    }
+  }
+
+  /**
+   * Civic Advocate: must show civic/cause/justice signals.
+   */
+  if (params.familyId === "civic_advocate") {
+    const civicItems = matchingSignalItems(all, [
+      "civic", "protective", "conflict_engagement", "instinct",
+    ]);
+    if (civicItems.length >= 2) {
+      score += 0.06;
+      confidence += 0.04;
+      hasEnoughCore = true;
+      notes.push("Civic engagement cluster detected.");
+    }
+  }
+
+  /**
+   * Commercial Connector: strengthen when commercial/negotiation signals appear
+   * without strong community or empathic markers.
+   */
+  if (params.familyId === "commercial_connector") {
+    const commercialItems = matchingSignalItems(all, ["influence", "negotiation", "initiative", "bridge", "commercial", "awareness", "value", "trust"]);
+    const hasCommercialCluster = commercialItems.length >= 2;
+
+    if (hasCommercialCluster && collectiveCount <= 1 && oneToOneSupportCount <= 1) {
+      score += 0.07;
+      confidence += 0.05;
+      hasEnoughCore = true;
+      notes.push("Commercial connection cluster detected: commercial/value signals without community or empathic dominance.");
+    }
+
+    if (!hasCommercialCluster) {
+      score = Math.min(score, 0.56);
+      confidence = Math.min(confidence, 0.50);
+      notes.push("Ajuste de prudencia: sin señales comerciales explícitas, Commercial Connector no debe cerrarse como dirección fuerte.");
+    }
+  }
+
+  if (params.familyId === "diplomatic_social_connector") {
+    const multiActorCount = signalCount(all, ["negotiation", "influence", "bridge", "mediation"]);
+
+    if (multiActorCount <= 1 && oneToOneSupportCount >= 2) {
+      score -= 0.08;
+      confidence -= 0.04;
+      notes.push("Ajuste anti-inflado: señales de escucha/ayuda individual sin evidencia de mediación entre partes; Diplomatic Social Connector queda limitado.");
+    }
+  }
+
+  if (params.familyId === "cultural_explorer") {
+    const explorationItems = matchingSignalItems(all, ["cultural", "bridge", "exploration", "curiosity"]);
+
+    if (explorationItems.length >= 2) {
+      score += 0.06;
+      confidence += 0.04;
+      hasEnoughCore = true;
+      notes.push("Cultural exploration cluster detected.");
+    }
+
+    if (explorationItems.length <= 1 && expressiveCount >= 2) {
+      score -= 0.05;
+      confidence -= 0.03;
+      notes.push("Ajuste de frontera: señales expresivas sin evidencia de exploración cultural; Cultural Explorer no debe absorber casos narrativos/creativos.");
     }
   }
 

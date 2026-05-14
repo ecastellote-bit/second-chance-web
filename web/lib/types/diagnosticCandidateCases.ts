@@ -27,6 +27,8 @@ export type DiagnosticCandidateExpected = {
   expectedCompression?: boolean;
   expectedFrontier?: boolean;
   expectedFollowUp?: boolean;
+  compressionSignals?: string[];
+  themeKinds?: string[];
 };
 
 export type DiagnosticCandidateUserInput = {

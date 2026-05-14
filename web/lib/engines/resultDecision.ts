@@ -109,6 +109,108 @@ const STRONG_ONE_TO_ONE_GUARD_MARKERS = [
   "acompanar a una persona",
 ];
 
+// --- General compression gate signals (family-agnostic) ---
+
+type CompressionSignalDef = { id: string; phrases: string[] };
+
+const COMPRESSION_GATE_SIGNALS: CompressionSignalDef[] = [
+  { id: "no_rest", phrases: ["no me queda resto", "menos resto", "poco resto"] },
+  { id: "no_margin", phrases: ["sin margen", "no tengo margen"] },
+  { id: "no_energy", phrases: ["no tengo energia", "sin energia", "no me queda energia"] },
+  { id: "exhaustion", phrases: ["agotado", "agotada"] },
+  { id: "dryness", phrases: ["seco", "seca", "sequedad"] },
+  { id: "drowned", phrases: ["ahogado", "ahogada"] },
+  { id: "confined", phrases: ["encerrado", "encerrada", "frenado", "frenada"] },
+  { id: "postponed", phrases: ["postergado", "postergada"] },
+  {
+    id: "buried_capacity",
+    phrases: ["capacidad enterrada", "arrinconado", "arrinconada"],
+  },
+  { id: "material_fear", phrases: ["miedo material", "miedo economico", "no puedo perder estabilidad"] },
+  { id: "unchanneled", phrases: ["no esta canalizado", "no está canalizado"] },
+  {
+    id: "rare_appearance",
+    phrases: [
+      "aparece de a ratos",
+      "aparece poco",
+      "no desaparecio pero aparece poco",
+      "no desapareció pero aparece poco",
+      "no desaparecio",
+      "no desaparecio pero",
+    ],
+  },
+  {
+    id: "duty_lock",
+    phrases: ["sigo cumpliendo", "por responsabilidades", "tomado por obligaciones"],
+  },
+  {
+    id: "firefighting",
+    phrases: ["apagar incendios", "modo bombero", "tapo agujeros", "tapando agujeros"],
+  },
+  { id: "survival_mode", phrases: ["modo supervivencia", "supervivencia"] },
+  {
+    id: "no_own_space",
+    phrases: [
+      "sostengo pero no tengo lugar propio",
+      "sin lugar propio",
+      "no tengo espacio propio",
+    ],
+  },
+  {
+    id: "cant_change",
+    phrases: ["no puedo cambiar de golpe", "no puedo resignar", "no puedo dejar", "no puedo largar"],
+  },
+  { id: "drains", phrases: ["me drena", "drenado", "drenada", "desgasta", "desgaste"] },
+  {
+    id: "functioning_not_living",
+    phrases: ["estoy funcionando pero no viviendo"],
+  },
+  {
+    id: "compressed_explicit",
+    phrases: ["vida comprimida", "comprimido", "comprimida"],
+  },
+  { id: "autopilot", phrases: ["piloto automatico", "piloto automático"] },
+  { id: "hidden_activity", phrases: ["a escondidas"] },
+  { id: "reactive_mode", phrases: ["reactivo", "modo reactivo"] },
+  { id: "back_to_drawer", phrases: ["vuelve al cajon", "vuelve al cajón"] },
+];
+
+type CompressionDetectionResult = {
+  count: number;
+  matchedIds: string[];
+};
+
+function detectCompressionSignals(intake: UserIntake): CompressionDetectionResult {
+  const parts = [
+    intake.narrative?.currentSituation,
+    intake.narrative?.childhoodMemories,
+    intake.narrative?.earlyFascinations,
+    intake.narrative?.meaningfulSchoolSubjects,
+    intake.narrative?.repeatedWorkPatterns,
+    intake.narrative?.naturalSocialRoles,
+    intake.narrative?.lossesOrRenunciations,
+    intake.narrative?.whatFeelsCompressedNow,
+    intake.narrative?.additionalContext,
+    intake.currentContext?.currentSituation,
+    intake.currentContext?.currentRole,
+    intake.currentContext?.transitionGoal,
+    ...(intake.currentContext?.restrictions ?? []),
+    ...(intake.currentContext?.assets ?? []),
+  ];
+
+  const fullText = normalizeText(parts.filter(Boolean).join(" "));
+  if (!fullText.trim()) return { count: 0, matchedIds: [] };
+
+  const matchedIds: string[] = [];
+  for (const signal of COMPRESSION_GATE_SIGNALS) {
+    const hit = signal.phrases.some((phrase) =>
+      fullText.includes(normalizeText(phrase)),
+    );
+    if (hit) matchedIds.push(signal.id);
+  }
+  return { count: matchedIds.length, matchedIds };
+}
+
 function buildIntakeNarrativeBundle(intake: UserIntake): string {
   const n = intake.narrative;
   const cc = intake.currentContext;
@@ -524,6 +626,41 @@ export function evaluateResultDecision(
     decisionReason = "COMPRESSED_COMMUNITY_VOCATIONAL_PATTERN";
   }
 
+  // --- General compression gate (family-agnostic) ---
+  // Runs after all existing decision paths. Detects compression from the full
+  // narrative surface and can flip clear_direction → compressed_life or rescue
+  // insufficient_evidence → compressed_life when a plausible family exists.
+  const compressionDetection = detectCompressionSignals(input.intake);
+  let compressionGateApplied = false;
+  let compressionGateReason: string | null = null;
+
+  if (
+    compressionDetection.count >= 2 &&
+    (resultTypePreview === "clear_direction" ||
+      resultTypePreview === "insufficient_evidence")
+  ) {
+    const gateTopScore = useFamilyDecisionLayer
+      ? familyView.topFamilyScore
+      : topConfidence;
+
+    const strongGate =
+      compressionDetection.count >= 3 && gateTopScore >= 0.40;
+    const moderateGate =
+      compressionDetection.count >= 2 && gateTopScore >= 0.50;
+
+    if (strongGate || moderateGate) {
+      const priorResult = resultTypePreview;
+      compressionGateApplied = true;
+      compressionGateReason =
+        `${priorResult} → compressed_life (score=${gateTopScore.toFixed(3)}, signals=${compressionDetection.count})`;
+      resultTypePreview = "compressed_life";
+      decisionReason =
+        priorResult === "clear_direction"
+          ? "COMPRESSION_GATE_OVERRIDE"
+          : "COMPRESSION_GATE_RESCUE";
+    }
+  }
+
   const traceTopLabel = useFamilyDecisionLayer
     ? familyView.topFamilyLabel
     : topProfile?.label ?? familyView.topFamilyLabel ?? null;
@@ -568,6 +705,10 @@ export function evaluateResultDecision(
       hasCompressionNarrative,
       decisionReason,
       resultTypePreview,
+      compressionGateApplied,
+      compressionMarkerCount: compressionDetection.count,
+      compressionMarkers: compressionDetection.matchedIds,
+      compressionGateReason,
     },
   };
 }
