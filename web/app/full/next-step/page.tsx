@@ -75,7 +75,21 @@ export default function FullNextStepPage() {
           </p>
         </section>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
+          <button
+            onClick={() => router.push("/community")}
+            className="px-4 py-2 rounded-md bg-black text-white text-sm"
+          >
+            Entrar a la comunidad
+          </button>
+
+          <Link
+            href="/full/themes"
+            className="px-4 py-2 rounded-md border border-black text-sm"
+          >
+            Elegir temática primero
+          </Link>
+
           <Link
             href="/full/result"
             className="px-4 py-2 rounded-md border border-neutral-300 text-sm"
@@ -88,7 +102,7 @@ export default function FullNextStepPage() {
               resetFlow();
               router.push("/full/step-1");
             }}
-            className="px-4 py-2 rounded-md border border-black text-sm"
+            className="px-4 py-2 rounded-md border border-neutral-300 text-sm"
           >
             {copy.buttons.reentry}
           </button>

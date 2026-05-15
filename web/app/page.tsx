@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+import { Button, Card, PageHeader, PageShell } from "@/components/ui";
 
 const demoPayload = {
   profile: {
@@ -31,8 +33,7 @@ const demoPayload = {
       "Me marcaban historia, lengua y materias donde había que analizar y relacionar ideas.",
     repeatedWorkPatterns:
       "Termino coordinando, resolviendo problemas prácticos y conectando personas o áreas.",
-    naturalSocialRoles:
-      "Suelo ocupar un lugar de mediación, orden y orientación.",
+    naturalSocialRoles: "Suelo ocupar un lugar de mediación, orden y orientación.",
     lossesOrRenunciations:
       "Fui dejando de lado intereses más intelectuales y de comunicación por necesidad económica.",
     whatFeelsCompressedNow:
@@ -44,7 +45,7 @@ const demoPayload = {
 
 export default function HomePage() {
   const [loading, setLoading] = useState(false);
-  const [response, setResponse] = useState<string>("");
+  const [response, setResponse] = useState("");
 
   const handleRunDemo = async () => {
     setLoading(true);
@@ -53,43 +54,88 @@ export default function HomePage() {
     try {
       const res = await fetch("/api/analyze", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(demoPayload),
       });
-
       const data = await res.json();
       setResponse(JSON.stringify(data, null, 2));
     } catch (error) {
-      setResponse(JSON.stringify({ ok: false, error: "NETWORK_ERROR", detail: String(error) }, null, 2));
+      setResponse(
+        JSON.stringify(
+          { ok: false, error: "NETWORK_ERROR", detail: String(error) },
+          null,
+          2,
+        ),
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen bg-white text-black px-6 py-10">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-semibold">Second Chance — Internal MVP</h1>
-          <p className="text-sm text-neutral-700">
-            Esta pantalla es solo una prueba interna del pipeline lite.
-          </p>
+    <PageShell width="wide">
+      <PageHeader
+        eyebrow="VocationUp by Second Chance"
+        title="Una segunda oportunidad con dirección"
+        description="MVP interno: diagnóstico vocacional, purgatorio de temáticas y puertas a la comunidad."
+      />
+
+      <Card variant="elevated" className="space-y-4">
+        <p className="vu-prose">
+          Accesos rápidos para taller y validación. Para ver la calidad visual base del
+          producto, abrí el design system.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <Link href="/onboarding">
+            <Button variant="primary" size="md" showArrow>
+              Onboarding — 3 puertas
+            </Button>
+          </Link>
+          <Link href="/tematicas">
+            <Button variant="secondary" size="md">
+              Temáticas
+            </Button>
+          </Link>
+          <Link href="/activacion">
+            <Button variant="secondary" size="md">
+              Activación
+            </Button>
+          </Link>
+          <Link href="/plaza">
+            <Button variant="primary" size="md" showArrow>
+              Plaza inicial
+            </Button>
+          </Link>
+          <Link href="/design-system">
+            <Button variant="secondary" size="md">
+              Design system
+            </Button>
+          </Link>
+          <Link href="/full/step-1">
+            <Button variant="primary">Iniciar flujo completo</Button>
+          </Link>
+          <Link href="/community">
+            <Button variant="secondary">Comunidad (3 puertas)</Button>
+          </Link>
+          <Link href="/admin/reviews">
+            <Button variant="ghost">Revisión humana</Button>
+          </Link>
+          <Link href="/lab">
+            <Button variant="ghost">Lab</Button>
+          </Link>
         </div>
+        <Button variant="secondary" onClick={handleRunDemo} disabled={loading}>
+          {loading ? "Analizando..." : "Correr demo API (dev)"}
+        </Button>
+      </Card>
 
-        <button
-          onClick={handleRunDemo}
-          disabled={loading}
-          className="px-4 py-2 rounded-md border border-black text-sm disabled:opacity-60"
-        >
-          {loading ? "Analizando..." : "Correr demo interna"}
-        </button>
-
-        <pre className="whitespace-pre-wrap text-sm bg-neutral-100 p-4 rounded-lg overflow-x-auto">
-          {response || "Todavía no corriste la demo."}
-        </pre>
-      </div>
-    </main>
+      {response ? (
+        <Card variant="muted">
+          <pre className="whitespace-pre-wrap text-xs font-mono text-vu-graphite-muted overflow-x-auto max-h-96">
+            {response}
+          </pre>
+        </Card>
+      ) : null}
+    </PageShell>
   );
 }

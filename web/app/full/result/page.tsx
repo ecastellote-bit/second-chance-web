@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useFullAnswers } from "../fullAnswersContext";
 
 type TextItemForView =
@@ -975,6 +976,7 @@ function persistArchiveConfirmationTrace(trace: ArchiveConfirmationTrace): void 
 }
 
 export default function ResultPage() {
+  const router = useRouter();
   const fullAnswersContext = useFullAnswers();
   const { analysis } = fullAnswersContext;
 
@@ -2453,6 +2455,23 @@ export default function ResultPage() {
               {rawResult.summaryForUser.action}
             </p>
           )}
+        </div>
+
+        {/* CTA HACIA TEMÁTICAS */}
+        <div className="border-2 border-black rounded-xl p-6 space-y-4 text-center">
+          <h3 className="text-xl font-semibold">
+            Tu lectura está lista. Ahora elegí hacia dónde moverte.
+          </h3>
+          <p className="text-sm text-neutral-700 leading-6">
+            Te preparamos algunas temáticas que resuenan con lo que apareció en tu caso.
+            Elegí una para dar tu primer paso concreto.
+          </p>
+          <button
+            onClick={() => router.push("/full/themes")}
+            className="px-8 py-3 bg-black text-white rounded-lg text-sm font-medium hover:bg-neutral-800 transition-colors"
+          >
+            Elegir mi temática
+          </button>
         </div>
       </div>
     </main>

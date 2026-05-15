@@ -1,26 +1,124 @@
 @import "tailwindcss";
 
+/* ── VocationUp — Sistema visual oficial ── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --vu-navy: #0b2e59;
+  --vu-navy-hover: #081f3d;
+  --vu-teal: #1a9bb0;
+  --vu-teal-hover: #158799;
+  --vu-lime: #c6d92d;
+  --vu-lime-hover: #b3c428;
+  --vu-mist: #f8fafc;
+  --vu-surface: #ffffff;
+  --vu-sky: #e7eef5;
+  --vu-graphite: #1f2a37;
+  --vu-graphite-muted: #4b5563;
+  --vu-graphite-subtle: #6b7280;
+  --vu-border: #e7eef5;
+  --vu-shadow-soft: 0 4px 16px rgba(15, 42, 70, 0.08);
+  --vu-shadow-soft-hover: 0 8px 24px rgba(15, 42, 70, 0.12);
+
+  --background: var(--vu-mist);
+  --foreground: var(--vu-graphite);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-vu-navy: var(--vu-navy);
+  --color-vu-navy-hover: var(--vu-navy-hover);
+  --color-vu-teal: var(--vu-teal);
+  --color-vu-teal-hover: var(--vu-teal-hover);
+  --color-vu-lime: var(--vu-lime);
+  --color-vu-lime-hover: var(--vu-lime-hover);
+  --color-vu-mist: var(--vu-mist);
+  --color-vu-surface: var(--vu-surface);
+  --color-vu-sky: var(--vu-sky);
+  --color-vu-graphite: var(--vu-graphite);
+  --color-vu-graphite-muted: var(--vu-graphite-muted);
+  --color-vu-graphite-subtle: var(--vu-graphite-subtle);
+  --color-vu-border: var(--vu-border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --radius-vu-sm: 16px;
+  --radius-vu-md: 24px;
+  --radius-vu-lg: 32px;
+  --shadow-vu-soft: var(--vu-shadow-soft);
+  --shadow-vu-soft-hover: var(--vu-shadow-soft-hover);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--vu-mist);
+  color: var(--vu-graphite);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Tipografía — escala oficial */
+.vu-h1 {
+  font-size: 1.75rem;
+  line-height: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--vu-navy);
+}
+
+.vu-h2 {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--vu-navy);
+}
+
+.vu-body {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: var(--vu-graphite-muted);
+}
+
+.vu-caption {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--vu-graphite-subtle);
+}
+
+.vu-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--vu-teal);
+}
+
+.vu-prose {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: var(--vu-graphite-muted);
+}
+
+/* Compat alias */
+.vu-display {
+  font-size: 1.75rem;
+  line-height: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--vu-navy);
+}
+
+.vu-focus:focus-visible {
+  outline: 2px solid var(--vu-teal);
+  outline-offset: 2px;
+}
+
+/* Badge lima (Muy activo / Nuevo) */
+.vu-badge-lime {
+  background: var(--vu-lime);
+  color: var(--vu-navy);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  border-radius: 16px;
 }

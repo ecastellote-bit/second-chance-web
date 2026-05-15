@@ -6,12 +6,22 @@ import { useFullAnswers } from "../fullAnswersContext";
 import type { FollowupOrchestratorResult } from "@/lib/engines/followupOrchestrator";
 import type { FinalReading } from "@/lib/types/result";
 
+type GuidedThemePayload = {
+  id: string;
+  shortLabel: string;
+  userFacingText: string;
+  layer?: string;
+  score: number;
+  activationPaths: string[];
+};
+
 type AnalyzeResponse =
   | {
       ok: true;
       data: FinalReading;
       warnings?: string[];
       followup?: FollowupOrchestratorResult | null;
+      guidedThemes?: GuidedThemePayload[];
     }
   | {
       ok: false;
@@ -61,7 +71,11 @@ export default function FullProcessingPage() {
           return;
         }
 
-        setAnalysis(result.data, result.warnings ?? []);
+        const dataWithThemes = {
+          ...result.data,
+          _guidedThemes: result.guidedThemes ?? [],
+        } as FinalReading;
+        setAnalysis(dataWithThemes, result.warnings ?? []);
 
         if (result.followup?.shouldAskFollowup && result.followup.pack) {
           setFollowup(result.followup);
