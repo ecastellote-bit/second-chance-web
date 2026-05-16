@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -61,8 +61,7 @@ const SLIDES: DoorSlide[] = [
     id: "entender_camino",
     title: "Quiero entender mi camino",
     subtitle: "Formación, claridad y dirección a tu ritmo",
-    image:
-      "https://images.unsplash.com/photo-1513694203232-719a280e035f?w=900&auto=format&fit=crop&q=85",
+    image: "/vu/puerta-entender-camino.png",
     accent: "#0B2E59",
     accentGlow: "rgba(11, 46, 89, 0.35)",
     route: "/community/entender_camino",
@@ -72,8 +71,7 @@ const SLIDES: DoorSlide[] = [
     id: "proximo_movimiento",
     title: "Quiero encontrar mi próximo movimiento",
     subtitle: "Proyectos, oportunidades y pasos concretos",
-    image:
-      "https://images.unsplash.com/photo-1585320806292-043a20ce4bdc?w=900&auto=format&fit=crop&q=85",
+    image: "/vu/puerta-proximo-movimiento.png",
     accent: "#1A9BB0",
     accentGlow: "rgba(26, 155, 176, 0.35)",
     route: "/community/proximo_movimiento",
@@ -83,8 +81,7 @@ const SLIDES: DoorSlide[] = [
     id: "conectar_con_otros",
     title: "Quiero volver a conectar con otros",
     subtitle: "Círculos, encuentros y comunidad real",
-    image:
-      "https://images.unsplash.com/photo-1613490177870-a29e94f82ce6?w=900&auto=format&fit=crop&q=85",
+    image: "/vu/puerta-conectar-otros.png",
     accent: "#C6D92D",
     accentGlow: "rgba(198, 217, 45, 0.4)",
     route: "/community/conectar_con_otros",
@@ -128,7 +125,7 @@ export function DoorCarousel() {
 
   return (
     <div
-      className="flex min-h-[100dvh] flex-col font-[family-name:var(--font-inter)] bg-[#F8FAFC] text-[#1F2A37]"
+      className="flex min-h-[100dvh] flex-col font-[family-name:var(--font-inter)] bg-[#F8FAFC] text-[#243647]"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -136,11 +133,11 @@ export function DoorCarousel() {
         <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1A9BB0]">
           VocationUp
         </p>
-        <p className="mt-1 text-xs text-[#6B7280]">by Second Chance</p>
+        <p className="mt-1 text-xs text-[#6B7A8C]">by Second Chance</p>
         <h1 className="mt-5 text-[1.35rem] font-bold leading-snug tracking-tight text-[#0B2E59] px-2">
-          Elegí por qué puerta querés entrar
+          Elegí por dónde querés entrar
         </h1>
-        <p className="mt-2 text-sm leading-relaxed text-[#4B5563] max-w-xs mx-auto">
+        <p className="mt-2 text-sm leading-relaxed text-[#6B7A8C] max-w-xs mx-auto">
           No es un menú. Es un barrio: cada puerta es un camino distinto.
         </p>
       </header>
@@ -197,7 +194,7 @@ export function DoorCarousel() {
               >
                 {slide.title}
               </p>
-              <p className="mt-2 text-sm leading-relaxed text-[#4B5563]">{slide.subtitle}</p>
+              <p className="mt-2 text-sm leading-relaxed text-[#6B7A8C]">{slide.subtitle}</p>
               <p className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[#1A9BB0]">
                 Entrar por esta puerta
                 <span aria-hidden>→</span>
@@ -219,14 +216,14 @@ export function DoorCarousel() {
               onClick={() => setIndex(i)}
               className={[
                 "vu-focus h-2.5 rounded-full transition-all duration-300 min-w-[10px]",
-                i === index ? "w-8 bg-[#1A9BB0]" : "w-2.5 bg-[#E7EEF5]",
+                i === index ? "w-8 bg-[#1A9BB0]" : "w-2.5 bg-[#E8EEF3]",
               ].join(" ")}
             />
           ))}
         </div>
 
         <div className="flex flex-col items-center gap-1 text-center">
-          <p className="text-sm font-medium text-[#6B7280] flex items-center gap-2">
+          <p className="text-sm font-medium text-[#6B7A8C] flex items-center gap-2">
             <span className="animate-pulse">Deslizá</span>
             <span
               className="inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#1A9BB0]/30 text-[#1A9BB0] text-xs"
@@ -235,13 +232,13 @@ export function DoorCarousel() {
               ↔
             </span>
           </p>
-          <p className="text-xs text-[#9CA3AF]">o usá las flechas para ver las otras puertas</p>
+          <p className="text-xs text-[#6B7A8C]">o usá las flechas para ver las otras puertas</p>
         </div>
 
         <button
           type="button"
           onClick={() => router.push("/full/step-1")}
-          className="vu-focus w-full text-center text-sm font-medium text-[#6B7280] underline-offset-2 hover:underline min-h-[44px]"
+          className="vu-focus w-full text-center text-sm font-medium text-[#6B7A8C] underline-offset-2 hover:underline min-h-[44px]"
         >
           Todavía no tengo claro — empezar por el diagnóstico
         </button>

@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { VuMobileShell } from "@/components/layout/VuMobileShell";
 import { ThemeImageCard } from "@/components/tematicas/ThemeImageCard";
+import { DEEP_READING } from "@/lib/content/neighborhoodMicrocopy";
 import { TEMATICAS_CATALOG, TEMATICAS_HEADER } from "@/lib/content/tematicasCatalog";
 
 export default function TematicasPage() {
@@ -25,7 +27,7 @@ export default function TematicasPage() {
           <h1 className="text-[1.65rem] font-bold tracking-tight text-[#0B2E59]">
             {TEMATICAS_HEADER.title}
           </h1>
-          <p className="mt-1.5 text-[15px] leading-relaxed text-[#4B5563]">
+          <p className="mt-1.5 text-[15px] leading-relaxed text-[#6B7A8C]">
             {TEMATICAS_HEADER.subtitle}
           </p>
         </div>
@@ -41,7 +43,17 @@ export default function TematicasPage() {
           ))}
         </div>
 
-        <p className="mt-6 text-center text-xs text-[#9CA3AF] px-4 leading-relaxed">
+        <p className="mt-5 text-center text-xs text-[#6B7A8C] px-4 leading-relaxed">
+          <span className="block">{DEEP_READING.tematicasHint}</span>
+          <Link
+            href="/full/step-1"
+            className="vu-focus mt-1 inline-block font-semibold text-[#1A9BB0] underline-offset-2 hover:underline"
+          >
+            {DEEP_READING.tematicasLink}
+          </Link>
+        </p>
+
+        <p className="mt-4 text-center text-xs text-[#6B7A8C] px-4 leading-relaxed">
           Cada tarjeta es un camino vivo dentro del barrio VocationUp — no una categoría fría.
         </p>
       </div>

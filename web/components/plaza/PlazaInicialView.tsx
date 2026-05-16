@@ -1,9 +1,10 @@
 "use client";
 
-import Image from "next/image";
+import { VuWarmImage } from "@/components/ui/VuWarmImage";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
+import { DeepReadingPlazaLink } from "@/components/neighborhood/DeepReadingCTA";
 import {
   PLAZA_HEADER,
   PLAZA_HUB,
@@ -144,7 +145,7 @@ export function PlazaInicialView() {
     <div className="flex min-h-[100dvh] flex-col font-[family-name:var(--font-inter)] bg-[#0B2E59]">
       {/* Plaza — full bleed */}
       <div className="relative flex-1 min-h-0">
-        <Image
+        <VuWarmImage
           src={PLAZA_IMAGE}
           alt=""
           fill
@@ -152,12 +153,12 @@ export function PlazaInicialView() {
           priority
           sizes="100vw"
         />
-        {/* Subtle overall scrim — not a white card */}
+        {/* Velo suave — deja ver la foto, no taparla de azul */}
         <div
           className="absolute inset-0 z-[1]"
           style={{
             background:
-              "linear-gradient(180deg, rgba(11,46,89,0.55) 0%, rgba(11,46,89,0.12) 28%, rgba(11,46,89,0.08) 55%, rgba(11,46,89,0.35) 100%)",
+              "linear-gradient(180deg, rgba(11,46,89,0.38) 0%, rgba(11,46,89,0.08) 32%, rgba(11,46,89,0.05) 58%, rgba(11,46,89,0.28) 100%)",
           }}
         />
 
@@ -187,6 +188,7 @@ export function PlazaInicialView() {
           >
             {PLAZA_HEADER.subtitle}
           </p>
+          <DeepReadingPlazaLink />
         </header>
 
         <PlazaPathLines />

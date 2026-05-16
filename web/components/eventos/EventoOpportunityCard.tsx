@@ -1,0 +1,71 @@
+﻿"use client";
+
+import Link from "next/link";
+import { VuWarmImage } from "@/components/ui/VuWarmImage";
+import type { OpportunityEvent } from "@/lib/content/eventosCatalog";
+
+const LABEL_COLORS: Record<string, { bg: string; text: string }> = {
+  Taller: { bg: "rgba(26,155,176,0.2)", text: "#0B2E59" },
+  Charla: { bg: "rgba(11,46,89,0.1)", text: "#0B2E59" },
+  Networking: { bg: "rgba(198,217,45,0.35)", text: "#0B2E59" },
+  Voluntariado: { bg: "rgba(26,155,176,0.15)", text: "#0B2E59" },
+};
+
+export function EventoOpportunityCard({ event }: { event: OpportunityEvent }) {
+  const labelStyle = LABEL_COLORS[event.label] ?? LABEL_COLORS.Taller;
+
+  return (
+    <article className="group flex flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_4px_16px_rgba(15,42,70,0.08)] transition-shadow hover:shadow-[0_8px_24px_rgba(15,42,70,0.12)]">
+      <div className="relative h-[148px] w-full shrink-0">
+        <VuWarmImage src={event.image} alt="" fill className="object-cover" sizes="360px" />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, transparent 40%, rgba(11,46,89,0.5) 100%)",
+          }}
+        />
+        <span
+          className="absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide"
+          style={{ backgroundColor: labelStyle.bg, color: labelStyle.text }}
+        >
+          {event.label}
+        </span>
+        <span className="absolute bottom-3 right-3 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-[#0B2E59] shadow-sm">
+          {event.dateShort}
+        </span>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-3 p-4">
+        <h3 className="text-[15px] font-bold leading-snug text-[#0B2E59]">{event.title}</h3>
+
+        <div className="flex flex-wrap items-center gap-2 text-[12px] text-[#6B7A8C]">
+          <span className="inline-flex items-center gap-1 font-medium text-[#6B7A8C]">
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="4" y="5" width="16" height="14" rx="2" />
+              <path d="M8 3v4M16 3v4M4 11h16" />
+            </svg>
+            {event.date}
+          </span>
+          <span className="text-[#CBD5E1]">·</span>
+          <span className="font-semibold text-[#1A9BB0]">{event.modalityLabel}</span>
+        </div>
+
+        <p className="text-[12px] text-[#6B7A8C]">
+          <span className="font-semibold text-[#0B2E59]">{event.participants}</span> personas ya se
+          anotaron
+        </p>
+
+        <Link
+          href={`/eventos/${event.id}`}
+          className="vu-focus mt-auto flex min-h-[44px] items-center justify-center gap-2 rounded-2xl bg-[#C6D92D] px-4 text-sm font-bold text-[#0B2E59] transition-transform active:scale-[0.99] hover:bg-[#b3c428]"
+        >
+          {event.cta}
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </Link>
+      </div>
+    </article>
+  );
+}

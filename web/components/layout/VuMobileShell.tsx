@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -35,19 +35,19 @@ export function VuTopBar({
         <VuLogoMark size={36} />
         <div className="text-left">
           <p className="text-sm font-bold text-[#0B2E59] leading-tight">VocationUp</p>
-          <p className="text-[10px] text-[#6B7280]">by Second Chance</p>
+          <p className="text-[10px] text-[#6B7A8C]">by Second Chance</p>
         </div>
       </div>
       {showProgress ? (
         <div className="mt-4 space-y-1.5">
-          <div className="flex justify-between text-[11px] font-medium text-[#6B7280]">
+          <div className="flex justify-between text-[11px] font-medium text-[#6B7A8C]">
             <span>
               Paso {progressStep} de {progressTotal}
             </span>
             <span>{progressLabel}</span>
           </div>
           <div
-            className="h-1.5 w-full overflow-hidden rounded-full bg-[#E7EEF5]"
+            className="h-1.5 w-full overflow-hidden rounded-full bg-[#E8EEF3]"
             role="progressbar"
             aria-valuenow={pct}
             aria-valuemin={0}
@@ -102,7 +102,7 @@ export function VuBottomNav({ active = "plaza" }: { active?: NavId }) {
     {
       id: "perfil",
       label: "Perfil",
-      href: "/full/step-1",
+      href: "/perfil",
       icon: (
         <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="8" r="4" />
@@ -114,7 +114,7 @@ export function VuBottomNav({ active = "plaza" }: { active?: NavId }) {
 
   return (
     <nav
-      className="shrink-0 border-t border-[#E7EEF5] bg-white px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2"
+      className="shrink-0 border-t border-[#E8EEF3] bg-white px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2"
       aria-label="Navegación principal"
     >
       <div className="mx-auto flex max-w-lg items-end justify-between">
@@ -129,7 +129,7 @@ export function VuBottomNav({ active = "plaza" }: { active?: NavId }) {
               href={item.href}
               className={[
                 "vu-focus flex min-h-[48px] min-w-[64px] flex-col items-center justify-center gap-0.5 rounded-xl px-2 text-[10px] font-semibold",
-                isActive ? "text-[#C6D92D]" : "text-[#6B7280]",
+                isActive ? "text-[#C6D92D]" : "text-[#6B7A8C]",
               ].join(" ")}
             >
               {item.icon}
@@ -140,21 +140,23 @@ export function VuBottomNav({ active = "plaza" }: { active?: NavId }) {
 
         <Link
           href="/onboarding"
-          className="vu-focus -mt-5 flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-[0_4px_16px_rgba(15,42,70,0.12)] ring-2 ring-[#E7EEF5]"
+          className="vu-focus -mt-5 flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-[0_4px_16px_rgba(15,42,70,0.12)] ring-2 ring-[#E8EEF3]"
           aria-label="Inicio VocationUp"
         >
           <VuLogoMark size={44} />
         </Link>
 
         {items.slice(2).map((item) => {
-          const isActive = active === item.id;
+          const isActive =
+            active === item.id ||
+            (item.id === "perfil" && pathname.startsWith("/perfil"));
           return (
             <Link
               key={item.id}
               href={item.href}
               className={[
                 "vu-focus flex min-h-[48px] min-w-[64px] flex-col items-center justify-center gap-0.5 rounded-xl px-2 text-[10px] font-semibold",
-                isActive ? "text-[#C6D92D]" : "text-[#6B7280]",
+                isActive ? "text-[#C6D92D]" : "text-[#6B7A8C]",
               ].join(" ")}
             >
               {item.icon}
@@ -183,7 +185,7 @@ export function VuMobileShell({
   navActive?: NavId;
 }) {
   return (
-    <div className="flex min-h-[100dvh] flex-col font-[family-name:var(--font-inter)] bg-[#F8FAFC] text-[#1F2A37]">
+    <div className="flex min-h-[100dvh] flex-col font-[family-name:var(--font-inter)] bg-[#F8FAFC] text-[#243647]">
       <VuTopBar
         showProgress={showProgress}
         progressStep={progressStep}

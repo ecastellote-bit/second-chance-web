@@ -102,8 +102,28 @@ export default function HomePage() {
             </Button>
           </Link>
           <Link href="/plaza">
-            <Button variant="primary" size="md" showArrow>
+            <Button variant="secondary" size="md">
               Plaza inicial
+            </Button>
+          </Link>
+          <Link href="/circulos">
+            <Button variant="secondary" size="md">
+              Círculos
+            </Button>
+          </Link>
+          <Link href="/proyectos/manos-que-transforman">
+            <Button variant="secondary" size="md">
+              Proyecto presentado
+            </Button>
+          </Link>
+          <Link href="/eventos">
+            <Button variant="secondary" size="md">
+              Eventos y talleres
+            </Button>
+          </Link>
+          <Link href="/perfil">
+            <Button variant="primary" size="md" showArrow>
+              Perfil — María Sol
             </Button>
           </Link>
           <Link href="/design-system">

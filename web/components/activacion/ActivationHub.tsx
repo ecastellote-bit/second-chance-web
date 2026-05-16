@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -78,7 +78,7 @@ function ActivationActionCard({
         "shadow-[0_4px_16px_rgba(15,42,70,0.08)] transition-all active:scale-[0.98]",
         selected
           ? "border-[#C6D92D] bg-[#F4F9E0] ring-1 ring-[#C6D92D]/40"
-          : "border-[#E7EEF5] hover:border-[#1A9BB0]/40",
+          : "border-[#E8EEF3] hover:border-[#1A9BB0]/40",
       ].join(" ")}
     >
       <span
@@ -90,7 +90,7 @@ function ActivationActionCard({
         <ActionIcon type={action.icon} />
       </span>
       <span className="text-[13px] font-bold leading-snug text-[#0B2E59]">{action.label}</span>
-      <span className="text-[11px] leading-relaxed text-[#6B7280]">{action.description}</span>
+      <span className="text-[11px] leading-relaxed text-[#6B7A8C]">{action.description}</span>
     </button>
   );
 }
@@ -143,7 +143,7 @@ export function ActivationHub({ actions }: { actions: ActivacionAction[] }) {
         ))}
       </div>
 
-      <p className="mt-6 text-center text-xs text-[#9CA3AF] leading-relaxed px-2">
+      <p className="mt-6 text-center text-xs text-[#6B7A8C] leading-relaxed px-2">
         Un punto de decisión tranquilo dentro del ecosistema VocationUp — energía con calma.
       </p>
     </div>

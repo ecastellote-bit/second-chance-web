@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 
@@ -20,7 +20,21 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "VocationUp by Second Chance",
-  description: "Diagnóstico vocacional, temáticas y comunidad",
+  description:
+    "Un neighborhood para ordenar tu camino vocacional, conectar y construir con otros.",
+  applicationName: "VocationUp",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "VocationUp",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0B2E59",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

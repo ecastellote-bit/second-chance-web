@@ -10,11 +10,11 @@
   --vu-lime-hover: #b3c428;
   --vu-mist: #f8fafc;
   --vu-surface: #ffffff;
-  --vu-sky: #e7eef5;
-  --vu-graphite: #1f2a37;
-  --vu-graphite-muted: #4b5563;
-  --vu-graphite-subtle: #6b7280;
-  --vu-border: #e7eef5;
+  --vu-sky: #dff4f7;
+  --vu-graphite: #243647;
+  --vu-graphite-muted: #6b7a8c;
+  --vu-graphite-subtle: #6b7a8c;
+  --vu-border: #e8eef3;
   --vu-shadow-soft: 0 4px 16px rgba(15, 42, 70, 0.08);
   --vu-shadow-soft-hover: 0 8px 24px rgba(15, 42, 70, 0.12);
 
@@ -50,7 +50,7 @@
 body {
   background: var(--vu-mist);
   color: var(--vu-graphite);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-inter), var(--font-geist-sans), system-ui, sans-serif;
   font-size: 1rem;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
