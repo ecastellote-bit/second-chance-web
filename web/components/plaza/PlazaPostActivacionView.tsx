@@ -14,6 +14,8 @@ import {
 import { CompromisoBarrioSection } from "@/components/plaza/CompromisoBarrioSection";
 import { MvpPioneerBanner } from "@/components/mvp/MvpPioneerBanner";
 import { PLAZA_IMAGE } from "@/lib/content/plazaPaths";
+import { trackObservatoryEvent } from "@/lib/observatory/client";
+import { useEffect } from "react";
 
 function CartelIcon({ type }: { type: (typeof ACTIVACION_CARTELES)[0]["icon"] }) {
   const cls = "h-5 w-5";
@@ -94,6 +96,12 @@ type Props = {
 export function PlazaPostActivacionView({ cartelId, onOpenMap, onChangeCartel }: Props) {
   const router = useRouter();
   const cartel = getActivacionCartel(cartelId);
+
+  useEffect(() => {
+    trackObservatoryEvent("funnel.plaza_post_activacion", "funnel", {
+      cartelId,
+    });
+  }, [cartelId]);
 
   if (!cartel) {
     return null;

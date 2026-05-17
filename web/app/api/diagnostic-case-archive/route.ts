@@ -3,6 +3,7 @@ import { mkdir, readFile, appendFile } from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import { computeAndCacheEmbedding } from "@/lib/engines/learningCycleEnricher";
+import { appendObservatoryEvent, buildObservatoryEvent } from "@/lib/observatory/store";
 
 type ArchivePayload = {
   archiveVersion?: string;
@@ -326,6 +327,33 @@ export async function POST(request: Request) {
     const inputText = extractInputTextForEmbedding(payload);
     if (inputText.length >= 20) {
       computeAndCacheEmbedding(`archive_${record.archiveId}`, inputText).catch(() => {});
+    }
+
+    if (broadArchiveResult.appended) {
+      await appendObservatoryEvent(
+        buildObservatoryEvent({
+          type: "diagnostic.case_archived",
+          scenario: "diagnostic",
+          payload: {
+            archiveId: record.archiveId,
+            resultType: record.classification.resultType,
+            primaryFamily: record.classification.primaryFamily,
+            humanReviewSuggested: record.classification.humanReviewSuggested,
+            compressionSignalsDetected: record.classification.compressionSignalsDetected,
+            learningTier: record.classification.learningTier,
+          },
+        }),
+      ).catch(() => {});
+    }
+
+    if (observationResult?.appended) {
+      await appendObservatoryEvent(
+        buildObservatoryEvent({
+          type: "learning.observation_stored",
+          scenario: "learning",
+          payload: { archiveId: record.archiveId },
+        }),
+      ).catch(() => {});
     }
 
     return NextResponse.json({

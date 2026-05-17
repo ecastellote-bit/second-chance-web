@@ -119,9 +119,17 @@ Anotar por usuario:
 
 ---
 
+## Observatorio estadístico
+
+- [ ] Revisar semanalmente `/admin/observatorio` (7d / 30d / todo)
+- [ ] Exportar o anotar cifras antes de cada reunión de equipo
+- [ ] En producción Vercel: planear persistencia (DB/S3) si los eventos no acumulan en JSONL
+- Datos: `web/data/observatory/events.jsonl` + API `/api/observatory/report`
+
 ## Referencia técnica rápida
 
 - Preview: rama `feat/community-core-v0`
 - App: carpeta `web/`
 - Activación: 4 carteles → `/plaza`
 - Plaza post-activación: cartel + puertas + compromiso + mapa
+- Observatorio: `/admin/observatorio`

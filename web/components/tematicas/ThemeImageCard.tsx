@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import type { TematicaCard } from "@/lib/content/tematicasCatalog";
+import type { TematicaWithContext } from "@/lib/tematicas/contextualBridge";
 
 function ThemeIcon({ id }: { id: string }) {
   const className = "h-[18px] w-[18px]";
@@ -39,7 +39,7 @@ export function ThemeImageCard({
   onSelect,
   selected,
 }: {
-  card: TematicaCard;
+  card: TematicaWithContext;
   onSelect: (id: string) => void;
   selected?: boolean;
 }) {
@@ -53,6 +53,7 @@ export function ThemeImageCard({
         "vu-focus relative w-full overflow-hidden rounded-[20px] text-left min-h-[168px]",
         "shadow-[0_4px_16px_rgba(15,42,70,0.08)] transition-transform active:scale-[0.98]",
         selected ? "ring-2 ring-[#1A9BB0] ring-offset-2 ring-offset-[#F8FAFC]" : "",
+        card.suggested ? "ring-2 ring-[#C6D92D]/80 ring-offset-2 ring-offset-[#F8FAFC]" : "",
       ].join(" ")}
     >
       <div className="relative aspect-[4/5] w-full">
@@ -81,9 +82,14 @@ export function ThemeImageCard({
             {card.badge}
           </span>
         ) : null}
-        <p className="absolute bottom-0 left-0 right-0 p-3.5 text-[13px] font-bold leading-snug text-white">
-          {card.title}
-        </p>
+        <div className="absolute bottom-0 left-0 right-0 p-3.5">
+          <p className="text-[13px] font-bold leading-snug text-white">{card.title}</p>
+          {card.hintReason ? (
+            <p className="mt-1 line-clamp-2 text-[10px] leading-snug text-white/85">
+              {card.hintReason}
+            </p>
+          ) : null}
+        </div>
       </div>
     </button>
   );

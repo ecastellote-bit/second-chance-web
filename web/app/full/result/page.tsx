@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFullAnswers } from "../fullAnswersContext";
+import { persistContextualFromFinalReading } from "@/lib/tematicas/persistContextualOnAnalyze";
 
 type TextItemForView =
   | string
@@ -981,6 +982,12 @@ export default function ResultPage() {
   const { analysis } = fullAnswersContext;
 
   const result = analysis?.result;
+
+  useEffect(() => {
+    if (result) {
+      persistContextualFromFinalReading(result);
+    }
+  }, [result]);
 
   if (!result) {
     return <div>No hay resultado disponible</div>;

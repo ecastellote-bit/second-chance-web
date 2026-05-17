@@ -142,6 +142,11 @@ export default function HomePage() {
           <Link href="/community">
             <Button variant="secondary">Comunidad (3 puertas)</Button>
           </Link>
+          <Link href="/admin/observatorio">
+            <Button variant="secondary" size="md">
+              Observatorio estadístico
+            </Button>
+          </Link>
           <Link href="/admin/reviews">
             <Button variant="ghost">Revisión humana</Button>
           </Link>

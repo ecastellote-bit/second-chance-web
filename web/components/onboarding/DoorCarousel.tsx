@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState, type TouchEvent } from "react";
 import type { VuDoorId } from "@/lib/design/tokens";
+import { trackObservatoryEvent } from "@/lib/observatory/client";
 
 type DoorSlide = {
   id: VuDoorId;
@@ -120,6 +121,7 @@ export function DoorCarousel() {
     if (typeof window !== "undefined") {
       sessionStorage.setItem("vu_onboarding_door", slide.id);
     }
+    trackObservatoryEvent("funnel.onboarding_door", "funnel", { doorId: slide.id });
     router.push(slide.route);
   };
 

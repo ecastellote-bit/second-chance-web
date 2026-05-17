@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { MvpPioneerBanner } from "@/components/mvp/MvpPioneerBanner";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
+import { trackObservatoryEvent } from "@/lib/observatory/client";
+import { useEffect } from "react";
 
 const STEPS = [
   {
@@ -36,6 +38,10 @@ const STEPS = [
 ] as const;
 
 export default function ComenzarPage() {
+  useEffect(() => {
+    trackObservatoryEvent("funnel.comenzar_view", "funnel");
+  }, []);
+
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#F8FAFC] font-[family-name:var(--font-inter)] pb-24">
       <header className="px-5 pt-12 pb-2">

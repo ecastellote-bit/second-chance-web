@@ -8,6 +8,7 @@ import {
   setBarrioCommitment,
   type BarrioCommitmentId,
 } from "@/lib/activacion/commitment";
+import { trackObservatoryEvent } from "@/lib/observatory/client";
 
 export function CompromisoBarrioSection() {
   const router = useRouter();
@@ -101,6 +102,9 @@ export function CompromisoBarrioSection() {
           };
           setBarrioCommitment(entry);
           setSaved(entry);
+          trackObservatoryEvent("funnel.barrio_commitment", "funnel", {
+            commitmentId: selected,
+          });
         }}
         className="vu-focus mt-4 flex min-h-[48px] w-full items-center justify-center rounded-2xl bg-[#C6D92D] text-sm font-bold text-[#0B2E59] disabled:opacity-40"
       >

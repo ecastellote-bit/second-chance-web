@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useFullAnswers } from "../fullAnswersContext";
 import type { FollowupOrchestratorResult } from "@/lib/engines/followupOrchestrator";
 import type { FinalReading } from "@/lib/types/result";
+import { persistContextualFromFinalReading } from "@/lib/tematicas/persistContextualOnAnalyze";
 
 type GuidedThemePayload = {
   id: string;
@@ -76,6 +77,7 @@ export default function FullProcessingPage() {
           _guidedThemes: result.guidedThemes ?? [],
         } as FinalReading;
         setAnalysis(dataWithThemes, result.warnings ?? []);
+        persistContextualFromFinalReading(dataWithThemes);
 
         if (result.followup?.shouldAskFollowup && result.followup.pack) {
           setFollowup(result.followup);
