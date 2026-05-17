@@ -8,6 +8,7 @@ export type ObservatoryEventType =
   | "funnel.barrio_commitment"
   | "diagnostic.full_result_view"
   | "diagnostic.case_archived"
+  | "human_case.persisted"
   | "learning.observation_stored"
   | "learning.validated_case_stored";
 

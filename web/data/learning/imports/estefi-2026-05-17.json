@@ -1,0 +1,66 @@
+{
+  "forceArchiveId": "estefi_browser_20260517",
+  "exportedAt": "2026-05-17T16:55:36.025Z",
+  "source": "manual_human_import_v1",
+  "sourceInput": {
+    "fullAnswersContext": {
+      "state": {
+        "profile": {
+          "age": "39",
+          "country": "Argentina",
+          "language": "es",
+          "employmentStatus": "employed",
+          "educationLevel": "",
+          "dependents": ""
+        },
+        "currentContext": {
+          "currentRole": "Administrativo (Office manager)",
+          "currentSituation": "Actualmente trabajo remoto para una empresa norteamericana. Me siento muy angustiada con el trabajo, tanto en la paga, como con los tiempos y me siento valorada por primera vez. Sin embargo no creo que lo que estoy haciendo sea mi pasión ni mi vocación m es el sueño de todos creo yo. Pero no el mío. A veces tengo miedo de morir sin descubrir cuál era mi vocación, para que vine a este mundo. Si se más o menos lo que me gusta o lo que me hubiese gustado ser. Estudie psicología Pero no era mi vocación. Si me gusta escuchar a la gente y tratar de ayudarla pero hoy en día creo que no desde un lugar tan pasivo ",
+          "energyLevel": "medium",
+          "economicPressure": "medium",
+          "familyLoad": "moderate",
+          "restrictionsText": "-carga familiar (3 hijos)\n-marido que no apoya al 100 por ciento los cambios\n-Ingresos justos (solo yo trabajo actualmente)\n-necesidad de casa propia \n-no manejar",
+          "assetsText": "-buen trabajo (buena paga y se me valora)\n-muchas ideas de negocios \n-algunas amigas que volvieron a mi vida\n-hijas un poco más grandes",
+          "transitionGoal": "-tener tiempo y que mi marido me permita disfrutar más de amistades y deportes \n-poder concretar algunas de mis ideas de negocios \n-lograr que mi marido me apoye en las decisiones \n-poder comprometerme con algún deporte o actividad "
+        },
+        "narrative": {
+          "childhoodMemories": "Jugar con mis hermanas (a la mamá, me encantaban los juegos de mesa y aquellos donde se pone en evidencia el intelecto de la persona). Me gustaban las actividades al aire libre, salir a pasear, andar en auto y volar con mi imaginación. Andar en bicicleta y patines,.los deportes (especialmente el tenis), salir con amigos, viajar, crear personajes imaginarios y hacer jugar y hablar objetos como lápices de colores. Siempre ame escuchar música. Soñaba con tocar la guitarra (nunca aprendí porque no suelo ser muy perseverante ni paciente.",
+          "earlyFascinations": "No estoy segura. Pero me atraía conectar con otros. Tener muchos grupos de amigos. Ayudar a la gente(siempre estuve involucrada en grupos religiosos con fines de apostolado).  Siempre me atrajo muchísimo aprender idiomas. Creo que tengo bastante facilidad. Estudie inglés, francés y portugués ",
+          "meaningfulSchoolSubjects": "Ninguna materia me voló la cabeza. Quizás siempre me oriente a las humanísticas.",
+          "repeatedWorkPatterns": "Durante años no conseguí trabajo y eso me generó inseguridades. Sentirme que no soy buena para nada. Así que mis patrones fue siempre el de seguir instrucciones. Ser empleada es lo que más cómodo se me hace. Que me digan que hacer y cumplir, lucirme en ese aspecto porque soy muy responsable ",
+          "naturalSocialRoles": "Creo que me ven como alguien alegre, buena amiga y que se puede confiar y pedir consejos . Creo que en eso último suy buena (escuchar y dar consejos)",
+          "lossesOrRenunciations": "Todo. Solía tener muchísimos amigos. Los dejé de lado por falta de tiempo, de dinero y por cuestión matrimoniales como pactos implicitos de no salir. Deje de hacer actividadeñ física, sobre todo deportes por lo mismo. No pude seguir actualizandome en lo que estudie o estudiando algo nuevo (siempre por falta de dinero y tiempo). La vida de casada no nos tocó fácil. Deje de hacer cosas que me daban vida. Solo me dedique a criar hijos y a vivir una vida monótona y sin sentido. Actualmente estoy tratando de cambiar eso y volví de a poco a conectar con amigos y ahora estoy buscando alguna actividad para hacer.",
+          "whatFeelsCompressedNow": "El hecho de no saber exactamente para que vine a este mundo, en qué podría ser buena o en no animarme a nada por miedo a perder dinero, o al ridículo o a no saber cómo se hace...todo producto de la baja autoestima. Tambien algunos sueños que quedaron atrás porque se me pasó el tren. Yo sabía en algún momento que quería trabajar en una embajada pero nunca supe bien cómo era el sistema porque en las provincias no se conoce bien. Cuando por fin pude enterarme ya era grande. Porque para entrar a la carrera de diplomacia tenía que ser menor de 35 años. Tambien me hubiese gustado trabajar de investigación como en la side o en el FBI. Me gusta resolver misterios, amo atar cabos, hacer teorías y después ver si eran o no, investigar personas etc. ",
+          "additionalContext": ""
+        }
+      },
+      "followup": { "current": null, "answers": {}, "completedRounds": [] }
+    }
+  },
+  "currentResult": {
+    "resultType": "clear_direction",
+    "corePattern": "Artistic Creator / Technical Builder",
+    "displayedMainDirection": "Artistic Creator / Technical Builder",
+    "dominantTension": "Hay una frontera fuerte entre Artistic Creator y Technical Builder.",
+    "diagnosticReview": { "finalVerdict": "frontier" },
+    "contextualSituationReview": {
+      "verdict": "context_suggests_human_review",
+      "summary": "El caso muestra una corriente creativa o narrativa relevante.",
+      "compressionSignalsDetected": true
+    }
+  },
+  "humanReview": {
+    "verdict": "pending_human_review",
+    "expectedPrimaryFamily": "empathic_guide",
+    "acceptableFamilies": [
+      "empathic_guide",
+      "scientific_investigator",
+      "educator_interpreter",
+      "commercial_connector",
+      "diplomatic_social_connector"
+    ],
+    "rivalFamilies": ["artistic_creator", "technical_builder", "operational_organizer"],
+    "correctionNote": "Misread calibración: el rol administrativo remoto y la infancia creativa empujaron Artistic Creator / Technical Builder. La historia adulta central es escucha/ayuda (psicología, consejos, ya no pasiva), investigación/misterios (SIDE/FBI, atar cabos), diplomacia/embajada postergada, vida comprimida (3 hijos, ingresos, matrimonio), e ideas de negocio. La lectura pública debe ser frontera prudente, no clear_direction cerrado.",
+    "shouldBecomeLearnedCase": true
+  }
+}

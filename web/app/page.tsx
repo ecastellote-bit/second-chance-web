@@ -147,6 +147,11 @@ export default function HomePage() {
               Observatorio estadístico
             </Button>
           </Link>
+          <Link href="/admin/casos-humanos">
+            <Button variant="secondary" size="md">
+              Casos humanos
+            </Button>
+          </Link>
           <Link href="/admin/reviews">
             <Button variant="ghost">Revisión humana</Button>
           </Link>
