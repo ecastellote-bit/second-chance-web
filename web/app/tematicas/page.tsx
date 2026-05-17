@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { VuMobileShell } from "@/components/layout/VuMobileShell";
+import { MvpPioneerBanner } from "@/components/mvp/MvpPioneerBanner";
 import { ThemeImageCard } from "@/components/tematicas/ThemeImageCard";
 import { DEEP_READING } from "@/lib/content/neighborhoodMicrocopy";
 import { TEMATICAS_CATALOG, TEMATICAS_HEADER } from "@/lib/content/tematicasCatalog";
@@ -23,6 +24,7 @@ export default function TematicasPage() {
   return (
     <VuMobileShell showProgress progressStep={2} progressTotal={3} navActive="plaza">
       <div className="px-4 pb-6 pt-1 max-w-lg mx-auto">
+        <MvpPioneerBanner />
         <div className="mb-5 px-1">
           <h1 className="text-[1.65rem] font-bold tracking-tight text-[#0B2E59]">
             {TEMATICAS_HEADER.title}

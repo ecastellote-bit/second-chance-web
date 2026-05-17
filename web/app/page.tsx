@@ -86,8 +86,13 @@ export default function HomePage() {
           producto, abrí el design system.
         </p>
         <div className="flex flex-wrap gap-3">
-          <Link href="/onboarding">
+          <Link href="/comenzar">
             <Button variant="primary" size="md" showArrow>
+              Recorrido MVP — Comenzar
+            </Button>
+          </Link>
+          <Link href="/onboarding">
+            <Button variant="secondary" size="md">
               Onboarding — 3 puertas
             </Button>
           </Link>

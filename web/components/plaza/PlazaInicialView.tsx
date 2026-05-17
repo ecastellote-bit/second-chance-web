@@ -138,7 +138,12 @@ function PlazaPathLines() {
   );
 }
 
-export function PlazaInicialView() {
+type PlazaInicialViewProps = {
+  showEntradaLink?: boolean;
+  onOpenEntrada?: () => void;
+};
+
+export function PlazaInicialView({ showEntradaLink, onOpenEntrada }: PlazaInicialViewProps = {}) {
   const router = useRouter();
 
   return (
@@ -189,6 +194,15 @@ export function PlazaInicialView() {
             {PLAZA_HEADER.subtitle}
           </p>
           <DeepReadingPlazaLink />
+          {showEntradaLink && onOpenEntrada ? (
+            <button
+              type="button"
+              onClick={onOpenEntrada}
+              className="vu-focus mt-3 inline-flex min-h-[40px] items-center rounded-full bg-white/15 px-4 text-[12px] font-semibold text-white backdrop-blur-sm"
+            >
+              ← Volver a mi plaza de entrada
+            </button>
+          ) : null}
         </header>
 
         <PlazaPathLines />

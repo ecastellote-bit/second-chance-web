@@ -1,9 +1,10 @@
 "use client";
 
 import { ActivationHub } from "@/components/activacion/ActivationHub";
+import { MvpPioneerBanner } from "@/components/mvp/MvpPioneerBanner";
 import { DeepReadingCard } from "@/components/neighborhood/DeepReadingCTA";
 import { VuMobileShell } from "@/components/layout/VuMobileShell";
-import { ACTIVACION_ACTIONS, ACTIVACION_HEADER } from "@/lib/content/activacionCatalog";
+import { ACTIVACION_CARTELES, ACTIVACION_HEADER } from "@/lib/content/activacionCatalog";
 
 export default function ActivacionPage() {
   return (
@@ -15,6 +16,7 @@ export default function ActivacionPage() {
       navActive="plaza"
     >
       <div className="pt-1">
+        <MvpPioneerBanner />
         <div className="mb-4 px-5">
           <h1 className="text-[1.65rem] font-bold tracking-tight text-[#0B2E59]">
             {ACTIVACION_HEADER.title}
@@ -23,7 +25,7 @@ export default function ActivacionPage() {
             {ACTIVACION_HEADER.subtitle}
           </p>
         </div>
-        <ActivationHub actions={ACTIVACION_ACTIONS} />
+        <ActivationHub cartels={ACTIVACION_CARTELES} />
         <DeepReadingCard />
       </div>
     </VuMobileShell>
