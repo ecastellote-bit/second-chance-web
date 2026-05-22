@@ -91,6 +91,13 @@ REGLAS:
 - compressionDetected = true si la persona expresa tener una capacidad que no puede ejercer, algo postergado, enterrado o bloqueado.
 - confidence = tu nivel de certeza general sobre la extracción (0.5 = texto ambiguo, 0.9 = señales muy claras).
 - NO inventés señales que no estén en el texto. Si algo no aparece, no lo incluyas.
+- ANTI-INFLACIÓN (obligatorio):
+  - public_expression / audience_activation / editorial_framing SOLO fuerte si hay audiencia, medios, voz pública o exposición explícita. "Escribir" o "comunicar" en privado NO alcanza.
+  - social_coordination / group_reading SOLO si hay comunidad, grupo, colectivo o convocatoria explícita. Acompañar personas uno a uno = oneToOneOrientation, NO collectiveOrientation.
+  - practical_execution / technical_assembly: NO inflar por trabajo administrativo, nómina u "office manager" sin reparar/armar/probar cosas reales.
+  - narrative_creation / aesthetic_sensitivity: sí por relato, forma, infancia creativa, escenas.
+  - publicAudienceDesire = true solo con audiencia o exposición pública explícita.
+  - collectiveOrientation = true solo con acción grupal explícita.
 - Respondé SOLO el JSON, sin explicaciones ni markdown.`;
 
 function buildUserPrompt(userText: string): string {

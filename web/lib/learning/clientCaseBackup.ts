@@ -112,12 +112,20 @@ export async function syncPendingBrowserCasesToServer(): Promise<{
     if (!entry?.payload) continue;
 
     try {
+      const base =
+        entry.payload && typeof entry.payload === "object"
+          ? (entry.payload as Record<string, unknown>)
+          : {};
+
       const res = await fetch("/api/human-cases", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          payload: entry.payload,
+          ...base,
           clientMeta: {
+            ...(typeof base.clientMeta === "object" && base.clientMeta !== null
+              ? (base.clientMeta as Record<string, unknown>)
+              : {}),
             syncedFromBrowser: true,
             origin: window.location.origin,
           },
@@ -129,7 +137,12 @@ export async function syncPendingBrowserCasesToServer(): Promise<{
         continue;
       }
 
-      const data = (await res.json()) as { archiveId?: string };
+      const data = (await res.json()) as { archiveId?: string; persisted?: boolean };
+      if (!data.persisted) {
+        failed += 1;
+        continue;
+      }
+
       markBrowserCaseSynced(archiveId, data.archiveId ?? archiveId);
       synced += 1;
     } catch {

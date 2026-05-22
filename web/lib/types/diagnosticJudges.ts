@@ -1,9 +1,15 @@
+export type DiagnosticJudgeSoftVerdict =
+  | "weak_similarity_warning"
+  | "frontier_note"
+  | "aligned_with_caution";
+
 export type DiagnosticJudgeVerdict =
   | "aligned"
   | "frontier"
   | "conflict"
   | "red_flag"
-  | "human_review_recommended";
+  | "human_review_recommended"
+  | DiagnosticJudgeSoftVerdict;
 
 export type DiagnosticJudgeFinding = {
   judgeId: string;

@@ -3,6 +3,11 @@ import type { LearnedDiagnosticCase } from "../types/learning";
 import type { SimilarCaseMatch } from "../types/learning";
 import { LEARNED_DIAGNOSTIC_CASES } from "../learning/learnedCases";
 import { archivedCasesToLearnedFormat } from "./learningCycleEnricher";
+import {
+  SEMANTIC_SIMILARITY_SEARCH_MIN,
+  classifySemanticSimilarity,
+  semanticInfluenceWeight,
+} from "./semanticLayerRules";
 
 export type SemanticSimilarityResult = {
   ok: boolean;
@@ -20,6 +25,9 @@ export type SemanticCaseMatch = {
   rivalFamilies: string[];
   lesson: string;
   shouldInfluenceFutureCases: boolean;
+  /** Peso 0–1 para learningSignal / jueces (asignado por calibración). */
+  influenceWeight?: number;
+  influenceTier?: "influential" | "note" | "excluded";
 };
 
 const embeddingCache = new Map<string, number[]>();
@@ -112,7 +120,7 @@ export async function findSemanticallySimilarCases(
     return { ok: false, matches: [], latencyMs: 0, error: "Input text too short" };
   }
 
-  const minSimilarity = options?.minSimilarity ?? 0.45;
+  const minSimilarity = options?.minSimilarity ?? SEMANTIC_SIMILARITY_SEARCH_MIN;
   const limit = options?.limit ?? 5;
   const cases = options?.cases ?? [
     ...LEARNED_DIAGNOSTIC_CASES,
@@ -139,15 +147,20 @@ export async function findSemanticallySimilarCases(
 
         const similarity = cosineSimilarity(userEmbedding, caseEmb);
 
+        const rounded = Math.round(similarity * 1000) / 1000;
+        const tier = classifySemanticSimilarity(rounded);
+
         return {
           caseId: c.id,
           title: c.title,
-          similarity: Math.round(similarity * 1000) / 1000,
+          similarity: rounded,
           expectedPrimaryFamily: c.expectedPrimaryFamily,
           acceptableFamilies: c.acceptableFamilies,
           rivalFamilies: c.rivalFamilies,
           lesson: c.lesson,
           shouldInfluenceFutureCases: c.shouldInfluenceFutureCases,
+          influenceTier: tier,
+          influenceWeight: semanticInfluenceWeight(rounded),
         };
       })
       .filter((m): m is SemanticCaseMatch => m !== null && m.similarity >= minSimilarity)
@@ -165,30 +178,65 @@ export async function findSemanticallySimilarCases(
   }
 }
 
+/** Filtra matches embedding para influencia en pipeline (atenúa ruido 0.40–0.51). */
+export function prepareSemanticMatchesForLearning(
+  matches: SemanticCaseMatch[],
+): SemanticCaseMatch[] {
+  return matches
+    .filter((m) => classifySemanticSimilarity(m.similarity) !== "excluded")
+    .map((m) => ({
+      ...m,
+      influenceTier: classifySemanticSimilarity(m.similarity),
+      influenceWeight: semanticInfluenceWeight(m.similarity),
+    }));
+}
+
+export function shouldMergeSemanticSimilarityIntoLearning(
+  matches: SemanticCaseMatch[],
+): boolean {
+  return prepareSemanticMatchesForLearning(matches).some(
+    (m) => (m.influenceWeight ?? 0) > 0,
+  );
+}
+
 export function mergeSemanticMatchesIntoLearningSignal(
   semanticMatches: SemanticCaseMatch[],
   existingMatches: SimilarCaseMatch[],
 ): SimilarCaseMatch[] {
   const merged = [...existingMatches];
+  const prepared = prepareSemanticMatchesForLearning(semanticMatches);
 
-  for (const sm of semanticMatches) {
+  for (const sm of prepared) {
+    const weight = sm.influenceWeight ?? semanticInfluenceWeight(sm.similarity);
+    if (weight <= 0) continue;
+
+    const effectiveScore = sm.similarity * weight;
     const existing = merged.find((m) => m.caseId === sm.caseId);
 
     if (existing) {
-      existing.similarityScore = Math.max(existing.similarityScore, sm.similarity);
+      existing.similarityScore = Math.max(existing.similarityScore, effectiveScore);
+      (existing as SimilarCaseMatch & { influenceWeight?: number }).influenceWeight =
+        Math.max(
+          (existing as SimilarCaseMatch & { influenceWeight?: number }).influenceWeight ??
+            0,
+          weight,
+        );
       continue;
     }
 
-    merged.push({
+    const row: SimilarCaseMatch & { influenceWeight?: number } = {
       caseId: sm.caseId,
       title: sm.title,
-      similarityScore: sm.similarity,
+      similarityScore: effectiveScore,
       expectedPrimaryFamily: sm.expectedPrimaryFamily,
       acceptableFamilies: sm.acceptableFamilies,
       rivalFamilies: sm.rivalFamilies,
       matchedLanguage: [],
       lesson: sm.lesson,
-    });
+      influenceWeight: weight,
+    };
+
+    merged.push(row);
   }
 
   return merged.sort((a, b) => b.similarityScore - a.similarityScore);

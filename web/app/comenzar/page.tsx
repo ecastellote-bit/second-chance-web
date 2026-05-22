@@ -8,6 +8,13 @@ import { useEffect } from "react";
 
 const STEPS = [
   {
+    n: 0,
+    title: "Invitación fundadora",
+    body: "Entrená el sistema, 6 meses gratis y sembrá tu proyecto con visibilidad prioritaria.",
+    href: "/fundador",
+    cta: "Ver invitación",
+  },
+  {
     n: 1,
     title: "Entrada al barrio",
     body: "Elegí una de las tres puertas según cómo llegás hoy.",
@@ -66,7 +73,7 @@ export default function ComenzarPage() {
               className="vu-focus flex gap-4 rounded-[20px] border border-[#E8EEF3] bg-white p-4 shadow-[0_4px_16px_rgba(15,42,70,0.06)] active:scale-[0.99]"
             >
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0B2E59] text-sm font-bold text-white">
-                {step.n}
+                {step.n === 0 ? "★" : step.n}
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-[14px] font-bold text-[#0B2E59]">{step.title}</p>
@@ -86,10 +93,22 @@ export default function ComenzarPage() {
           Si querés la lectura profunda antes del barrio, usá el flujo extendido.
         </p>
         <Link
-          href="/full/step-1"
+          href="/fundador"
           className="vu-focus mt-3 inline-block text-[13px] font-semibold text-[#1A9BB0] underline"
         >
-          Ir al diagnóstico vocacional
+          Invitación fundadora (recomendado)
+        </Link>
+        <Link
+          href="/full/step-1"
+          className="vu-focus mt-2 block text-[12px] font-medium text-[#6B7A8C] underline"
+        >
+          Diagnóstico sin invitación
+        </Link>
+        <Link
+          href="/barrio"
+          className="vu-focus mt-2 block text-[12px] font-medium text-[#6B7A8C] underline"
+        >
+          Mapa del barrio
         </Link>
       </div>
 

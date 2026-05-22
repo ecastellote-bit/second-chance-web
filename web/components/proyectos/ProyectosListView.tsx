@@ -1,12 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { CirculosLeftNav } from "@/components/circulos/CirculosLeftNav";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
 import { VuWarmImage } from "@/components/ui/VuWarmImage";
+import { FoundingMemberBadge } from "@/components/founder/FoundingMemberBadge";
+import { isFoundingMemberQualified } from "@/lib/learning/foundationalMember";
 import { PROYECTOS_CATALOG, PROYECTOS_HEADER } from "@/lib/content/proyectosCatalog";
 
 export function ProyectosListView() {
+  const [canSembrar, setCanSembrar] = useState(false);
+
+  useEffect(() => {
+    setCanSembrar(isFoundingMemberQualified());
+  }, []);
+
   return (
     <div className="flex min-h-[100dvh] flex-col font-[family-name:var(--font-inter)] bg-[#F8FAFC] text-[#243647] lg:flex-row">
       <CirculosLeftNav activeId="proyectos" />
@@ -42,11 +51,20 @@ export function ProyectosListView() {
               </p>
             </div>
 
+            <FoundingMemberBadge />
+
+            <Link
+              href={canSembrar ? "/proyectos/sembrar" : "/fundador"}
+              className="vu-focus mb-3 flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-[#0B2E59] px-4 text-sm font-bold text-white shadow-[0_4px_16px_rgba(15,42,70,0.12)]"
+            >
+              {canSembrar ? "Sembrar mi proyecto (fundador)" : "Ser fundador y sembrar"}
+            </Link>
+
             <Link
               href="/proyectos/manos-que-transforman"
-              className="vu-focus mb-6 flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-[#0B2E59] px-4 text-sm font-bold text-white shadow-[0_4px_16px_rgba(15,42,70,0.12)]"
+              className="vu-focus mb-6 flex min-h-[44px] items-center justify-center gap-2 rounded-2xl border border-[#0B2E59]/20 px-4 text-sm font-semibold text-[#0B2E59]"
             >
-              Presentar mi proyecto
+              Ver proyecto destacado del barrio
             </Link>
 
             <div className="space-y-4">

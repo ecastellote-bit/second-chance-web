@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { CommunityDoorHub } from "@/components/community/CommunityDoorHub";
 
 export default function EntenderCaminoPage() {
-  redirect("/formacion");
+  return <CommunityDoorHub doorId="entender_camino" />;
 }

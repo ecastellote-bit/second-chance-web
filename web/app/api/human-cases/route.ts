@@ -8,6 +8,8 @@ import {
   type HumanCasePayload,
 } from "@/lib/learning/humanCaseDepot";
 import { getDurableStoreStatus } from "@/lib/learning/humanCaseDurableStore";
+import { getCohortBatchFromPayload } from "@/lib/learning/foundationalCohort";
+import { isHumanCasePersistedAcknowledged } from "@/lib/learning/humanCasePersistence";
 import { appendObservatoryEvent, buildObservatoryEvent } from "@/lib/observatory/store";
 
 function extractInputText(payload: HumanCasePayload): string {
@@ -37,6 +39,7 @@ export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
     const status = url.searchParams.get("status");
+    const cohortBatch = url.searchParams.get("cohortBatch")?.trim();
     const limit = Math.min(Number(url.searchParams.get("limit") ?? 50), 200);
 
     const complete = await listHumanCompleteCases(limit);
@@ -52,11 +55,18 @@ export async function GET(req: Request) {
       merged = merged.filter((item) => item.storagePolicy.reviewStatus === status);
     }
 
+    if (cohortBatch) {
+      merged = merged.filter(
+        (item) => getCohortBatchFromPayload(item.payload) === cohortBatch,
+      );
+    }
+
     return NextResponse.json({
       ok: true,
       total: merged.length,
       cases: merged,
       durable: getDurableStoreStatus(),
+      cohortBatch: cohortBatch ?? null,
     });
   } catch (error) {
     return NextResponse.json(
@@ -106,7 +116,9 @@ export async function POST(req: Request) {
       computeAndCacheEmbedding(`archive_${result.archiveId}`, inputText).catch(() => {});
     }
 
-    if (result.durable.stored && result.durable.verified) {
+    const persisted = isHumanCasePersistedAcknowledged(result);
+
+    if (persisted) {
       await appendObservatoryEvent(
         buildObservatoryEvent({
           type: "human_case.persisted",
@@ -114,7 +126,8 @@ export async function POST(req: Request) {
           payload: {
             archiveId: result.archiveId,
             storage: result.durable.storage,
-            verified: true,
+            verified: result.durable.verified,
+            cohortBatch: getCohortBatchFromPayload(payload),
             reviewStatus: result.completeRecord.storagePolicy.reviewStatus,
           },
         }),
@@ -129,8 +142,9 @@ export async function POST(req: Request) {
           payload: {
             archiveId: result.archiveId,
             depot: result.durable.storage,
-            durable: result.durable.stored,
+            durable: persisted,
             verified: result.durable.verified,
+            cohortBatch: getCohortBatchFromPayload(payload),
             reviewStatus: result.completeRecord.storagePolicy.reviewStatus,
             primaryFamily: result.completeRecord.classification.primaryFamily,
           },
@@ -142,7 +156,7 @@ export async function POST(req: Request) {
       ok: true,
       archiveId: result.archiveId,
       extractId: result.extractId,
-      persisted: result.durable.stored && result.durable.verified,
+      persisted,
       durable: result.durable,
       stored: {
         complete: result.complete,

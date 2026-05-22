@@ -8,7 +8,16 @@
     "start": "next start",
     "lint": "eslint",
     "diagnostic:batch": "tsx scripts/runDiagnosticCandidateBatch.ts",
-    "diagnostic:semantic-batch": "tsx scripts/runSemanticBatch.ts"
+    "diagnostic:semantic-batch": "tsx scripts/runSemanticBatch.ts",
+    "narrative:golden": "tsx scripts/runNarrativeGoldenSet.ts",
+    "discard:smoke": "tsx scripts/runDiscardJudgeSmoke.ts",
+    "discard:golden": "tsx scripts/runDiscardGoldenSet.ts",
+    "discard:prelab": "tsx scripts/runDiscardPreLabReport.ts",
+    "diagnostic:golden": "tsx scripts/runDiagnosticPanelGoldenSet.ts",
+    "contextual:golden": "tsx scripts/runContextualGoldenSet.ts",
+    "semantic:golden": "tsx scripts/runSemanticGoldenSet.ts",
+    "presentation:golden": "tsx scripts/runPresentationGoldenSet.ts",
+    "cohort:export": "tsx scripts/exportFoundationalCohort.ts"
   },
   "dependencies": {
     "@vercel/blob": "^2.3.3",

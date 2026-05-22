@@ -10,6 +10,9 @@ import { buildEvidenceFragmentsFromIntake } from "./evidenceBuilder";
 import { mapEvidenceToHumanAffinities } from "./humanAffinityMapper";
 import { HUMAN_AFFINITY_MAP } from "../registries/humanAffinities";
 import { scoreProfileFamiliesFromAffinities } from "./profileFamilyScorer";
+import { calibrateSemanticExtraction } from "./semanticExtractionCalibrator";
+import { buildArchetypeContextFromIntake } from "./semanticLayerRules";
+import { buildContextualIntakeText } from "./contextualPanelRules";
 
 export type AffinityPipelineBridgeInput = {
   intake: UserIntake;
@@ -131,15 +134,15 @@ function computeDynamicWeights(extractionConfidence: number): {
   semanticOnlyDiscount: number;
 } {
   if (extractionConfidence >= 0.8) {
-    return { phraseWeight: 0.35, semanticWeight: 0.65, semanticOnlyDiscount: 0.8 };
+    return { phraseWeight: 0.4, semanticWeight: 0.6, semanticOnlyDiscount: 0.72 };
   }
   if (extractionConfidence >= 0.6) {
-    return { phraseWeight: 0.45, semanticWeight: 0.55, semanticOnlyDiscount: 0.7 };
+    return { phraseWeight: 0.5, semanticWeight: 0.5, semanticOnlyDiscount: 0.62 };
   }
   if (extractionConfidence >= 0.4) {
-    return { phraseWeight: 0.65, semanticWeight: 0.35, semanticOnlyDiscount: 0.5 };
+    return { phraseWeight: 0.7, semanticWeight: 0.3, semanticOnlyDiscount: 0.45 };
   }
-  return { phraseWeight: 0.85, semanticWeight: 0.15, semanticOnlyDiscount: 0.3 };
+  return { phraseWeight: 0.88, semanticWeight: 0.12, semanticOnlyDiscount: 0.25 };
 }
 
 function blendWithSemanticSignals(
@@ -213,9 +216,36 @@ export function runAffinityPipelineBridge(
 
   const rawAffinityScores = mapEvidenceToHumanAffinities({ evidence });
 
-  const affinityScores = input.semanticSignals
-    ? blendWithSemanticSignals(rawAffinityScores, input.semanticSignals)
+  const intakeText = buildContextualIntakeText(input.intake);
+  const archetypeCtx = buildArchetypeContextFromIntake(input.intake);
+
+  const calibratedSemantic = input.semanticSignals?.ok
+    ? calibrateSemanticExtraction(input.semanticSignals, intakeText)
+    : undefined;
+
+  let affinityScores = calibratedSemantic
+    ? blendWithSemanticSignals(rawAffinityScores, calibratedSemantic)
     : rawAffinityScores;
+
+  if (archetypeCtx.sostenWithoutCraft) {
+    affinityScores = affinityScores.map((score) => {
+      if (
+        score.id === "practical_execution" ||
+        score.id === "technical_assembly" ||
+        score.id === "operational_rhythm"
+      ) {
+        return {
+          ...score,
+          score: Math.min(score.score, 0.32),
+          rationale: [
+            ...(score.rationale ?? []),
+            "Atenuado: sostén laboral sin señales de oficio técnico adulto.",
+          ],
+        };
+      }
+      return score;
+    });
+  }
 
   const familyScores = sanitizeFamilyScores(
     scoreProfileFamiliesFromAffinities(affinityScores),

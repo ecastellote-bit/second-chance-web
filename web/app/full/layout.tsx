@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { FoundationalFlowBootstrap } from "@/components/diagnostic/FoundationalFlowBootstrap";
 import { FullAnswersProvider } from "./fullAnswersContext";
 
 export default function FullFlowLayout({
@@ -6,5 +7,10 @@ export default function FullFlowLayout({
 }: {
   children: ReactNode;
 }) {
-  return <FullAnswersProvider>{children}</FullAnswersProvider>;
+  return (
+    <FullAnswersProvider>
+      <FoundationalFlowBootstrap />
+      {children}
+    </FullAnswersProvider>
+  );
 }

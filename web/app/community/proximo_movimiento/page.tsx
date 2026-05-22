@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
-import { PRESENTED_PROJECT } from "@/lib/content/proyectoPresentadoCatalog";
+import { CommunityDoorHub } from "@/components/community/CommunityDoorHub";
 
 export default function ProximoMovimientoPage() {
-  redirect(`/proyectos/${PRESENTED_PROJECT.id}`);
+  return <CommunityDoorHub doorId="proximo_movimiento" />;
 }

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { setActivationChoice } from "@/lib/activacion/storage";
+import { mapGuidedActivationToCartel } from "@/lib/full/activationBridge";
 import { useFullAnswers } from "../fullAnswersContext";
 
 type GuidedThemeOption = {
@@ -146,20 +148,13 @@ export default function ThemesPage() {
 
           <button
             onClick={() => {
-              const door = selectedActivation?.path ?? "conectar_con_otros";
-              const doorMap: Record<string, string> = {
-                asociarme_con_otras_personas: "conectar_con_otros",
-                formarme_en_algo_nuevo: "entender_camino",
-                integrar_proyectos_existentes: "proximo_movimiento",
-                armar_mi_propio_proyecto: "proximo_movimiento",
-                explorar_primero_comunidad: "conectar_con_otros",
-              };
-              const communityDoor = doorMap[door] ?? "conectar_con_otros";
-              router.push(`/community?door=${communityDoor}`);
+              const path = selectedActivation?.path;
+              setActivationChoice(mapGuidedActivationToCartel(path));
+              router.push("/plaza");
             }}
             className="px-6 py-3 bg-black text-white rounded-lg text-sm font-medium hover:bg-neutral-800 transition-colors"
           >
-            Entrar a la comunidad
+            Entrar al barrio
           </button>
         </div>
       </main>

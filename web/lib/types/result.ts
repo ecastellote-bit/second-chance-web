@@ -69,4 +69,8 @@ export interface FinalReading {
   buriedCapacities?: HumanAffinityScore[];
   likelyContributionModes?: string[];
   likelyFlourishingConditions?: string[];
+  /** Fase 1 audit — no modifica scores ni resultType por sí solo */
+  narrativeCoherenceReview?: import("./narrativeCoherence").NarrativeCoherenceReview;
+  /** Entregable centrado en la persona (compositor TS, post-narrativo). */
+  personalizedPresentation?: import("./diagnosticPresentation").PersonalizedDiagnosticPresentation;
 }

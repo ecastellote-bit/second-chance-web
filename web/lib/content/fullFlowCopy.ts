@@ -31,7 +31,7 @@ export const FULL_FLOW_COPY = {
           label: "Situación laboral",
         },
         currentRole: {
-          label: "Rol actual",
+          label: "¿A qué te dedicas actualmente?",
           placeholder: "Ej: administrativo, ventas, docencia, operaciones",
         },
         currentSituation: {

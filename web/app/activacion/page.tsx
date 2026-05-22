@@ -1,6 +1,7 @@
 "use client";
 
 import { ActivationHub } from "@/components/activacion/ActivationHub";
+import { UserProfileGate } from "@/components/perfil/UserProfileGate";
 import { MvpPioneerBanner } from "@/components/mvp/MvpPioneerBanner";
 import { DeepReadingCard } from "@/components/neighborhood/DeepReadingCTA";
 import { VuMobileShell } from "@/components/layout/VuMobileShell";
@@ -22,6 +23,7 @@ export default function ActivacionPage() {
   const { hints, suggestedCartelIds } = getActivacionSuggestions(review);
 
   return (
+    <UserProfileGate>
     <VuMobileShell
       showProgress
       progressStep={3}
@@ -49,5 +51,6 @@ export default function ActivacionPage() {
         <DeepReadingCard />
       </div>
     </VuMobileShell>
+    </UserProfileGate>
   );
 }

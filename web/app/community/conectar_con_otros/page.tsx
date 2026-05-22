@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { CommunityDoorHub } from "@/components/community/CommunityDoorHub";
 
 export default function ConectarConOtrosPage() {
-  redirect("/circulos");
+  return <CommunityDoorHub doorId="conectar_con_otros" />;
 }

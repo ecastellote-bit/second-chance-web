@@ -1,0 +1,11 @@
+{
+  "folders": [
+    {
+      "path": ".",
+      "name": "Second Chance V2"
+    }
+  ],
+  "settings": {
+    "terminal.integrated.cwd": "${workspaceFolder}/web"
+  }
+}

@@ -7,8 +7,12 @@ import {
 } from "@/lib/engines/guidedThemeSelector";
 import type { FunctionalSubtype } from "@/lib/types/finalDiagnostic";
 import type { NegativeEvidenceReview } from "@/lib/types/negativeEvidenceJudge";
+import type { NarrativeCoherenceReview } from "@/lib/types/narrativeCoherence";
 import { HUMAN_LANGUAGE_CASES } from "@/lib/testing/humanLanguageCases";
+import { getClientGoldenRefractoryCases } from "@/lib/testing/narrativeGoldenRefractoryLab";
+import { NARRATIVE_REFRACTORY_GOLDEN_IDS } from "@/lib/testing/narrativeGoldenRefractoryCases";
 import { runBiasMonitor } from "@/lib/engines/learnedCasesBiasMonitor";
+import { PersonalizedDiagnosticDeliverable } from "@/components/diagnostic/PersonalizedDiagnosticDeliverable";
 
 type DirectionItem =
   | string
@@ -107,6 +111,29 @@ type AnalyzeSuccess = {
     camino_minimo?: string;
     cierre?: string;
   };
+  personalizedPresentation?: {
+    lecturaCentral?: {
+      sentenciaRevelacion?: string;
+      resumen?: string;
+      tensionViva?: string;
+      porQue?: string;
+    };
+    enTusPalabras?: Array<{
+      texto?: string;
+      fuente?: string;
+      fundamento?: string;
+    }>;
+    alertasLectura?: Array<{ titulo?: string; cuerpo?: string }>;
+    referenciasQueResuenan?: Array<{ referenceTitle?: string; resonance?: string }>;
+    momentoVital?: string;
+    comoArmamosTuLectura?: string;
+    loQueNoCerramos?: string;
+    siguientePaso?: {
+      themeTeaser?: string[];
+      activacionSugerida?: { label?: string };
+    };
+    meta?: { evidenceCount?: number; narrativeVerdict?: string; sourcesUsed?: string[] };
+  };
   finalDiagnostic?: FinalDiagnosticPayload;
   evidence?: EvidenceFragment[];
   affinityScores?: AffinityScore[];
@@ -123,6 +150,7 @@ type AnalyzeSuccess = {
   debug?: {
     trace?: unknown;
   };
+  narrativeCoherenceReview?: NarrativeCoherenceReview;
 };
 
 type AffinityBridgePayload = {
@@ -177,6 +205,12 @@ type AnalyzeResponse =
       buriedCapacities?: AffinityScore[];
       likelyContributionModes?: string[];
       likelyFlourishingConditions?: string[];
+      narrativeCoherence?: {
+        status: string;
+        latencyMs: number;
+        review: NarrativeCoherenceReview | null;
+        error?: string;
+      };
     }
   | {
       ok: false;
@@ -213,6 +247,18 @@ function formatUnknown(value: unknown): string {
   } catch {
     return String(value);
   }
+}
+
+function extractNarrativeCoherenceReview(
+  result: AnalyzeResponse | null,
+): NarrativeCoherenceReview | null {
+  if (!result?.ok) return null;
+
+  return (
+    result.data.narrativeCoherenceReview ??
+    result.narrativeCoherence?.review ??
+    null
+  );
 }
 
 function extractTrace(result: AnalyzeResponse | null): unknown {
@@ -510,9 +556,45 @@ function AffinityCard({ affinity }: { affinity: AffinityScore }) {
   );
 }
 
+const GOLDEN_REFRACTORY_CASES = getClientGoldenRefractoryCases();
+const GOLDEN_ID_SET = new Set<string>(NARRATIVE_REFRACTORY_GOLDEN_IDS);
+const OTHER_HUMAN_CASES = HUMAN_LANGUAGE_CASES.filter((c) => !GOLDEN_ID_SET.has(c.id));
+
+type LabCaseEntry = {
+  id: string;
+  label: string;
+  expectation: string;
+  payload: ReturnType<typeof normalizePayload>;
+};
+
+function toLabEntry(caseItem: {
+  id: string;
+  label: string;
+  expectation: string;
+  payload: unknown;
+}): LabCaseEntry | null {
+  const payload = normalizePayload(caseItem.payload);
+  if (!payload) return null;
+  return {
+    id: caseItem.id,
+    label: caseItem.label,
+    expectation: caseItem.expectation,
+    payload,
+  };
+}
+
+const ALL_LAB_CASES: LabCaseEntry[] = [
+  ...GOLDEN_REFRACTORY_CASES.map((c) => toLabEntry(c)).filter(
+    (c): c is LabCaseEntry => c !== null,
+  ),
+  ...OTHER_HUMAN_CASES.map((c) => toLabEntry(c)).filter(
+    (c): c is LabCaseEntry => c !== null,
+  ),
+];
+
 export default function LabPage() {
   const [selectedCaseId, setSelectedCaseId] = useState(
-    HUMAN_LANGUAGE_CASES[0]?.id ?? "",
+    GOLDEN_REFRACTORY_CASES[0]?.id ?? ALL_LAB_CASES[0]?.id ?? "",
   );
   const [loading, setLoading] = useState(false);
   const [originalResult, setOriginalResult] = useState<AnalyzeResponse | null>(null);
@@ -525,15 +607,11 @@ export default function LabPage() {
   const [manualCompletionFields, setManualCompletionFields] = useState<string[]>([]);
 
   const selectedCase = useMemo(
-    () =>
-      HUMAN_LANGUAGE_CASES.find((testCase) => testCase.id === selectedCaseId) ?? null,
+    () => ALL_LAB_CASES.find((testCase) => testCase.id === selectedCaseId) ?? null,
     [selectedCaseId],
   );
 
-  const normalizedPayload = useMemo(
-    () => (selectedCase ? normalizePayload(selectedCase.payload) : null),
-    [selectedCase],
-  );
+  const normalizedPayload = selectedCase?.payload ?? null;
 
   const result = enrichedResult ?? originalResult;
   const followup = result && result.ok ? (result.followup ?? null) : null;
@@ -649,6 +727,9 @@ export default function LabPage() {
       : 0;
 
   const resolvedTrace = extractTrace(result);
+  const narrativeReview = extractNarrativeCoherenceReview(result);
+  const narrativeCoherenceMeta =
+    result && result.ok ? result.narrativeCoherence : null;
   const finalDiagnostic = result && result.ok ? result.data.finalDiagnostic : null;
   const profileSnapshot = finalDiagnostic?.profileSnapshot ?? null;
   const affinityDebug = getAffinityDebug(result);
@@ -688,6 +769,21 @@ export default function LabPage() {
           Esta pantalla sirve para probar el sistema con casos diversos y evitar
           depender de un solo caso humano.
         </p>
+        <p className="text-sm">
+          <a
+            href="/lab/foundational-cohort"
+            className="font-semibold text-[#1A9BB0] underline"
+          >
+            Ola fundacional — batch, semillas y export
+          </a>
+          {" · "}
+          <a
+            href="/admin/casos-humanos"
+            className="font-semibold text-neutral-600 underline"
+          >
+            Casos humanos
+          </a>
+        </p>
       </div>
 
       <section className="rounded-2xl border p-5 space-y-4">
@@ -706,11 +802,20 @@ export default function LabPage() {
               setManualCompletionFields([]);
             }}
           >
-            {HUMAN_LANGUAGE_CASES.map((testCase) => (
-              <option key={testCase.id} value={testCase.id}>
-                {testCase.label}
-              </option>
-            ))}
+            <optgroup label="Golden refractarios (narrativa)">
+              {GOLDEN_REFRACTORY_CASES.map((testCase) => (
+                <option key={testCase.id} value={testCase.id}>
+                  {testCase.label}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Otros casos humanos">
+              {OTHER_HUMAN_CASES.map((testCase) => (
+                <option key={testCase.id} value={testCase.id}>
+                  {testCase.label}
+                </option>
+              ))}
+            </optgroup>
           </select>
         </div>
 
@@ -922,6 +1027,16 @@ export default function LabPage() {
                 <strong>Diagnóstico:</strong>{" "}
                 {result.data.summaryForUser?.diagnostico ?? "n/a"}
               </p>
+              {result.data.personalizedPresentation?.lecturaCentral
+                ?.sentenciaRevelacion ? (
+                <p className="mt-2 text-sm text-emerald-800">
+                  Entregable compuesto: ver{" "}
+                  <strong>desarrollo completo</strong> en la sección de abajo
+                  ({result.data.personalizedPresentation.enTusPalabras?.length ?? 0}{" "}
+                  citas · narrative:{" "}
+                  {result.data.personalizedPresentation.meta?.narrativeVerdict ?? "n/a"}).
+                </p>
+              ) : null}
               {finalDiagnostic?.severity ? (
                 <p>
                   <strong>Severity:</strong> {finalDiagnostic.severity}
@@ -969,8 +1084,159 @@ export default function LabPage() {
             </div>
           )}
         </div>
+      </section>
 
-        <div className="rounded-2xl border p-5 space-y-3">
+      {result?.ok &&
+      result.data.personalizedPresentation?.lecturaCentral?.sentenciaRevelacion ? (
+        <section className="rounded-2xl border-2 border-emerald-400/60 bg-white shadow-sm overflow-hidden">
+          <div className="border-b border-emerald-100 bg-emerald-50/80 px-6 py-5 md:px-10 flex flex-wrap items-start justify-between gap-4">
+            <div className="space-y-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-800">
+                Vista de producto
+              </p>
+              <h2 className="text-2xl md:text-3xl font-semibold text-neutral-900">
+                Entregable personalizado — desarrollo completo
+              </h2>
+              <p className="text-sm text-neutral-600 max-w-2xl">
+                Misma composición que verá la persona en{" "}
+                <code className="text-xs bg-white/80 px-1 rounded">/full/result</code>.
+                Abajo: datos técnicos del pipeline.
+              </p>
+            </div>
+            <div className="text-xs text-neutral-600 space-y-1 rounded-lg border border-emerald-200 bg-white px-4 py-3">
+              <p>
+                <strong>corePattern (interno):</strong>{" "}
+                {result.data.corePattern ?? "n/a"}
+              </p>
+              <p>
+                <strong>verdict narrativo:</strong>{" "}
+                {result.data.personalizedPresentation.meta?.narrativeVerdict ?? "n/a"}
+              </p>
+              <p>
+                <strong>fuentes:</strong>{" "}
+                {(result.data.personalizedPresentation.meta?.sourcesUsed ?? []).join(
+                  ", ",
+                )}
+              </p>
+            </div>
+          </div>
+          <div className="px-4 py-8 md:px-10 md:py-12">
+            <PersonalizedDiagnosticDeliverable
+              presentation={result.data.personalizedPresentation}
+            />
+          </div>
+        </section>
+      ) : null}
+
+      <section className="grid gap-5 lg:grid-cols-3">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 space-y-3 lg:col-span-3">
+          <h2 className="text-lg font-medium">Coherencia narrativa (auditoría + palancas lab)</h2>
+          <p className="text-xs text-neutral-600">
+            Dos ejes: directionFit + compressionConcern. Lee expediente del pipeline.
+          </p>
+
+          {!result?.ok ? (
+            <p className="text-sm text-neutral-700">Corré un caso para ver el juez.</p>
+          ) : narrativeReview ? (
+            <div className="space-y-3 text-sm text-neutral-800">
+              {narrativeCoherenceMeta ? (
+                <p className="text-xs text-neutral-600">
+                  API: {narrativeCoherenceMeta.status} · {narrativeCoherenceMeta.latencyMs}ms
+                </p>
+              ) : null}
+              <p>
+                <strong>verdict:</strong> {narrativeReview.verdict} ·{" "}
+                <strong>confidence:</strong> {narrativeReview.confidence}
+              </p>
+              <p>
+                <strong>directionFit:</strong> {narrativeReview.directionFit} ·{" "}
+                <strong>compression:</strong> {narrativeReview.compressionConcern} ·{" "}
+                <strong>closureRisk:</strong> {narrativeReview.closureRisk}
+              </p>
+              {narrativeReview.family ? (
+                <p>
+                  <strong>family sugerida:</strong> {narrativeReview.family}
+                  {narrativeReview.familyResolution
+                    ? ` (${narrativeReview.familyResolution})`
+                    : ""}
+                </p>
+              ) : null}
+              {narrativeReview.sostenActual ? (
+                <p>
+                  <strong>sostenActual:</strong> {narrativeReview.sostenActual}
+                </p>
+              ) : null}
+              <p>
+                <strong>corePattern motor:</strong>{" "}
+                {result.data.corePattern ?? "n/a"}
+              </p>
+              {(result.data.trace as { narrativeAdjudication?: { applied?: boolean; levers?: string[] } })
+                ?.narrativeAdjudication ? (
+                <p>
+                  <strong>palancas:</strong>{" "}
+                  {(result.data.trace as { narrativeAdjudication: { applied: boolean; levers: string[] } })
+                    .narrativeAdjudication.applied
+                    ? (result.data.trace as { narrativeAdjudication: { levers: string[] } })
+                        .narrativeAdjudication.levers.join(", ")
+                    : "no aplicadas"}
+                </p>
+              ) : null}
+              <div>
+                <p className="font-medium">reason</p>
+                <p className="text-neutral-700">{narrativeReview.reason}</p>
+              </div>
+              <div>
+                <p className="font-medium">narrativeSummary</p>
+                <p className="text-neutral-700">{narrativeReview.narrativeSummary}</p>
+              </div>
+              <div>
+                <p className="font-medium">coreTension</p>
+                <p className="text-neutral-700">{narrativeReview.coreTension}</p>
+              </div>
+              {narrativeReview.evidence.length > 0 ? (
+                <div>
+                  <p className="font-medium">evidence</p>
+                  <ul className="list-disc pl-5 text-neutral-700 space-y-1">
+                    {narrativeReview.evidence.map((line, index) => (
+                      <li key={`ev-${index}`}>{line}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {narrativeReview.riskFlags.length > 0 ? (
+                <div>
+                  <p className="font-medium">riskFlags</p>
+                  <ul className="space-y-1 text-neutral-700">
+                    {narrativeReview.riskFlags.map((flag, index) => (
+                      <li key={`rf-${index}`}>
+                        [{flag.severity}] {flag.type}: {flag.description}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {narrativeReview.alternativeFamilies.length > 0 ? (
+                <div>
+                  <p className="font-medium">alternativeFamilies</p>
+                  <ul className="list-disc pl-5 text-neutral-700 space-y-1">
+                    {narrativeReview.alternativeFamilies.map((alt) => (
+                      <li key={alt.familyId}>
+                        {alt.familyId}: {alt.reason}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <p className="text-sm text-red-800">
+              {narrativeCoherenceMeta?.error ??
+                "Juez no disponible (revisá OPENAI_API_KEY)."}
+            </p>
+          )}
+        </div>
+
+        <div className="rounded-2xl border p-5 space-y-3 lg:col-span-3">
           <h2 className="text-lg font-medium">Trace de decisión</h2>
 
           {resolvedTrace ? (
@@ -1383,7 +1649,7 @@ export default function LabPage() {
 
           <section className="rounded-2xl border p-5 space-y-4">
             <h2 className="text-lg font-medium">
-              Juez de descarte — audit-only / shadow preview
+              Juez de Descarte — exclusión de candidatos
             </h2>
 
             {!negativeEvidenceReview ? (
@@ -1397,9 +1663,23 @@ export default function LabPage() {
                     <strong>mode:</strong> {negativeEvidenceReview.mode}
                   </p>
                   <p>
-                    <strong>wouldChangeTopFamily (gated):</strong>{" "}
-                    {String(negativeEvidenceReview.wouldChangeTopFamily)}
+                    <strong>excluded:</strong>{" "}
+                    {negativeEvidenceReview.excludedFamilyIds?.length ?? 0} ·{" "}
+                    <strong>eligible:</strong>{" "}
+                    {negativeEvidenceReview.eligibleFamilyCount ?? "—"}
                   </p>
+                  {negativeEvidenceReview.excludedFamilyIds?.length ? (
+                    <p className="text-xs">
+                      {negativeEvidenceReview.excludedFamilyIds.join(", ")}
+                    </p>
+                  ) : null}
+                  {negativeEvidenceReview.topFamilyChangedByExclusion ? (
+                    <p>
+                      <strong>top cambió por descarte:</strong>{" "}
+                      {negativeEvidenceReview.originalTopFamilyId} →{" "}
+                      {negativeEvidenceReview.effectiveTopFamilyId}
+                    </p>
+                  ) : null}
                   <p>
                     <strong>wouldAffectRealResult:</strong>{" "}
                     {String(negativeEvidenceReview.wouldAffectRealResult)}
@@ -1476,12 +1756,21 @@ export default function LabPage() {
                     </span>
                   </p>
                     <p>
-                      <strong>shouldAffectScoreNow:</strong>{" "}
+                      <strong>excludedFromCandidates:</strong>{" "}
+                      {String(finding.excludedFromCandidates ?? false)}
+                    </p>
+                    <p>
+                      <strong>shouldAffectScoreNow (legacy sombra):</strong>{" "}
                       {String(finding.shouldAffectScoreNow)}
                     </p>
                     {finding.reasons.length > 0 ? (
                       <p>
                         <strong>reasons:</strong> {finding.reasons.join(" | ")}
+                      </p>
+                    ) : null}
+                    {finding.rivalRuleId ? (
+                      <p>
+                        <strong>rivalRuleId:</strong> {finding.rivalRuleId}
                       </p>
                     ) : null}
                     {finding.supportingEvidence && finding.supportingEvidence.length > 0 ? (

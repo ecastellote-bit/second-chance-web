@@ -8,9 +8,16 @@ import {
   evaluateHumanReviewTrigger,
   buildHumanReviewPayload,
 } from "@/lib/engines/humanReviewTrigger";
+import {
+  applyNarrativeJudgeToDiagnosticReading,
+  getDiagnosticJudgesStatus,
+} from "@/lib/engines/diagnosticJudgeIntegration";
+import { applyDiagnosticPresentationLayer } from "@/lib/engines/diagnosticPresentationIntegration";
+import { normalizeUserIntake } from "@/lib/engines/intakeEngine";
 import { findSimilarLearnedCases, buildLearningSignal } from "@/lib/engines/similarCaseEngine";
 import type { UserIntake } from "@/lib/types/intake";
 import type { FollowupRound, AmbiguityType } from "@/lib/types/followup";
+import type { ProfileFamilyScore } from "@/lib/types/profileFamilies";
 
 type ClarificationMetaPayload = {
   roundsCompleted?: number;
@@ -43,6 +50,7 @@ export async function GET() {
     ok: true,
     route: "analyze",
     message: "API route is alive",
+    judges: getDiagnosticJudgesStatus(),
   });
 }
 
@@ -63,6 +71,37 @@ export async function POST(req: Request) {
       _semanticSimilarity: semanticSimilarity,
     });
 
+    let dataForResponse = result.ok ? result.data : null;
+    let narrativeCoherenceMeta: {
+      status: "ok" | "skipped" | "error" | "disabled";
+      latencyMs?: number;
+      review?: import("@/lib/types/narrativeCoherence").NarrativeCoherenceReview | null;
+      error?: string;
+      leversApplied?: boolean;
+    } | null = null;
+
+    if (result.ok) {
+      const intake = normalizeUserIntake(body);
+      const familyScores = Array.isArray(result.data.familyScores)
+        ? (result.data.familyScores as ProfileFamilyScore[])
+        : undefined;
+
+      const narrativeIntegration = await applyNarrativeJudgeToDiagnosticReading({
+        intake,
+        reading: result.data,
+        familyScores,
+      });
+
+      dataForResponse = narrativeIntegration.reading;
+      narrativeCoherenceMeta = {
+        status: narrativeIntegration.meta.status,
+        latencyMs: narrativeIntegration.meta.latencyMs,
+        review: narrativeIntegration.meta.review,
+        error: narrativeIntegration.meta.error,
+        leversApplied: narrativeIntegration.meta.leversApplied,
+      };
+    }
+
     const semanticFollowup = await generateSemanticFollowup(semanticSignals);
 
     if (!result.ok) {
@@ -77,7 +116,6 @@ export async function POST(req: Request) {
         learningSignal,
       });
 
-      let humanReviewQueued = false;
       if (reviewTrigger.shouldEscalate) {
         const payload = buildHumanReviewPayload({
           triggerResult: reviewTrigger,
@@ -96,8 +134,6 @@ export async function POST(req: Request) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         }).catch(() => {});
-
-        humanReviewQueued = true;
       }
 
       return NextResponse.json(
@@ -109,6 +145,7 @@ export async function POST(req: Request) {
           humanReview: reviewTrigger.shouldEscalate
             ? { escalated: true, urgency: reviewTrigger.urgency, userMessage: reviewTrigger.userMessage }
             : null,
+          judges: getDiagnosticJudgesStatus(),
           _semantic: semanticSignals.ok ? { status: "ok", latencyMs: semanticSignals.latencyMs } : { status: "fallback", error: semanticSignals.error },
         },
         { status: 400 },
@@ -116,8 +153,8 @@ export async function POST(req: Request) {
     }
 
     const topFamilies = Array.isArray(result.data.familyScores)
-      ? (result.data.familyScores as any[]).slice(0, 5).map((f: any) => ({
-          id: f.id ?? f.familyId ?? "",
+      ? (result.data.familyScores as ProfileFamilyScore[]).slice(0, 5).map((f) => ({
+          id: f.id ?? (f as { familyId?: string }).familyId ?? "",
           score: typeof f.score === "number" ? f.score : 0,
         }))
       : [];
@@ -128,7 +165,7 @@ export async function POST(req: Request) {
     );
 
     const reviewTrigger = evaluateHumanReviewTrigger({
-      resultType: result.data.resultType,
+      resultType: dataForResponse?.resultType ?? result.data.resultType,
       topFamilies,
       semanticSignals,
       learningSignal,
@@ -139,8 +176,8 @@ export async function POST(req: Request) {
         triggerResult: reviewTrigger,
         userEmail: body.userEmail,
         narrativeText,
-        resultType: result.data.resultType,
-        corePattern: result.data.corePattern,
+        resultType: dataForResponse?.resultType ?? result.data.resultType,
+        corePattern: dataForResponse?.corePattern ?? result.data.corePattern,
         topFamilies,
         overallConfidence: topFamilies[0]?.score ?? 0,
         semanticSignals,
@@ -154,11 +191,20 @@ export async function POST(req: Request) {
       }).catch(() => {});
     }
 
-    const guidedThemes = selectGuidedThemes(result.data, 5);
+    const guidedThemes = selectGuidedThemes(dataForResponse ?? result.data, 5);
+
+    const intakeForPresentation = normalizeUserIntake(body);
+    const readingWithPresentation = applyDiagnosticPresentationLayer({
+      reading: dataForResponse ?? result.data,
+      guidedThemes: guidedThemes.map((g) => ({
+        shortLabel: g.theme.shortLabel,
+      })),
+      intake: intakeForPresentation,
+    });
 
     return NextResponse.json({
       ok: true,
-      data: result.data,
+      data: readingWithPresentation,
       warnings: result.warnings,
       followup: result.followup,
       guidedThemes: guidedThemes.map((g) => ({
@@ -170,6 +216,8 @@ export async function POST(req: Request) {
         activationPaths: g.theme.suggestedActivationPaths,
       })),
       semanticFollowup: semanticFollowup.shouldAsk ? semanticFollowup : null,
+      narrativeCoherence: narrativeCoherenceMeta,
+      judges: getDiagnosticJudgesStatus(),
       humanReview: reviewTrigger.shouldEscalate
         ? {
             escalated: true,
@@ -206,3 +254,4 @@ export async function POST(req: Request) {
     );
   }
 }
+

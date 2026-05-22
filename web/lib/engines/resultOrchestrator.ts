@@ -16,6 +16,7 @@ import { buildBestWorkContexts } from "./workContextEngine";
 import { buildMisreadRisk } from "./misreadRiskEngine";
 import { buildTransitionRecommendation } from "./transitionRecommendationEngine";
 import { evaluateResultDecision } from "./resultDecision";
+import { applyContextualInfluenceToFinalReading } from "./contextualSituationAdjudication";
 
 type FamilyScoreLike = {
   familyId?: string;
@@ -1192,6 +1193,21 @@ function contextualSuggestsFrontier(contextualSituationReview: unknown): boolean
 
   const review = contextualSituationReview as Record<string, unknown>;
 
+  const verdict = normalizeDiagnosticText(review.verdict);
+  if (
+    verdict.includes("context_suggests_frontier") ||
+    verdict.includes("sugiere frontera")
+  ) {
+    return true;
+  }
+
+  if (review.shouldInfluenceDiagnostic === true) {
+    const frontier = review.suggestedFrontier;
+    if (Array.isArray(frontier) && frontier.length >= 2) {
+      return true;
+    }
+  }
+
   const explicitOpenFrontier = readBooleanFlag(review, [
     "suggestsOpenFrontier",
     "suggestOpenFrontier",
@@ -1427,6 +1443,7 @@ function buildUpgradedCompressedLifeSummary(params: {
 function buildFrontierOrReviewSummary(params: {
   provisionalReading: FinalReading;
   familyRace: FamilyRaceAnalysis;
+  contextualSituationReview?: unknown;
 }): FinalReading["summaryForUser"] {
   const previous = params.provisionalReading.summaryForUser;
 
@@ -1435,14 +1452,43 @@ function buildFrontierOrReviewSummary(params: {
       ? `${params.familyRace.topLabel} / ${params.familyRace.secondLabel}`
       : params.familyRace.topLabel ?? "la familia principal detectada";
 
+  const contextualSummary =
+    params.contextualSituationReview &&
+    typeof params.contextualSituationReview === "object"
+      ? String(
+          (params.contextualSituationReview as Record<string, unknown>)
+            .contextSummary ??
+            (params.contextualSituationReview as Record<string, unknown>)
+              .summary ??
+            "",
+        )
+      : "";
+
   return {
     ...previous,
     diagnostico:
       "La lectura detecta una dirección posible, pero la auditoría recomienda tratarla como frontera activa antes de cerrarla.",
     direccion: `La zona que conviene revisar es ${frontier}.`,
-    cierre:
-      "No conviene emitir una sentencia cerrada todavía. La memoria histórica o los jueces sugieren revisar la frontera antes de convertir esto en conclusión final.",
+    cierre: contextualSummary
+      ? `${contextualSummary} No conviene emitir una sentencia cerrada todavía: conviene sostener la frontera con el marco situacional completo.`
+      : "No conviene emitir una sentencia cerrada todavía. La memoria histórica o los jueces sugieren revisar la frontera antes de convertir esto en conclusión final.",
   };
+}
+
+function applyContextualSentenceLayer(
+  reading: FinalReading,
+  input: FinalAdjudicationInput,
+  familyRace: FamilyRaceAnalysis,
+): FinalReading {
+  return applyContextualInfluenceToFinalReading(
+    reading,
+    input.contextualSituationReview,
+    {
+      topFamilyLabel: familyRace.topLabel,
+      secondFamilyLabel: familyRace.secondLabel,
+      scoreGap: familyRace.scoreGap,
+    },
+  );
 }
 
 export function finalizeReadingAfterDiagnosticReview(
@@ -1550,71 +1596,84 @@ export function finalizeReadingAfterDiagnosticReview(
   if (shouldUpgradeToClear) {
     const previousDiagnostic = input.provisionalReading.finalDiagnostic as any;
 
-    return {
-      ...input.provisionalReading,
-      resultType: "clear_direction",
-      familyScores,
-      communityRouting: decideCommunityRouting("clear_direction"),
-      dominantTension:
-        "La dirección principal aparece suficientemente clara, aunque la transición todavía está condicionada por restricciones reales.",
-      currentCost:
-        "El costo principal no es la falta de dirección, sino avanzar sin cuidar margen, energía y exposición.",
-      summaryForUser: buildUpgradedCompressedLifeSummary({
-        provisionalReading: input.provisionalReading,
-        familyRace,
-      }),
-      finalDiagnostic: {
-        ...previousDiagnostic,
-        severity: resolveSeverity("clear_direction", input.transitionAssessment),
-        functionalSubtype: resolveFunctionalSubtype(
-          familyRace.topId,
-          "clear_direction",
-          familyRace.shouldAvoidSingleClearClaim,
+    return applyContextualSentenceLayer(
+      {
+        ...input.provisionalReading,
+        resultType: "clear_direction",
+        familyScores,
+        communityRouting: decideCommunityRouting("clear_direction"),
+        dominantTension:
+          "La dirección principal aparece suficientemente clara, aunque la transición todavía está condicionada por restricciones reales.",
+        currentCost:
+          "El costo principal no es la falta de dirección, sino avanzar sin cuidar margen, energía y exposición.",
+        summaryForUser: buildUpgradedCompressedLifeSummary({
+          provisionalReading: input.provisionalReading,
+          familyRace,
+        }),
+        finalDiagnostic: {
+          ...previousDiagnostic,
+          severity: resolveSeverity("clear_direction", input.transitionAssessment),
+          functionalSubtype: resolveFunctionalSubtype(
+            familyRace.topId,
+            "clear_direction",
+            familyRace.shouldAvoidSingleClearClaim,
+          ),
+          nextMove: previousDiagnostic?.nextMove
+            ? {
+                ...previousDiagnostic.nextMove,
+                transitionMode: "guided_repositioning",
+              }
+            : previousDiagnostic?.nextMove,
+        },
+        trace: mergeTraceWithFinalAdjudication(
+          input.provisionalReading.trace,
+          adjudicationTrace,
         ),
-        nextMove: previousDiagnostic?.nextMove
-          ? {
-              ...previousDiagnostic.nextMove,
-              transitionMode: "guided_repositioning",
-            }
-          : previousDiagnostic?.nextMove,
-      },
-      trace: mergeTraceWithFinalAdjudication(
-        input.provisionalReading.trace,
-        adjudicationTrace,
-      ),
-    } as FinalReading;
+      } as FinalReading,
+      input,
+      familyRace,
+    );
   }
 
   if (shouldOpenFrontierOrReview) {
     const previousDiagnostic = input.provisionalReading.finalDiagnostic as any;
 
-    return {
+    return applyContextualSentenceLayer(
+      {
+        ...input.provisionalReading,
+        familyScores,
+        summaryForUser: buildFrontierOrReviewSummary({
+          provisionalReading: input.provisionalReading,
+          familyRace,
+          contextualSituationReview: input.contextualSituationReview,
+        }),
+        finalDiagnostic: {
+          ...previousDiagnostic,
+          functionalSubtype: "frontier_pattern_needs_review",
+          needsHumanReview: true,
+        },
+        trace: mergeTraceWithFinalAdjudication(
+          input.provisionalReading.trace,
+          adjudicationTrace,
+        ),
+      } as FinalReading,
+      input,
+      familyRace,
+    );
+  }
+
+  return applyContextualSentenceLayer(
+    {
       ...input.provisionalReading,
       familyScores,
-      summaryForUser: buildFrontierOrReviewSummary({
-        provisionalReading: input.provisionalReading,
-        familyRace,
-      }),
-      finalDiagnostic: {
-        ...previousDiagnostic,
-        functionalSubtype: "frontier_pattern_needs_review",
-        needsHumanReview: true,
-      },
       trace: mergeTraceWithFinalAdjudication(
         input.provisionalReading.trace,
         adjudicationTrace,
       ),
-    } as FinalReading;
-  }
-
-  return {
-    ...input.provisionalReading,
-    familyScores,
-    trace: mergeTraceWithFinalAdjudication(
-      input.provisionalReading.trace,
-      adjudicationTrace,
-    ),
-  } as FinalReading;
+    } as FinalReading,
+    input,
+    familyRace,
+  );
 }
 
 export function buildFinalReading(input: OrchestratorInput): FinalReading {

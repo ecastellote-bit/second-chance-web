@@ -1,3 +1,6 @@
+import type { DiagnosticJudgeFinding } from "../types/diagnosticJudges";
+import { recomputeDiagnosticAggregateFromFindings } from "./diagnosticJudgeEngine";
+
 type UnknownRecord = Record<string, unknown>;
 
 function isRecord(value: unknown): value is UnknownRecord {
@@ -42,8 +45,7 @@ function isConflictVerdict(value: unknown): boolean {
   return (
     normalized === "conflict" ||
     normalized.includes("conflict") ||
-    normalized.includes("contradiction") ||
-    normalized.includes("red flag")
+    normalized.includes("contradiction")
   );
 }
 
@@ -67,7 +69,7 @@ function softenSimilarCaseFinding(
       verdict: "weak_similarity_warning",
       confidence: Math.min(getNumber(finding.confidence), 0.35),
       reason: [
-        "La memoria de casos detectó una posible tensión, pero la similitud más alta es baja. No debe generar conflicto fuerte ni desplazar una lectura principal sólida.",
+        "La memoria detectó una posible tensión, pero la similitud más alta es baja. No debe generar conflicto fuerte ni desplazar una lectura principal sólida.",
         originalReason,
       ]
         .filter(Boolean)
@@ -81,7 +83,7 @@ function softenSimilarCaseFinding(
       verdict: "frontier_note",
       confidence: Math.min(getNumber(finding.confidence), 0.5),
       reason: [
-        "La memoria de casos aporta una nota de frontera, pero todavía no tiene fuerza suficiente para declarar contradicción diagnóstica.",
+        "La memoria aporta una nota de frontera, pero todavía no tiene fuerza suficiente para declarar contradicción diagnóstica.",
         originalReason,
       ]
         .filter(Boolean)
@@ -90,6 +92,19 @@ function softenSimilarCaseFinding(
   }
 
   return finding;
+}
+
+function asFindings(findings: unknown[]): DiagnosticJudgeFinding[] {
+  return findings.filter(isRecord).map((f) => ({
+    judgeId: String(f.judgeId ?? ""),
+    verdict: f.verdict as DiagnosticJudgeFinding["verdict"],
+    family: typeof f.family === "string" ? f.family : undefined,
+    confidence: getNumber(f.confidence),
+    reason: typeof f.reason === "string" ? f.reason : "",
+    evidence: Array.isArray(f.evidence)
+      ? f.evidence.filter((e): e is string => typeof e === "string")
+      : [],
+  }));
 }
 
 export function calibrateDiagnosticReviewIntensity<T>(
@@ -112,7 +127,7 @@ export function calibrateDiagnosticReviewIntensity<T>(
     ? diagnosticReview.findings
     : [];
 
-  const calibratedFindings = findings.map((finding) => {
+  const calibratedRaw = findings.map((finding) => {
     if (!isRecord(finding)) return finding;
 
     if (!isSimilarCaseJudge(finding)) return finding;
@@ -122,42 +137,12 @@ export function calibrateDiagnosticReviewIntensity<T>(
     return softenSimilarCaseFinding(finding, topSimilarity);
   });
 
-  const weakSimilarCaseConflictWasPresent =
-    findings.filter(isRecord).some((finding) => {
-      return (
-        isSimilarCaseJudge(finding) &&
-        isConflictVerdict(finding.verdict) &&
-        topSimilarity < 0.4
-      );
-    });
-
-  const strongNonSimilarConflictsRemain = calibratedFindings
-    .filter(isRecord)
-    .some((finding) => {
-      return !isSimilarCaseJudge(finding) && isConflictVerdict(finding.verdict);
-    });
-
-  const shouldDowngradeOverallConflict =
-    weakSimilarCaseConflictWasPresent &&
-    isConflictVerdict(diagnosticReview.finalVerdict) &&
-    !strongNonSimilarConflictsRemain;
-
-  if (!shouldDowngradeOverallConflict) {
-    return {
-      ...diagnosticReview,
-      findings: calibratedFindings,
-    } as T;
-  }
-
-  const recommendedFrontier = Array.isArray(diagnosticReview.recommendedFrontier)
-    ? diagnosticReview.recommendedFrontier
-    : [];
+  const calibratedFindings = asFindings(calibratedRaw);
+  const aggregate = recomputeDiagnosticAggregateFromFindings(calibratedFindings);
 
   return {
     ...diagnosticReview,
-    finalVerdict:
-      recommendedFrontier.length >= 2 ? "frontier" : "aligned_with_caution",
-    shouldRequestHumanReview: false,
+    ...aggregate,
     findings: calibratedFindings,
   } as T;
 }

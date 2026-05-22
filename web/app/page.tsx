@@ -139,8 +139,14 @@ export default function HomePage() {
           <Link href="/full/step-1">
             <Button variant="primary">Iniciar flujo completo</Button>
           </Link>
+          <Link href="/fundador">
+            <Button variant="secondary">Invitación fundadora</Button>
+          </Link>
           <Link href="/community">
             <Button variant="secondary">Comunidad (3 puertas)</Button>
+          </Link>
+          <Link href="/lab/foundational-cohort">
+            <Button variant="secondary">Lab · batch fundacional</Button>
           </Link>
           <Link href="/admin/observatorio">
             <Button variant="secondary" size="md">

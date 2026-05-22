@@ -35,7 +35,8 @@ async function postOnce(payload: unknown): Promise<PersistHumanCaseResponse> {
 }
 
 /**
- * Guarda caso humano con reintentos. Solo considera éxito si persisted === true (Blob verificado).
+ * Guarda caso humano con reintentos.
+ * Éxito si persisted === true (Blob verificado o espejo JSONL cuando Blob no es obligatorio).
  */
 export async function persistHumanCaseFromBrowserWithRetry(
   payload: unknown,

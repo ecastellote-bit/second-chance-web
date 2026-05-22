@@ -31,6 +31,9 @@ export type HumanCasePayload = {
     sessionId?: string;
     origin?: string;
     syncedFromBrowser?: boolean;
+    cohortBatch?: string;
+    flow?: string;
+    [key: string]: unknown;
   };
 };
 
@@ -432,7 +435,11 @@ export type PersistHumanCaseResult = {
   extractRecord: HumanLearningExtractRecord;
 };
 
-/** Escribe SIEMPRE caso completo + extracto de aprendizaje (dos depósitos enlazados). */
+/**
+ * Escribe caso completo + extracto de aprendizaje.
+ * Alcance fundacional: solo cuestionario (sourceInput) + sentencia del diagnóstico (currentResult).
+ * Ver web/docs/human-depot-scope.md
+ */
 export async function persistHumanCaseDepot(
   payload: HumanCasePayload,
   options?: {
@@ -470,6 +477,12 @@ export async function persistHumanCaseDepot(
     throw new Error(
       "BLOB_READ_WRITE_TOKEN requerido en Vercel para guardar casos humanos.",
     );
+  } else {
+    durable = {
+      stored: false,
+      verified: false,
+      storage: "filesystem_mirror",
+    };
   }
 
   const complete = await appendJsonlIfNew(
@@ -485,6 +498,19 @@ export async function persistHumanCaseDepot(
     extractRecord.extractId,
     extractRecord,
   );
+
+  if (
+    !storeStatus.configured &&
+    !storeStatus.required &&
+    complete.appended &&
+    extract.appended
+  ) {
+    durable = {
+      stored: true,
+      verified: true,
+      storage: "filesystem_mirror",
+    };
+  }
 
   let legacy: PersistHumanCaseResult["legacy"];
 

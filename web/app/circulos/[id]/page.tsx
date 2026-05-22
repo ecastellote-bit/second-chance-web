@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { UserProfileGate } from "@/components/perfil/UserProfileGate";
 import {
   CIRCLE_STATUS_BADGE,
   NeighborhoodActivityDetail,
@@ -25,6 +26,7 @@ export default function CirculoDetailPage() {
   }
 
   return (
+    <UserProfileGate>
     <NeighborhoodActivityDetail
       backHref="/circulos"
       backLabel="Círculos"
@@ -55,5 +57,6 @@ export default function CirculoDetailPage() {
         los demás desde la plaza.
       </p>
     </NeighborhoodActivityDetail>
+    </UserProfileGate>
   );
 }

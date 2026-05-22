@@ -18,11 +18,16 @@ import {
   buildLearningSignal,
   findSimilarLearnedCases,
 } from "./similarCaseEngine";
-import { mergeSemanticMatchesIntoLearningSignal } from "./semanticSimilarityEngine";
+import {
+  mergeSemanticMatchesIntoLearningSignal,
+  prepareSemanticMatchesForLearning,
+  shouldMergeSemanticSimilarityIntoLearning,
+} from "./semanticSimilarityEngine";
 import { runDiagnosticJudgeEngine } from "./diagnosticJudgeEngine";
 import { runDiagnosticExperienceDistiller } from "./diagnosticExperienceDistiller";
 import { runContextualSituationJudge } from "./contextualSituationJudge";
 import { runNegativeEvidenceJudge } from "./negativeEvidenceJudge";
+import { applyDiscardExclusions } from "./discardJudgeAdjudication";
 import { ensureDiagnosticLearningTrace } from "./diagnosticLearningTrace";
 import { buildDiagnosticCaseStatistics } from "./diagnosticCaseStatistics";
 import { calibrateDiagnosticReviewIntensity } from "./diagnosticReviewCalibrator";
@@ -272,9 +277,36 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
     intake,
     semanticSignals: rawInput._semanticSignals,
   });
+
+  /**
+   * Capa 0: Juez de Descarte — exclusión de familias imposibles.
+   * Corre antes de la lectura provisoria. No elige ganador; reduce el universo candidato.
+   */
+  const negativeEvidenceReviewDraft = runNegativeEvidenceJudge({
+    intake,
+    familyScores: affinityBridge.familyScores ?? [],
+    affinityScores: affinityBridge.affinityScores ?? [],
+  });
+
+  const discardExclusion = applyDiscardExclusions(
+    affinityBridge.familyScores ?? [],
+    negativeEvidenceReviewDraft,
+  );
+
+  const effectiveFamilyScores = discardExclusion.familyScores;
+
+  const negativeEvidenceReview = {
+    ...negativeEvidenceReviewDraft,
+    effectiveTopFamilyId: discardExclusion.effectiveTopFamilyId,
+    topFamilyChangedByExclusion: discardExclusion.topFamilyChangedByExclusion,
+    wouldAffectRealResult:
+      negativeEvidenceReviewDraft.exclusionsApplied &&
+      discardExclusion.topFamilyChangedByExclusion,
+  };
+
   const profiles = runTDM(signals, affinityBridge.affinityScores);
   const transitionAssessment = runLTE(intake);
-  const plausibleDirections = runSEL(profiles, affinityBridge.familyScores);
+  const plausibleDirections = runSEL(profiles, effectiveFamilyScores);
   const actionVectors = runAVE(plausibleDirections, transitionAssessment);
 
   /**
@@ -282,6 +314,7 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
    *
    * Esta lectura es deliberadamente provisoria:
    * todavía no consultó memoria histórica ni fue auditada por jueces.
+   * Usa familyScores ya filtrados por el Juez de Descarte.
    */
   const provisionalReading = buildFinalReading({
     intake,
@@ -290,7 +323,7 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
     transitionAssessment,
     plausibleDirections,
     actionVectors,
-    familyScores: affinityBridge.familyScores,
+    familyScores: effectiveFamilyScores,
     clarificationMeta,
   });
 
@@ -306,10 +339,15 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
     limit: 5,
   });
 
+  const semanticMatchesPrepared = rawInput._semanticSimilarity?.ok
+    ? prepareSemanticMatchesForLearning(rawInput._semanticSimilarity.matches)
+    : [];
+
   const similarCases =
-    rawInput._semanticSimilarity?.ok && rawInput._semanticSimilarity.matches.length > 0
+    rawInput._semanticSimilarity?.ok &&
+    shouldMergeSemanticSimilarityIntoLearning(semanticMatchesPrepared)
       ? mergeSemanticMatchesIntoLearningSignal(
-          rawInput._semanticSimilarity.matches,
+          semanticMatchesPrepared,
           tokenSimilarCases,
         )
       : tokenSimilarCases;
@@ -332,28 +370,21 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
   const rawDiagnosticReview = runDiagnosticJudgeEngine({
     intake,
     finalReading: provisionalReading,
-    familyScores: affinityBridge.familyScores ?? [],
+    familyScores: effectiveFamilyScores,
     affinityScores: affinityBridge.affinityScores ?? [],
     similarCases,
     learningSignal,
+    excludedFamilyIds: negativeEvidenceReview.excludedFamilyIds,
   });
 
   const diagnosticReview = calibrateDiagnosticReviewIntensity(
     rawDiagnosticReview,
     {
       similarCases,
-      familyScores: affinityBridge.familyScores ?? [],
+      familyScores: effectiveFamilyScores,
       finalReading: provisionalReading,
     },
   );
-
-  const negativeEvidenceReview = runNegativeEvidenceJudge({
-    intake,
-    finalReading: provisionalReading,
-    familyScores: affinityBridge.familyScores ?? [],
-    affinityScores: affinityBridge.affinityScores ?? [],
-    similarCases,
-  });
 
   /**
    * Capa 3: cirujano de experiencia diagnóstica.
@@ -384,12 +415,13 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
   const contextualSituationReview = runContextualSituationJudge({
     intake,
     finalReading: provisionalReading,
-    familyScores: affinityBridge.familyScores ?? [],
+    familyScores: effectiveFamilyScores,
     affinityScores: affinityBridge.affinityScores ?? [],
     similarCases,
     learningSignal,
     diagnosticReview,
     experienceDistillation: stabilizedExperienceDistillation,
+    excludedFamilyIds: negativeEvidenceReview.excludedFamilyIds,
   });
 
   /**
@@ -418,7 +450,7 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
    */
   const adjudicatedFinalReading = finalizeReadingAfterDiagnosticReview({
     provisionalReading,
-    familyScores: affinityBridge.familyScores ?? [],
+    familyScores: effectiveFamilyScores,
     similarCases,
     learningSignal,
     diagnosticReview,
@@ -460,7 +492,7 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
       ...adjudicatedFinalReading,
       trace: traceWithNegativeEvidenceReview,
     } as FinalReading,
-    familyScores: affinityBridge.familyScores ?? [],
+    familyScores: effectiveFamilyScores,
     affinityScores: affinityBridge.affinityScores ?? [],
     similarCases,
     learningSignal,
@@ -489,7 +521,7 @@ export function runAnalysisPipeline(rawInput: PipelineInput): PipelineResult {
     trace: traceWithNegativeEvidenceReview,
     finalAdjudication,
 
-    familyScores: affinityBridge.familyScores ?? [],
+    familyScores: effectiveFamilyScores,
     affinityScores: affinityBridge.affinityScores ?? [],
     topAffinities: affinityBridge.topAffinities ?? [],
     buriedCapacities: affinityBridge.buriedCapacities ?? [],

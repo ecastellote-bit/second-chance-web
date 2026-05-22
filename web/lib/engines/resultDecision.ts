@@ -5,9 +5,9 @@ import type { ResultType, TransitionAssessment } from "../types/result";
 import type { DiagnosticTrace, DecisionReasonCode } from "../types/debug";
 
 /**
- * Esta capa no lee `negativeEvidenceReview` ni aplica `suggestedPenalty`.
- * El juez de descarte vive aparte; cualquier integración futura debe respetar
- * los mismos gates que `shouldApplyDiscardToFinal` en negativeEvidenceJudge.
+ * Esta capa no lee `negativeEvidenceReview` directamente.
+ * Las exclusiones del Juez de Descarte se aplican en `analysisPipeline` vía
+ * `applyDiscardExclusions` antes de la lectura provisoria.
  */
 
 type ClarificationMeta = {

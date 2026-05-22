@@ -1,5 +1,10 @@
 import { EventosView } from "@/components/eventos/EventosView";
+import { UserProfileGate } from "@/components/perfil/UserProfileGate";
 
 export default function EventosPage() {
-  return <EventosView />;
+  return (
+    <UserProfileGate>
+      <EventosView />
+    </UserProfileGate>
+  );
 }

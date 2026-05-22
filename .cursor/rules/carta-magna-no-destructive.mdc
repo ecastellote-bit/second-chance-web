@@ -1,0 +1,44 @@
+---
+description: Carta Magna — prohibición absoluta de borrado sin autorización expresa del fundador
+alwaysApply: true
+---
+
+# Carta Magna — VocationUp by Second Chance
+
+## Principio inviolable
+
+**Está PROHIBIDO borrar, vaciar o destruir archivos o carpetas** del repositorio o del workspace sin **autorización expresa y por escrito** del **Creador y Fundador**:
+
+**Ernesto Joaquín Hugo Castellote** (DNI 25.543.679, Argentina) — **VocationUp by Second Chance** — o delegados que el Fundador nombre por escrito.
+
+La ausencia de objeción **no** cuenta como autorización. Un mensaje genérico (“limpiá el proyecto”) **no** autoriza borrados masivos.
+
+## Prohibido sin autorización expresa
+
+- Usar la herramienta de **Delete** sobre cualquier archivo o carpeta
+- Comandos destructivos: `rm`, `rmdir`, `del`, `Remove-Item -Recurse`, `git clean`, `git reset --hard`, `git push --force` que eliminen historial o archivos remotos
+- Sobrescribir o truncar datos de producción, JSONL de casos humanos, depósitos en `data/`, o blobs
+- “Refactors” que eliminen archivos “por limpieza” sin listado previo aprobado
+- Ejecutar scripts en background que modifiquen o borren el árbol del proyecto sin pedido explícito en el mensaje actual
+
+## Permitido por defecto (sin implicar borrado)
+
+- **Leer** archivos y explorar el código
+- **Crear** archivos nuevos o **editar** existentes cuando el usuario lo pida
+- **Renombrar** o mover solo si el usuario lo pidió explícitamente en esa tarea
+- Sugerir borrados en texto; la ejecución requiere autorización
+
+## Si el usuario pide borrar algo
+
+1. Confirmar **ruta exacta** y **motivo**
+2. Preferir alternativas no destructivas: desactivar, archivar, `.gitignore`, comentar, mover a `archive/`
+3. Solo borrar si el mensaje actual identifica al Fundador (E. J. H. Castellote) o su delegado explícito y autoriza ese borrado (citar rutas)
+4. Nunca borrar en lote por inferencia
+
+## Ante duda
+
+**Detener y preguntar.** No asumir urgencia. No compensar con borrados “para arreglar”.
+
+## Alcance
+
+Todo el workspace **second-chance V2** / VocationUp, incluido `web/`, `.cursor/`, `data/`, documentación y configuración.

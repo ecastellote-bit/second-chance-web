@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { setActiveHumanArchiveId } from "@/lib/learning/activeHumanArchive";
+import { grantFoundingMember } from "@/lib/learning/foundationalMember";
 import {
   downloadHumanCaseBackup,
   persistHumanCaseFromBrowserWithRetry,
@@ -32,6 +34,8 @@ export function HumanCaseArchiveGate({
       setArchiveId(result.archiveId);
 
       if (result.persisted) {
+        setActiveHumanArchiveId(result.archiveId);
+        grantFoundingMember(result.archiveId);
         setState("confirmed");
       } else {
         setState("failed");
@@ -112,6 +116,12 @@ export function HumanCaseArchiveGate({
           Gracias por entrenar el sistema. Revisaremos tu caso antes de usarlo como
           aprendizaje validado.
         </p>
+        <a
+          href="/perfil/crear?redirect=/full/themes"
+          className="mt-3 inline-block text-[13px] font-semibold text-[#1A9BB0] underline"
+        >
+          Crear tu perfil en VocationUp (obligatorio para el barrio) →
+        </a>
       </div>
       {children({ archiveId })}
     </div>

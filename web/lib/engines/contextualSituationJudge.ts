@@ -1,5 +1,10 @@
 import type { UserIntake } from "../types/intake";
 import type { FinalReading } from "../types/result";
+import {
+  buildContextualIntakeText,
+  shouldSuppressPublicVoiceWithoutAudience,
+  shouldSuppressTechnicalContextualForce,
+} from "./contextualPanelRules";
 
 type ContextualForceKind =
   | "public_voice_or_communication"
@@ -85,6 +90,12 @@ export type ContextualSituationReview = {
   suggestedThemes?: ThemeHint[];
   warnings?: string[];
   notes?: string[];
+  /** Plan explícito para adjudicación de sentencia (pre-copy público). */
+  diagnosticContributionPlan?: {
+    influenceSentence: boolean;
+    influenceThemes: boolean;
+    priorityFamilies: string[];
+  };
 };
 
 type SignalGroup = {
@@ -248,9 +259,14 @@ function hasOneToOneCareWithoutCollectiveBuild(
   return care.strength >= 0.7 && !hasExplicitCollectiveEvidence;
 }
 
+function normalizeFamilyId(value: unknown): string {
+  return normalizeText(value).replace(/\s+/g, "_");
+}
+
 function getTopFamilies(params: {
   finalReading: FinalReading;
   familyScores?: unknown[];
+  excludedFamilyIds?: string[];
 }): string[] {
   const safeReading = params.finalReading as any;
   const familyScores = Array.isArray(params.familyScores)
@@ -259,12 +275,22 @@ function getTopFamilies(params: {
       ? safeReading.familyScores
       : [];
 
+  const excluded = new Set(
+    (params.excludedFamilyIds ?? []).map((id) => normalizeFamilyId(id)),
+  );
+
   return familyScores
     .slice()
     .sort((a: any, b: any) => {
       const scoreA = typeof a?.score === "number" ? a.score : 0;
       const scoreB = typeof b?.score === "number" ? b.score : 0;
       return scoreB - scoreA;
+    })
+    .filter((item: any) => {
+      const id = normalizeFamilyId(
+        item?.id ?? item?.familyId ?? item?.family ?? "",
+      );
+      return id && !excluded.has(id);
     })
     .slice(0, 5)
     .map((item: any) => item?.id ?? item?.familyId ?? item?.family ?? item?.label)
@@ -684,7 +710,18 @@ const FORCE_DEFINITIONS: ForceDefinition[] = [
       },
       {
         label: "capacidad o deseo tapado",
-        terms: ["comprimida", "comprimido", "tapada", "quedo tapada", "enterrada"],
+        terms: [
+          "comprimida",
+          "comprimido",
+          "tapada",
+          "quedo tapada",
+          "enterrada",
+          "cajon",
+          "cajón",
+          "guardada en",
+          "algo mas vivo",
+          "algo más vivo",
+        ],
       },
       {
         label: "renuncia o postergación",
@@ -903,12 +940,21 @@ function buildFamilyAdjustments(params: {
 
   if (aesthetic) {
     adjustments.push({
-      family: "creative_storyteller",
-      direction: "watch",
-      strength: 0.55,
+      family: "artistic_creator",
+      direction: creative ? "keep" : "raise",
+      strength: creative ? 0.68 : 0.74,
       reason:
-        "La sensibilidad estética o visual puede sostener familias creativas, pero necesita más evidencia para una adjudicación fuerte.",
+        "La sensibilidad estética o visual apunta a creación de forma u obra propia, no sólo a relato verbal.",
     });
+    if (!creative) {
+      adjustments.push({
+        family: "creative_storyteller",
+        direction: "watch",
+        strength: 0.55,
+        reason:
+          "Puede haber narrativa de apoyo; la línea estética prima si no hay relato explícito fuerte.",
+      });
+    }
   }
 
   if (entrepreneurial) {
@@ -1322,18 +1368,41 @@ export function runContextualSituationJudge(params: {
   learningSignal?: unknown;
   diagnosticReview?: unknown;
   experienceDistillation?: unknown;
+  excludedFamilyIds?: string[];
 }): ContextualSituationReview {
   const rawText = collectText(params.intake);
   const text = normalizeText(rawText);
+  const unifiedText = buildContextualIntakeText(params.intake);
 
   const topFamilies = getTopFamilies({
     finalReading: params.finalReading,
     familyScores: params.familyScores,
+    excludedFamilyIds: params.excludedFamilyIds,
   });
 
-  const forces = FORCE_DEFINITIONS.map((definition) =>
+  let forces = FORCE_DEFINITIONS.map((definition) =>
     buildForce(text, definition),
   ).filter((force): force is ContextualForce => Boolean(force));
+
+  if (shouldSuppressPublicVoiceWithoutAudience(unifiedText)) {
+    forces = forces.filter(
+      (force) => force.kind !== "public_voice_or_communication",
+    );
+  }
+
+  if (shouldSuppressTechnicalContextualForce(unifiedText)) {
+    forces = forces.filter(
+      (force) => force.kind !== "technical_practical_construction",
+    );
+  }
+
+  const diagnosticSafe = params.diagnosticReview as
+    | { finalVerdict?: string; recommendedFrontier?: string[] }
+    | undefined;
+  const panelVerdict = normalizeText(diagnosticSafe?.finalVerdict ?? "");
+  const panelFrontierFamilies = Array.isArray(diagnosticSafe?.recommendedFrontier)
+    ? diagnosticSafe.recommendedFrontier
+    : [];
 
   const strongForces = forces.filter(
     (force) => force.strength >= STRONG_FORCE_THRESHOLD,
@@ -1357,21 +1426,34 @@ export function runContextualSituationJudge(params: {
 
   const shouldInfluenceDiagnostic =
     familyAdjustments.some((item) => item.strength >= 0.72) ||
-    strongForces.length >= 2;
+    strongForces.length >= 2 ||
+    (panelVerdict === "frontier" && panelFrontierFamilies.length >= 2);
 
   const shouldInfluenceGuidedSelection = themeHints.length > 0;
 
   const shouldRequestHumanReview =
-    strongForces.length >= 4 ||
+    strongForces.length >= 5 ||
     (hasForce(forces, "compressed_capacity") &&
       hasForce(forces, "stability_constraint") &&
-      mediumForces.length >= 4);
+      strongForces.length >= 3 &&
+      mediumForces.length >= 5);
 
-  const suggestedFrontier = inferSuggestedFrontier(familyAdjustments);
+  let suggestedFrontier = inferSuggestedFrontier(familyAdjustments);
+  if (
+    panelFrontierFamilies.length >= 2 &&
+    suggestedFrontier.length < 2
+  ) {
+    suggestedFrontier = uniqueStrings([
+      ...suggestedFrontier,
+      ...panelFrontierFamilies.map((f) => normalizeFamilyId(f)),
+    ]).slice(0, 4);
+  }
+
   const suggestedPrimaryFamily = inferSuggestedPrimaryFamily(familyAdjustments);
 
   const shouldOpenFrontier =
-    shouldInfluenceDiagnostic && suggestedFrontier.length >= 2;
+    shouldInfluenceDiagnostic &&
+    (suggestedFrontier.length >= 2 || panelVerdict === "frontier");
 
   const verdict =
     forces.length === 0
@@ -1433,5 +1515,12 @@ export function runContextualSituationJudge(params: {
     suggestedThemes: themeHints,
     warnings: cautions,
     notes,
+    diagnosticContributionPlan: {
+      influenceSentence: shouldInfluenceDiagnostic || forces.length > 0,
+      influenceThemes: shouldInfluenceGuidedSelection,
+      priorityFamilies: suggestedFrontier.length
+        ? suggestedFrontier
+        : topFamilies.slice(0, 3),
+    },
   };
 }

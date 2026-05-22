@@ -5,6 +5,12 @@ import { runAffinityPipelineBridge } from "@/lib/engines/affinityPipelineBridge"
 import { extractSemanticSignals } from "@/lib/engines/semanticExtractor";
 import { findSemanticallySimilarCases } from "@/lib/engines/semanticSimilarityEngine";
 import { generateSemanticFollowup } from "@/lib/engines/semanticFollowupGenerator";
+import {
+  applyNarrativeJudgeToDiagnosticReading,
+  getDiagnosticJudgesStatus,
+} from "@/lib/engines/diagnosticJudgeIntegration";
+import { applyDiagnosticPresentationLayer } from "@/lib/engines/diagnosticPresentationIntegration";
+import { selectGuidedThemes } from "@/lib/engines/guidedThemeSelector";
 import type { UserIntake } from "@/lib/types/intake";
 
 function resolveRawInput(body: unknown): Partial<UserIntake> {
@@ -81,12 +87,44 @@ export async function POST(req: Request) {
       );
     }
 
+    const narrativeIntegration = await applyNarrativeJudgeToDiagnosticReading({
+      intake,
+      reading: pipeline.data,
+      familyScores: affinityBridge.familyScores,
+      forceLevers: true,
+    });
+
+    const guidedThemes = selectGuidedThemes(narrativeIntegration.reading, 5);
+    const readingWithPresentation = applyDiagnosticPresentationLayer({
+      reading: narrativeIntegration.reading,
+      guidedThemes: guidedThemes.map((g) => ({
+        shortLabel: g.theme.shortLabel,
+      })),
+      intake,
+    });
+
     return NextResponse.json({
       ok: true,
-      data: pipeline.data,
+      data: readingWithPresentation,
+      guidedThemes: guidedThemes.map((g) => ({
+        id: g.theme.id,
+        shortLabel: g.theme.shortLabel,
+        userFacingText: g.theme.userFacingText,
+        layer: g.theme.themeLayer,
+        score: g.score,
+        activationPaths: g.theme.suggestedActivationPaths,
+      })),
       warnings: pipeline.warnings,
       followup: pipeline.followup,
       semanticFollowup: semanticFollowup.shouldAsk ? semanticFollowup : null,
+      judges: getDiagnosticJudgesStatus(),
+      narrativeCoherence: {
+        status: narrativeIntegration.meta.status,
+        latencyMs: narrativeIntegration.meta.latencyMs,
+        review: narrativeIntegration.meta.review,
+        error: narrativeIntegration.meta.error,
+        leversApplied: narrativeIntegration.meta.leversApplied,
+      },
 
       affinityBridge,
       familyScores: affinityBridge.familyScores,

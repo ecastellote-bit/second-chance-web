@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { useFullAnswers } from "../fullAnswersContext";
 import { persistContextualFromFinalReading } from "@/lib/tematicas/persistContextualOnAnalyze";
 import { HumanCaseArchiveGate } from "@/components/diagnostic/HumanCaseArchiveGate";
+import { buildFoundationalClientMeta } from "@/lib/learning/foundationalCohort";
+import {
+  PersonalizedDiagnosticDeliverable,
+  type PresentationForView,
+} from "@/components/diagnostic/PersonalizedDiagnosticDeliverable";
 
 type TextItemForView =
   | string
@@ -246,6 +251,7 @@ type ResultForView = {
   statisticalTrace?: DiagnosticCaseStatisticsForView | null;
 
   summaryForUser?: SummaryForUserForView;
+  personalizedPresentation?: PresentationForView | null;
 
   trace?: {
     familyRace?: FamilyRaceForView;
@@ -897,6 +903,11 @@ export default function ResultPage() {
   }
 
   const rawResult = result as unknown as ResultForView;
+  const presentation = rawResult.personalizedPresentation ?? null;
+  const hasPersonalizedPresentation = Boolean(
+    presentation?.lecturaCentral?.sentenciaRevelacion?.trim() ||
+      presentation?.lecturaCentral?.resumen?.trim(),
+  );
 
   const mainDirection =
     rawResult.corePattern ?? "Todavía no aparece una dirección clara";
@@ -1142,6 +1153,7 @@ export default function ResultPage() {
       isFrontierSupportReading,
       displayFrontierReading,
       summaryForUser: rawResult.summaryForUser ?? null,
+      personalizedPresentation: rawResult.personalizedPresentation ?? null,
       trace: rawResult.trace ?? null,
     },
     humanReview: {
@@ -1152,27 +1164,45 @@ export default function ResultPage() {
       correctionNote: "",
       shouldBecomeLearnedCase: false,
     },
+    clientMeta: buildFoundationalClientMeta({
+      phase: "diagnostic_result_archived",
+    }),
   };
 
   return (
     <HumanCaseArchiveGate archivePayload={autoArchivePayload}>
       {() => (
-    <main className="min-h-screen bg-white text-black px-6 py-10">
-      <div className="max-w-3xl mx-auto space-y-10">
+    <main className="min-h-screen bg-white text-black px-4 sm:px-8 py-10 md:py-14">
+      <div
+        className={`mx-auto space-y-10 ${
+          hasPersonalizedPresentation ? "max-w-6xl" : "max-w-3xl"
+        }`}
+      >
         {/* HEADER */}
-        <div className="space-y-3">
-          <p className="text-sm uppercase tracking-wide text-neutral-500">
+        <div className="space-y-4 max-w-4xl">
+          <p className="text-sm uppercase tracking-[0.2em] text-neutral-500">
             Resultado de tu lectura
           </p>
 
-          <h1 className="text-3xl font-semibold">{headline}</h1>
+          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
+            {hasPersonalizedPresentation
+              ? "Tu lectura"
+              : headline}
+          </h1>
 
-          <p className="text-base text-neutral-700 leading-7">
-            Esto no es una etiqueta. Es una lectura basada en patrones que
-            aparecen en tu historia.
+          <p className="text-base md:text-lg text-neutral-700 leading-relaxed">
+            {hasPersonalizedPresentation
+              ? "Cada sección está fundamentada en una capa del sistema que ya leyó tu historia. Esto no es una etiqueta: es una sentencia armada con evidencia."
+              : "Esto no es una etiqueta. Es una lectura basada en patrones que aparecen en tu historia."}
           </p>
         </div>
 
+        {hasPersonalizedPresentation && presentation && (
+          <PersonalizedDiagnosticDeliverable presentation={presentation} />
+        )}
+
+        {!hasPersonalizedPresentation && (
+          <>
         {/* DIRECCIÓN / FRONTERA PRINCIPAL */}
         <div className="border border-neutral-200 rounded-xl p-6 space-y-3">
           <p className="text-sm text-neutral-500">{directionLabel}</p>
@@ -1191,6 +1221,8 @@ export default function ResultPage() {
               </p>
             )}
         </div>
+          </>
+        )}
 
         {/* TENSIÓN DIAGNÓSTICA INTERNA */}
         {isConflictReading && (
@@ -1214,8 +1246,8 @@ export default function ResultPage() {
           </div>
         )}
 
-        {/* RANKING REAL */}
-        {visibleFamilyScores.length > 0 && (
+        {/* RANKING REAL — vista técnica cuando hay presentación personalizada */}
+        {visibleFamilyScores.length > 0 && !hasPersonalizedPresentation && (
           <div className="border border-neutral-200 rounded-xl p-6 space-y-4">
             <h3 className="text-lg font-medium">
               Cómo se ordenan las direcciones en tu caso
@@ -1249,8 +1281,34 @@ export default function ResultPage() {
           </div>
         )}
 
+        {hasPersonalizedPresentation && visibleFamilyScores.length > 0 && (
+          <details className="border border-neutral-200 rounded-xl p-6">
+            <summary className="cursor-pointer text-sm font-medium text-neutral-600">
+              Ver detalle técnico (scores y familias internas)
+            </summary>
+            <div className="mt-4 space-y-4">
+              {visibleFamilyScores.map((family, index) => (
+                <div
+                  key={`tech-family-${getFamilyLabel(family)}-${index}`}
+                  className="space-y-1"
+                >
+                  <div className="flex justify-between gap-4 text-sm">
+                    <span className="font-medium">{getFamilyLabel(family)}</span>
+                    <span className="text-neutral-600">
+                      {formatPercent(getFamilyScore(family))}
+                    </span>
+                  </div>
+                  {family.summary && (
+                    <p className="text-xs text-neutral-500">{family.summary}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </details>
+        )}
+
         {/* OTRAS DIRECCIONES */}
-        {secondaryDirections.length > 0 && (
+        {secondaryDirections.length > 0 && !hasPersonalizedPresentation && (
           <div className="border border-neutral-200 rounded-xl p-6 space-y-4">
             <h3 className="text-lg font-medium">
               Otras direcciones que también aparecen
@@ -2296,6 +2354,7 @@ export default function ResultPage() {
         </div>
 
         {/* CIERRE */}
+        {!hasPersonalizedPresentation && (
         <div className="space-y-3">
           <h3 className="text-lg font-medium">Qué hacer con esto</h3>
 
@@ -2310,15 +2369,16 @@ export default function ResultPage() {
             </p>
           )}
         </div>
+        )}
 
         {/* CTA HACIA TEMÁTICAS */}
+        {!hasPersonalizedPresentation && (
         <div className="border-2 border-black rounded-xl p-6 space-y-4 text-center">
           <h3 className="text-xl font-semibold">
             Tu lectura está lista. Ahora elegí hacia dónde moverte.
           </h3>
           <p className="text-sm text-neutral-700 leading-6">
             Te preparamos algunas temáticas que resuenan con lo que apareció en tu caso.
-            Elegí una para dar tu primer paso concreto.
           </p>
           <button
             onClick={() => router.push("/full/themes")}
@@ -2327,6 +2387,18 @@ export default function ResultPage() {
             Elegir mi temática
           </button>
         </div>
+        )}
+
+        {hasPersonalizedPresentation && (
+          <div className="flex justify-center pt-4">
+            <button
+              onClick={() => router.push("/full/themes")}
+              className="px-10 py-4 bg-black text-white rounded-xl text-base font-medium hover:bg-neutral-800 transition-colors"
+            >
+              Elegir mi temática y dar el siguiente paso
+            </button>
+          </div>
+        )}
       </div>
     </main>
       )}

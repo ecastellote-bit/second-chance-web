@@ -1,0 +1,78 @@
+"use client";
+
+import type { VuUserProfileRecord } from "./userProfileTypes";
+import { isUserProfileComplete } from "./userProfileTypes";
+
+const USER_ID_KEY = "vu_user_id";
+const PROFILE_COMPLETE_KEY = "vu_profile_complete";
+const PROFILE_CACHE_KEY = "vu_profile_cache";
+
+export function getOrCreateUserId(): string {
+  if (typeof window === "undefined") return "";
+
+  let id = localStorage.getItem(USER_ID_KEY)?.trim();
+  if (!id) {
+    id = `vu_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+    localStorage.setItem(USER_ID_KEY, id);
+  }
+  return id;
+}
+
+export function getCachedUserId(): string | null {
+  if (typeof window === "undefined") return null;
+  const id = localStorage.getItem(USER_ID_KEY)?.trim();
+  return id || null;
+}
+
+export function markProfileComplete(profile: VuUserProfileRecord): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(PROFILE_COMPLETE_KEY, "1");
+    localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
+  } catch {
+    // ignore quota
+  }
+}
+
+export function clearProfileCache(): void {
+  if (typeof window === "undefined") return;
+  sessionStorage.removeItem(PROFILE_COMPLETE_KEY);
+  localStorage.removeItem(PROFILE_COMPLETE_KEY);
+  localStorage.removeItem(PROFILE_CACHE_KEY);
+}
+
+export function isProfileCompleteCached(): boolean {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem(PROFILE_COMPLETE_KEY) === "1";
+}
+
+export function getCachedProfile(): VuUserProfileRecord | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(PROFILE_CACHE_KEY);
+    if (!raw) return null;
+    const profile = JSON.parse(raw) as VuUserProfileRecord;
+    return isUserProfileComplete(profile) ? profile : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchUserProfile(
+  userId?: string,
+): Promise<VuUserProfileRecord | null> {
+  const id = userId ?? getOrCreateUserId();
+  if (!id) return null;
+
+  const res = await fetch(`/api/user-profile?userId=${encodeURIComponent(id)}`);
+  const data = (await res.json()) as {
+    ok: boolean;
+    profile?: VuUserProfileRecord | null;
+  };
+
+  if (!data.ok || !data.profile) return null;
+  if (isUserProfileComplete(data.profile)) {
+    markProfileComplete(data.profile);
+  }
+  return data.profile;
+}
