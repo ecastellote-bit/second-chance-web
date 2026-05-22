@@ -19,9 +19,10 @@
 | 1 | `BLOB_READ_WRITE_TOKEN` en Vercel (producción) | `GET /api/human-cases/status` → almacén activo |
 | 2 | Variable de cohorte (opcional) | `NEXT_PUBLIC_FOUNDATIONAL_COHORT_BATCH=foundational_wave_2026_05` |
 | 3 | Smoke test end-to-end en prod | Un recorrido completo → ID de caso visible en resultado |
-| 4 | Lab: batch fundacional | `/lab/foundational-cohort` — casos con diagnóstico archivado |
-| 5 | Export del batch | `cd web && npm run cohort:export` |
-| 6 | Golden de jueces (si hubo cambios) | `npm run presentation:golden` (+ semantic, narrative, etc.) |
+| 4 | Pre-lanzamiento técnico | `/lab/prelaunch` — Blob, OpenAI, cohort |
+| 5 | Lab: batch fundacional | `/lab/foundational-cohort` — casos con diagnóstico archivado |
+| 6 | Export del batch | `cd web && npm run cohort:export` |
+| 7 | Golden de jueces (si hubo cambios) | `npm run presentation:golden` (+ semantic, narrative, etc.) |
 
 ---
 

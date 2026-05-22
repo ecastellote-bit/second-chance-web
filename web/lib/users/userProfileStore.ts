@@ -70,6 +70,9 @@ export async function upsertUserProfile(
     diagnosticArchiveId:
       payload.diagnosticArchiveId ?? existing?.diagnosticArchiveId ?? null,
     cohortBatch: payload.cohortBatch ?? existing?.cohortBatch ?? null,
+    avatarUrl:
+      payload.avatarUrl?.trim() || existing?.avatarUrl?.trim() || null,
+    coverUrl: payload.coverUrl?.trim() || existing?.coverUrl?.trim() || null,
     caminoProgress: hasDiagnostic ? 55 : existing?.caminoProgress ?? 18,
   };
 

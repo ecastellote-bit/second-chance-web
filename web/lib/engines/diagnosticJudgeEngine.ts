@@ -717,9 +717,7 @@ export function recomputeDiagnosticAggregateFromFindings(
       : undefined;
 
   const recommendedPrimaryFamily =
-    finalVerdict === "aligned" ||
-    finalVerdict === "conflict" ||
-    finalVerdict === "aligned_with_caution"
+    finalVerdict === "aligned" || finalVerdict === "conflict"
       ? getRecommendedPrimaryFamily(findings)
       : undefined;
 

@@ -15,8 +15,8 @@ export function PerfilUsuarioView({ profile }: { profile: PerfilUsuario }) {
       <div className="flex min-h-0 flex-1 flex-col">
         <PerfilIdentityHeader profile={profile} />
 
-        <main className="relative z-10 -mt-1 flex-1 overflow-y-auto rounded-t-[28px] bg-[#F8FAFC] shadow-[0_-4px_24px_rgba(11,46,89,0.06)]">
-          <div className="mx-auto max-w-lg space-y-4 px-4 py-6 pb-8">
+        <main className="relative z-[1] mt-2 flex-1 overflow-y-auto rounded-t-[28px] bg-[#F8FAFC] shadow-[0_2px_12px_rgba(11,46,89,0.06)]">
+          <div className="mx-auto max-w-lg space-y-4 px-4 pt-7 pb-8">
             <PerfilSection title="Mi momento actual">
               <p className="text-[15px] leading-relaxed text-[#6B7A8C]">{profile.momentoActual}</p>
               <div className="mt-4 border-t border-[#E8EEF3] pt-4">

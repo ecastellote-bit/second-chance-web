@@ -12,6 +12,7 @@ import {
   markProfileComplete,
 } from "@/lib/users/activeUserSession";
 import { parseChipInput, type VuUserProfileRecord } from "@/lib/users/userProfileTypes";
+import { ProfilePhotosEditor } from "@/components/perfil/ProfilePhotosEditor";
 
 type Props = {
   mode: "create" | "edit";
@@ -28,6 +29,11 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
   const [country, setCountry] = useState("");
   const [buscandoRaw, setBuscandoRaw] = useState("");
   const [aportarRaw, setAportarRaw] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState("");
   const [loading, setLoading] = useState(mode === "edit");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -48,25 +54,81 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
     setCountry(profile.country ?? "");
     setBuscandoRaw(profile.buscando.join(", "));
     setAportarRaw(profile.aportar.join(", "));
+    setAvatarUrl(profile.avatarUrl);
+    setCoverUrl(profile.coverUrl ?? null);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setError("");
+    setAvatarError("");
+
+    const userId = getOrCreateUserId();
 
     try {
+      let resolvedAvatarUrl = avatarUrl?.trim() || null;
+      let resolvedCoverUrl = coverUrl?.trim() || null;
+
+      if (coverFile) {
+        const coverForm = new FormData();
+        coverForm.set("userId", userId);
+        coverForm.set("cover", coverFile);
+        const coverRes = await fetch("/api/user-profile/cover", {
+          method: "POST",
+          body: coverForm,
+        });
+        const coverData = await coverRes.json();
+        if (!coverData.ok || !coverData.coverUrl) {
+          throw new Error(
+            coverData.error === "image_too_large"
+              ? "La portada supera 3 MB."
+              : "No se pudo guardar la portada.",
+          );
+        }
+        resolvedCoverUrl = coverData.coverUrl;
+      }
+
+      if (avatarFile) {
+        const avatarForm = new FormData();
+        avatarForm.set("userId", userId);
+        avatarForm.set("avatar", avatarFile);
+        const avatarRes = await fetch("/api/user-profile/avatar", {
+          method: "POST",
+          body: avatarForm,
+        });
+        const avatarData = await avatarRes.json();
+        if (!avatarData.ok || !avatarData.avatarUrl) {
+          throw new Error(
+            avatarData.error === "image_too_large"
+              ? "La foto supera 3 MB. Elegí otra más liviana."
+              : avatarData.error === "image_invalid_type"
+                ? "Formato no válido. Usá JPG, PNG o WebP."
+                : "Tenés que subir una foto de perfil.",
+          );
+        }
+        resolvedAvatarUrl = avatarData.avatarUrl;
+      }
+
+      if (!resolvedAvatarUrl) {
+        setAvatarError("La foto de perfil es obligatoria en VocationUp.");
+        setSaving(false);
+        return;
+      }
+
       const res = await fetch("/api/user-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: getOrCreateUserId(),
+          userId,
           displayName,
           headline,
           momentoActual,
           country: country.trim() || undefined,
           buscando: parseChipInput(buscandoRaw),
           aportar: parseChipInput(aportarRaw),
+          avatarUrl: resolvedAvatarUrl,
+          coverUrl: resolvedCoverUrl,
           diagnosticArchiveId: getFoundingMemberArchiveId(),
           cohortBatch: getFoundationalCohortBatch(),
         }),
@@ -95,8 +157,8 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
   }
 
   return (
-    <main className="min-h-[100dvh] bg-[#F8FAFC] px-5 py-10 pb-16 font-[family-name:var(--font-inter)]">
-      <div className="mx-auto max-w-lg space-y-6">
+    <main className="relative min-h-[100dvh] overflow-hidden bg-[#F8FAFC] px-5 py-10 pb-16 font-[family-name:var(--font-inter)]">
+      <div className="relative z-10 mx-auto max-w-lg space-y-6">
         <Link href="/perfil" className="text-[12px] font-semibold text-[#1A9BB0] underline">
           ← Perfil
         </Link>
@@ -108,6 +170,17 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
           <h1 className="text-[1.5rem] font-bold text-[#0B2E59]">{copy.title}</h1>
           <p className="text-[15px] leading-relaxed text-[#6B7A8C]">{copy.subtitle}</p>
         </div>
+
+        <ProfilePhotosEditor
+          displayName={displayName}
+          existingAvatarUrl={avatarUrl}
+          existingCoverUrl={coverUrl}
+          avatarFile={avatarFile}
+          coverFile={coverFile}
+          onAvatarChange={setAvatarFile}
+          onCoverChange={setCoverFile}
+          avatarError={avatarError}
+        />
 
         <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-[#E8EEF3] bg-white p-5 shadow-sm">
           <Field

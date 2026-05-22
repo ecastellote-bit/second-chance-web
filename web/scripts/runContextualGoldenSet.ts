@@ -87,10 +87,15 @@ function runSpec(spec: Spec) {
   const result = runAnalysisPipeline(normalizeUserIntake(payload));
   if (!result.ok) return { id: spec.id, ok: false, errors: ["pipeline fail"] };
 
-  const ctx = (result.data.contextualSituationReview ??
-    result.data.contextualReview) as ContextualSituationReview | undefined;
+  const pipelineData = result.data as typeof result.data & {
+    contextualSituationReview?: ContextualSituationReview;
+    contextualReview?: ContextualSituationReview;
+    trace?: Record<string, unknown>;
+  };
+  const ctx =
+    pipelineData.contextualSituationReview ?? pipelineData.contextualReview;
 
-  const trace = result.data.trace as Record<string, unknown> | undefined;
+  const trace = pipelineData.trace;
   const contribution = trace?.contextualDiagnosticContribution as
     | { applied?: boolean }
     | undefined;

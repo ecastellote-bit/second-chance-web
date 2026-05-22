@@ -17,7 +17,7 @@ export function normalizeContextualText(value: unknown): string {
 }
 
 export function buildContextualIntakeText(intake: UserIntake): string {
-  const safe = intake as Record<string, unknown>;
+  const safe = intake as unknown as Record<string, unknown>;
   const parts: string[] = [];
   const push = (v: unknown) => {
     if (typeof v === "string" && v.trim()) parts.push(v.trim());

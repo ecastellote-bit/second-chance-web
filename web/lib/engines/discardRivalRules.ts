@@ -258,7 +258,7 @@ export function applyUniversalRivalRules(
 
   const sem = semanticCoreStrengthForFamily(
     String(finding.familyId),
-    ctx.signals as Parameters<typeof semanticCoreStrengthForFamily>[1],
+    ctx.signals as unknown as Parameters<typeof semanticCoreStrengthForFamily>[1],
   );
   const aff = affinityExpressedCoreForFamily(
     String(finding.familyId),
@@ -341,7 +341,7 @@ export function applyUniversalRivalRules(
     const aff = affinityExpressedCoreForFamily(familyId, ctx.affinityScores);
     const semOnly = semanticCoreStrengthForFamily(
       familyId,
-      ctx.signals as Parameters<typeof semanticCoreStrengthForFamily>[1],
+      ctx.signals as unknown as Parameters<typeof semanticCoreStrengthForFamily>[1],
     );
     const scoreInflatedArtistic = aff >= 0.38 && semOnly < 0.22;
 
@@ -433,7 +433,7 @@ export function applyUniversalRivalRules(
   /**
    * R7: Resource Steward inflado por optimizar recursos del hogar/trabajo sin vocación de mayordomía de recursos.
    */
-  if (familyId === "resource_steward" && ctx.rank <= 6) {
+  if (familyId === "resource_steward" && rank <= 6) {
     const logistica = arch.logisticaOperativa ?? [];
     if (
       arch.sostenEconomico.length >= 1 &&
@@ -467,7 +467,7 @@ export function applyUniversalRivalRules(
 
       const rivalSem = semanticCoreStrengthForFamily(
         rivalId,
-        ctx.signals as Parameters<typeof semanticCoreStrengthForFamily>[1],
+        ctx.signals as unknown as Parameters<typeof semanticCoreStrengthForFamily>[1],
       );
       const rivalAff = affinityExpressedCoreForFamily(rivalId, ctx.affinityScores);
       const rivalCombined = Math.max(rivalSem, rivalAff);

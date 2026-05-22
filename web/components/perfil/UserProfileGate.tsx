@@ -9,6 +9,8 @@ import {
   getOrCreateUserId,
   isProfileCompleteCached,
 } from "@/lib/users/activeUserSession";
+import { FounderPreviewBanner } from "@/components/founder/FounderPreviewBanner";
+import { isFounderCommunityPreviewActive } from "@/lib/founder/communityPreviewBypass";
 import { isUserProfileComplete } from "@/lib/users/userProfileTypes";
 
 /**
@@ -24,6 +26,14 @@ export function UserProfileGate({ children }: { children: React.ReactNode }) {
     let cancelled = false;
 
     async function check() {
+      if (isFounderCommunityPreviewActive()) {
+        if (!cancelled) {
+          setHasProfile(true);
+          setReady(true);
+        }
+        return;
+      }
+
       if (isProfileCompleteCached()) {
         if (!cancelled) {
           setHasProfile(true);
@@ -80,5 +90,10 @@ export function UserProfileGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <FounderPreviewBanner />
+      {children}
+    </>
+  );
 }

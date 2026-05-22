@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FOUNDER_FLOW_COPY } from "@/lib/content/founderFlowCopy";
+import { isFounderCommunityPreviewActive } from "@/lib/founder/communityPreviewBypass";
 import { isFoundingMemberQualified } from "@/lib/learning/foundationalMember";
 
 export function FoundingMemberGate({
@@ -14,7 +15,9 @@ export function FoundingMemberGate({
   const [qualified, setQualified] = useState(false);
 
   useEffect(() => {
-    setQualified(isFoundingMemberQualified());
+    setQualified(
+      isFoundingMemberQualified() || isFounderCommunityPreviewActive(),
+    );
     setReady(true);
   }, []);
 

@@ -11,6 +11,8 @@ export function userProfileToPerfilView(
     id: profile.userId,
     name: profile.displayName,
     initials: initialsFromName(profile.displayName),
+    avatarUrl: profile.avatarUrl ?? undefined,
+    coverUrl: profile.coverUrl ?? undefined,
     headline: profile.headline,
     momentoActual: profile.momentoActual,
     caminoProgress: profile.caminoProgress,

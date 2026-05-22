@@ -7,16 +7,6 @@ import { setActivationChoice } from "@/lib/activacion/storage";
 import { trackObservatoryEvent } from "@/lib/observatory/client";
 import type { ParsedActivationHint } from "@/lib/tematicas/contextualBridge";
 
-function VuLogoMark({ size = 56 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden>
-      <circle cx="24" cy="24" r="22" fill="#0B2E59" />
-      <path d="M16 28 L24 14 L32 28 Z" fill="#1A9BB0" />
-      <path d="M20 28 L24 20 L28 28 Z" fill="#C6D92D" />
-    </svg>
-  );
-}
-
 function CartelIcon({ type }: { type: ActivacionCartel["icon"] }) {
   const cls = "h-5 w-5";
   switch (type) {
@@ -128,18 +118,6 @@ export function ActivationHub({
 
   return (
     <div className="px-4 pb-8 max-w-lg mx-auto">
-      <div className="relative mx-auto mb-8 flex h-[180px] w-full max-w-[260px] items-center justify-center">
-        <div
-          className="absolute h-[180px] w-[180px] rounded-full opacity-40 animate-pulse"
-          style={{
-            background: "radial-gradient(circle, rgba(26,155,176,0.35) 0%, transparent 70%)",
-          }}
-        />
-        <div className="relative z-10 flex h-[80px] w-[80px] items-center justify-center rounded-full bg-white shadow-[0_8px_32px_rgba(26,155,176,0.25)] ring-4 ring-[#1A9BB0]/20">
-          <VuLogoMark size={52} />
-        </div>
-      </div>
-
       {activationHints.length > 0 ? (
         <p className="mb-4 rounded-xl border border-[#1A9BB0]/20 bg-[#E6F6FA] px-3 py-2 text-[12px] leading-relaxed text-[#243647]">
           El diagnóstico sugiere por dónde conviene activar tu entrada al barrio.

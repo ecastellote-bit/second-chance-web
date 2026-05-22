@@ -35,6 +35,8 @@ export async function POST(req: Request) {
       aportar?: string | string[];
       diagnosticArchiveId?: string | null;
       cohortBatch?: string | null;
+      avatarUrl?: string | null;
+      coverUrl?: string | null;
     };
 
     const buscando = Array.isArray(body.buscando)
@@ -56,6 +58,8 @@ export async function POST(req: Request) {
         aportar,
         diagnosticArchiveId: body.diagnosticArchiveId ?? null,
         cohortBatch: body.cohortBatch ?? getFoundationalCohortBatch(),
+        avatarUrl: body.avatarUrl ?? null,
+        coverUrl: body.coverUrl ?? null,
       },
       { forceUserId: body.userId?.trim() },
     );
@@ -79,7 +83,8 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "save_failed";
-    const status = message === "profile_incomplete" ? 400 : 500;
+    const status =
+      message === "profile_incomplete" || message === "avatar_required" ? 400 : 500;
     return NextResponse.json({ ok: false, error: message }, { status });
   }
 }

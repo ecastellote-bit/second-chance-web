@@ -7,6 +7,7 @@ import { VuBottomNav } from "@/components/layout/VuMobileShell";
 import { VuWarmImage } from "@/components/ui/VuWarmImage";
 import { FoundingMemberBadge } from "@/components/founder/FoundingMemberBadge";
 import { isFoundingMemberQualified } from "@/lib/learning/foundationalMember";
+import { FounderSeedsSection } from "@/components/proyectos/FounderSeedsSection";
 import { PROYECTOS_CATALOG, PROYECTOS_HEADER } from "@/lib/content/proyectosCatalog";
 
 export function ProyectosListView() {
@@ -52,6 +53,8 @@ export function ProyectosListView() {
             </div>
 
             <FoundingMemberBadge />
+
+            <FounderSeedsSection />
 
             <Link
               href={canSembrar ? "/proyectos/sembrar" : "/fundador"}

@@ -49,7 +49,7 @@ export function PerfilPageLoader() {
 
   return (
     <>
-      <div className="fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-30 lg:right-8">
+      <div className="fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-40 lg:right-8">
         <Link
           href="/perfil/editar"
           className="rounded-full bg-white/95 px-4 py-2 text-[12px] font-bold text-[#0B2E59] shadow-md ring-1 ring-[#E8EEF3]"

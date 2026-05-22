@@ -140,7 +140,7 @@ export async function findSemanticallySimilarCases(
     const userEmbedding = userEmbeddings[0];
     const latencyMs = Date.now() - startTime;
 
-    const scored: SemanticCaseMatch[] = cases
+    const scored = cases
       .map((c) => {
         const caseEmb = caseEmbeddings.get(c.id);
         if (!caseEmb) return null;
@@ -163,7 +163,7 @@ export async function findSemanticallySimilarCases(
           influenceWeight: semanticInfluenceWeight(rounded),
         };
       })
-      .filter((m): m is SemanticCaseMatch => m !== null && m.similarity >= minSimilarity)
+      .filter((m): m is NonNullable<typeof m> => m !== null && m.similarity >= minSimilarity)
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, limit);
 

@@ -45,7 +45,6 @@ const FAMILY_LABELS: Record<string, string> = {
   scientific_investigator: "Scientific Investigator",
   resource_steward: "Resource Steward",
   venture_builder: "Venture Builder",
-  civic_advocate: "Civic Advocate",
   experience_host: "Experience Host",
   ecological_steward: "Ecological Steward",
   athletic_performer: "Athletic Performer",

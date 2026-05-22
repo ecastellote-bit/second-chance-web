@@ -12,7 +12,10 @@ import { HUMAN_LANGUAGE_CASES } from "@/lib/testing/humanLanguageCases";
 import { getClientGoldenRefractoryCases } from "@/lib/testing/narrativeGoldenRefractoryLab";
 import { NARRATIVE_REFRACTORY_GOLDEN_IDS } from "@/lib/testing/narrativeGoldenRefractoryCases";
 import { runBiasMonitor } from "@/lib/engines/learnedCasesBiasMonitor";
-import { PersonalizedDiagnosticDeliverable } from "@/components/diagnostic/PersonalizedDiagnosticDeliverable";
+import {
+  PersonalizedDiagnosticDeliverable,
+  type PresentationForView,
+} from "@/components/diagnostic/PersonalizedDiagnosticDeliverable";
 
 type DirectionItem =
   | string
@@ -111,27 +114,7 @@ type AnalyzeSuccess = {
     camino_minimo?: string;
     cierre?: string;
   };
-  personalizedPresentation?: {
-    lecturaCentral?: {
-      sentenciaRevelacion?: string;
-      resumen?: string;
-      tensionViva?: string;
-      porQue?: string;
-    };
-    enTusPalabras?: Array<{
-      texto?: string;
-      fuente?: string;
-      fundamento?: string;
-    }>;
-    alertasLectura?: Array<{ titulo?: string; cuerpo?: string }>;
-    referenciasQueResuenan?: Array<{ referenceTitle?: string; resonance?: string }>;
-    momentoVital?: string;
-    comoArmamosTuLectura?: string;
-    loQueNoCerramos?: string;
-    siguientePaso?: {
-      themeTeaser?: string[];
-      activacionSugerida?: { label?: string };
-    };
+  personalizedPresentation?: PresentationForView & {
     meta?: { evidenceCount?: number; narrativeVerdict?: string; sourcesUsed?: string[] };
   };
   finalDiagnostic?: FinalDiagnosticPayload;
@@ -771,10 +754,17 @@ export default function LabPage() {
         </p>
         <p className="text-sm">
           <a
+            href="/lab/prelaunch"
+            className="font-semibold text-[#1A9BB0] underline"
+          >
+            Pre-lanzamiento (1)
+          </a>
+          {" · "}
+          <a
             href="/lab/foundational-cohort"
             className="font-semibold text-[#1A9BB0] underline"
           >
-            Ola fundacional — batch, semillas y export
+            Ola fundacional
           </a>
           {" · "}
           <a

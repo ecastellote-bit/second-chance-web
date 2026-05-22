@@ -20,6 +20,9 @@
 # production
 /build
 
+# fotos de perfil subidas por usuarios (local / servidor)
+/public/uploads/
+
 # misc
 .DS_Store
 *.pem

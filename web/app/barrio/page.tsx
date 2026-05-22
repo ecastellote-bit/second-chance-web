@@ -6,6 +6,7 @@ import { NEIGHBORHOOD_JOURNEY } from "@/lib/content/neighborhoodJourney";
 import { FoundingMemberBadge } from "@/components/founder/FoundingMemberBadge";
 import { UserProfileGate } from "@/components/perfil/UserProfileGate";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
+import { isFounderCommunityPreviewActive } from "@/lib/founder/communityPreviewBypass";
 import { isFoundingMemberQualified } from "@/lib/learning/foundationalMember";
 
 const PHASE_LABEL: Record<string, string> = {
@@ -20,7 +21,9 @@ export default function BarrioMapPage() {
   const [qualified, setQualified] = useState(false);
 
   useEffect(() => {
-    setQualified(isFoundingMemberQualified());
+    setQualified(
+      isFoundingMemberQualified() || isFounderCommunityPreviewActive(),
+    );
   }, []);
 
   return (

@@ -155,7 +155,7 @@ export function PersonalizedDiagnosticDeliverable({
             fundamento="Citas del juez narrativo y fragmentos extraídos de tu intake; cada una con su fundamento."
           />
           <div className="grid gap-6 md:grid-cols-2">
-            {presentation.enTusPalabras.map((cita, index) => (
+            {safeArray(presentation.enTusPalabras).map((cita, index) => (
               <article
                 key={`cita-${index}`}
                 className="rounded-xl border border-neutral-200 bg-white p-6 md:p-8 space-y-4 shadow-sm"
@@ -192,7 +192,7 @@ export function PersonalizedDiagnosticDeliverable({
             fundamento="Banderas del juez narrativo y del momento vital: honestidad antes que cierre."
           />
           <div className="space-y-4">
-            {presentation.alertasLectura.map((alerta, index) => (
+            {safeArray(presentation.alertasLectura).map((alerta, index) => (
               <div
                 key={`alerta-${index}`}
                 className={`rounded-xl p-6 md:p-8 border ${
@@ -234,7 +234,7 @@ export function PersonalizedDiagnosticDeliverable({
             fundamento="Referencias en español (sin etiquetas en inglés), subordinadas a la lectura central."
           />
           <div className="space-y-6">
-            {presentation.referenciasQueResuenan.map((ref, index) => (
+            {safeArray(presentation.referenciasQueResuenan).map((ref, index) => (
               <article
                 key={`ref-${ref.familyId ?? index}`}
                 className="rounded-xl border border-neutral-200 p-6 md:p-8 space-y-3"
@@ -304,7 +304,7 @@ export function PersonalizedDiagnosticDeliverable({
           </p>
           {safeArray(presentation.siguientePaso.themeTeaser).length > 0 && (
             <ul className="flex flex-wrap justify-center gap-3">
-              {presentation.siguientePaso.themeTeaser.map((theme, i) => (
+              {safeArray(presentation.siguientePaso?.themeTeaser).map((theme, i) => (
                 <li
                   key={`theme-${i}`}
                   className="rounded-full border border-neutral-300 px-4 py-2 text-sm text-neutral-800"

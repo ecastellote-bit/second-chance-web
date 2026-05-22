@@ -1,7 +1,7 @@
 export const PROFILE_FLOW_COPY = {
   gate: {
     title: "Primero tu perfil en VocationUp",
-    body: "Para crear proyectos, sumarte al barrio o interactuar con otras personas, necesitás un perfil. No es un CV: es quién sos en tu camino ahora.",
+    body: "Para crear proyectos, entrar al barrio o conectar con otras personas, necesitás un perfil con foto visible (seguridad del barrio). No es un CV: es quién sos en tu camino hoy.",
     ctaCreate: "Crear mi perfil",
     ctaSignIn: "Ya tengo perfil",
   },
@@ -9,11 +9,13 @@ export const PROFILE_FLOW_COPY = {
     eyebrow: "Paso obligatorio",
     title: "Tu perfil en el barrio",
     subtitle:
-      "Contá quién sos hoy, qué buscás y qué podés aportar. Sin esto no podés sembrar proyectos ni interactuar con el neighborhood.",
+      "Subí tu foto de perfil (obligatoria) y contá quién sos hoy, qué buscás y qué podés aportar. Sin esto no podés sembrar proyectos ni interactuar con el neighborhood.",
     submitCreate: "Crear perfil y continuar",
     submitEdit: "Guardar cambios",
   },
   fields: {
+    avatar: "Foto de perfil (obligatoria)",
+    cover: "Foto de portada (opcional)",
     displayName: "Nombre o cómo querés que te llamen",
     headline: "En una línea: tu camino ahora",
     momentoActual: "Tu momento actual",

@@ -11,6 +11,10 @@ export type VuUserProfileRecord = {
   aportar: string[];
   diagnosticArchiveId: string | null;
   cohortBatch: string | null;
+  /** URL pública — obligatoria para perfil completo (seguridad del barrio) */
+  avatarUrl: string | null;
+  /** Portada; si falta, la UI usa avatar o imagen del barrio */
+  coverUrl?: string | null;
   /** 0–100 — sube cuando hay diagnóstico archivado */
   caminoProgress: number;
 };
@@ -23,6 +27,8 @@ export type UserProfilePayload = {
   country?: string;
   buscando: string[];
   aportar: string[];
+  avatarUrl?: string | null;
+  coverUrl?: string | null;
   diagnosticArchiveId?: string | null;
   cohortBatch?: string | null;
 };
@@ -30,7 +36,12 @@ export type UserProfilePayload = {
 export function isUserProfileComplete(
   profile: Pick<
     VuUserProfileRecord,
-    "displayName" | "headline" | "momentoActual" | "buscando" | "aportar"
+    | "displayName"
+    | "headline"
+    | "momentoActual"
+    | "buscando"
+    | "aportar"
+    | "avatarUrl"
   > | null,
 ): boolean {
   if (!profile) return false;
@@ -39,7 +50,8 @@ export function isUserProfileComplete(
     profile.headline.trim().length >= 10 &&
     profile.momentoActual.trim().length >= 20 &&
     profile.buscando.length >= 1 &&
-    profile.aportar.length >= 1
+    profile.aportar.length >= 1 &&
+    Boolean(profile.avatarUrl?.trim())
   );
 }
 
