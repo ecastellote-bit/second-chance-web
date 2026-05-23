@@ -41,6 +41,9 @@ function mediaUploadError(
   if (code === "image_empty") {
     return "La imagen llegó vacía. Elegí la foto otra vez.";
   }
+  if (code === "image_load_failed") {
+    return "No pudimos leer esa imagen. Probá otra de la galería o sacá una foto nueva con la cámara.";
+  }
   if (code?.includes("upload_failed")) {
     return kind === "cover"
       ? "No se pudo guardar la portada. Probá con JPG más liviana."
