@@ -1,7 +1,7 @@
 "use client";
 
-const MAX_SIDE_PX = 1200;
-const JPEG_QUALITY = 0.82;
+const MAX_SIDE_PX = 1024;
+const JPEG_QUALITY = 0.78;
 
 function scaleDimensions(width: number, height: number): { width: number; height: number } {
   if (width <= MAX_SIDE_PX && height <= MAX_SIDE_PX) {
@@ -69,9 +69,7 @@ async function compressWithHtmlImage(file: File): Promise<File> {
   }
 }
 
-/**
- * Convierte cualquier foto de galería a JPEG liviano (galería celular → siempre JPG).
- */
+/** Galería del celu → JPEG liviano (~100–400 KB). */
 export async function compressProfileImage(file: File): Promise<File> {
   if (!file.size) throw new Error("image_empty");
 
@@ -79,20 +77,31 @@ export async function compressProfileImage(file: File): Promise<File> {
     try {
       return await compressWithBitmap(file);
     } catch {
-      // Fallback clásico (mejor compatibilidad en galerías Android/iOS).
+      // Fallback para galerías Android/iOS.
     }
   }
 
   return compressWithHtmlImage(file);
 }
 
+/** FileReader evita btoa() que congela muchos celulares. */
 export async function profileImageToBase64(file: File): Promise<string> {
   const jpeg = await compressProfileImage(file);
-  const buffer = await jpeg.arrayBuffer();
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (let i = 0; i < bytes.length; i += 1) {
-    binary += String.fromCharCode(bytes[i]!);
-  }
-  return btoa(binary);
+
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== "string" || !reader.result) {
+        reject(new Error("image_read_failed"));
+        return;
+      }
+      resolve(reader.result);
+    };
+    reader.onerror = () => reject(new Error("image_read_failed"));
+    reader.readAsDataURL(jpeg);
+  });
+
+  const comma = dataUrl.indexOf(",");
+  if (comma < 0) throw new Error("image_read_failed");
+  return dataUrl.slice(comma + 1);
 }

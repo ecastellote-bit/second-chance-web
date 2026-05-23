@@ -1,12 +1,18 @@
 "use client";
 
+import { upload } from "@vercel/blob/client";
 import {
   compressProfileImage,
   profileImageToBase64,
 } from "@/lib/users/compressProfileImage";
-import type { ProfileMediaKind } from "@/lib/users/profileMediaValidation";
+import {
+  getProfileMediaBlobPathname,
+  validateProfileMediaFile,
+  type ProfileMediaKind,
+} from "@/lib/users/profileMediaValidation";
 
-const UPLOAD_TIMEOUT_MS = 45_000;
+const BLOB_CLIENT_TIMEOUT_MS = 25_000;
+const BASE64_TIMEOUT_MS = 45_000;
 
 export function withTimeout<T>(
   promise: Promise<T>,
@@ -33,8 +39,28 @@ function isLocalDev(): boolean {
   return host === "localhost" || host === "127.0.0.1";
 }
 
-/** Ruta principal: JPEG en base64 (evita FormData roto en galería móvil + Vercel). */
-async function uploadProfileMediaViaBase64(
+/** Camino A: celu → Blob directo (sin pasar archivo por FormData del servidor). */
+async function uploadViaBlobClient(
+  kind: ProfileMediaKind,
+  userId: string,
+  file: File,
+): Promise<string> {
+  const jpeg = await compressProfileImage(file);
+  const { ext } = validateProfileMediaFile(jpeg);
+  const pathname = getProfileMediaBlobPathname(kind, userId, ext);
+
+  const result = await upload(pathname, jpeg, {
+    access: "public",
+    handleUploadUrl: "/api/user-profile/media-upload",
+    clientPayload: JSON.stringify({ userId, kind }),
+  });
+
+  if (!result.url) throw new Error(`${kind}_upload_failed:no_url`);
+  return result.url;
+}
+
+/** Camino B: JSON base64 (respaldo si Blob client falla). */
+async function uploadViaBase64(
   kind: ProfileMediaKind,
   userId: string,
   file: File,
@@ -61,8 +87,8 @@ async function uploadProfileMediaViaBase64(
   return data.url;
 }
 
-/** Fallback local: FormData clásico. */
-async function uploadProfileMediaViaForm(
+/** Camino C: FormData (solo desarrollo local). */
+async function uploadViaForm(
   kind: ProfileMediaKind,
   userId: string,
   file: File,
@@ -96,9 +122,31 @@ export async function uploadProfileMedia(
   userId: string,
   file: File,
 ): Promise<string> {
-  const upload = isLocalDev()
-    ? uploadProfileMediaViaForm(kind, userId, file)
-    : uploadProfileMediaViaBase64(kind, userId, file);
+  if (isLocalDev()) {
+    return withTimeout(
+      uploadViaForm(kind, userId, file),
+      BASE64_TIMEOUT_MS,
+      `${kind}_upload_timeout`,
+    );
+  }
 
-  return withTimeout(upload, UPLOAD_TIMEOUT_MS, `${kind}_upload_timeout`);
+  try {
+    return await withTimeout(
+      uploadViaBlobClient(kind, userId, file),
+      BLOB_CLIENT_TIMEOUT_MS,
+      `${kind}_upload_timeout`,
+    );
+  } catch (blobErr) {
+    try {
+      return await withTimeout(
+        uploadViaBase64(kind, userId, file),
+        BASE64_TIMEOUT_MS,
+        `${kind}_upload_timeout`,
+      );
+    } catch (base64Err) {
+      const a = blobErr instanceof Error ? blobErr.message : "blob";
+      const b = base64Err instanceof Error ? base64Err.message : "base64";
+      throw new Error(`${kind}_upload_failed:${a}|${b}`);
+    }
+  }
 }

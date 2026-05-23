@@ -51,7 +51,7 @@ function mediaUploadError(
   }
   return kind === "cover"
     ? "No se pudo guardar la portada."
-    : "Elegí una foto de perfil (JPG o PNG) y esperá a ver «Foto lista» antes de continuar.";
+    : "No se pudo subir la foto. Tocá «Reintentar subida» debajo de la imagen.";
 }
 
 function errorCodeFromThrown(err: unknown): string | undefined {
@@ -96,6 +96,7 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState("");
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarRetryKey, setAvatarRetryKey] = useState(0);
   const [coverUploading, setCoverUploading] = useState(false);
   const [loading, setLoading] = useState(mode === "edit");
   const [saving, setSaving] = useState(false);
@@ -128,7 +129,17 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [avatarFile]);
+  }, [avatarFile, avatarRetryKey]);
+
+  function retryAvatarUpload() {
+    if (!avatarFile && !avatarUrl) return;
+    if (avatarFile) {
+      setAvatarError("");
+      setAvatarRetryKey((k) => k + 1);
+      return;
+    }
+    setAvatarError("Elegí la foto de nuevo desde el círculo.");
+  }
 
   useEffect(() => {
     if (!coverFile) return;
@@ -216,10 +227,15 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
       }
 
       if (!resolvedAvatarUrl) {
-        setAvatarError(
-          avatarError ||
-            "Falta la foto de perfil. Tocá el círculo de la foto, elegí JPG o PNG y esperá «Foto lista».",
-        );
+        if (!avatarFile && !avatarUrl) {
+          setAvatarError(
+            "Tocá el círculo, elegí una foto de la galería y esperá «Foto lista» en verde.",
+          );
+        } else if (!avatarError) {
+          setAvatarError(
+            "La foto aún no terminó de subir. Esperá «Foto lista» o tocá «Reintentar subida».",
+          );
+        }
         return;
       }
 
@@ -298,6 +314,8 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
           avatarUploading={avatarUploading}
           avatarReady={Boolean(avatarUrl?.trim()) && !avatarUploading}
           coverUploading={coverUploading}
+          onRetryAvatar={retryAvatarUpload}
+          showRetryAvatar={Boolean(avatarError) && !avatarUploading}
         />
 
         <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-[#E8EEF3] bg-white p-5 shadow-sm">

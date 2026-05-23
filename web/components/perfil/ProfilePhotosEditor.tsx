@@ -18,6 +18,8 @@ type Props = {
   avatarUploading?: boolean;
   avatarReady?: boolean;
   coverUploading?: boolean;
+  onRetryAvatar?: () => void;
+  showRetryAvatar?: boolean;
 };
 
 export function ProfilePhotosEditor({
@@ -32,6 +34,8 @@ export function ProfilePhotosEditor({
   avatarUploading = false,
   avatarReady = false,
   coverUploading = false,
+  onRetryAvatar,
+  showRetryAvatar = false,
 }: Props) {
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -167,6 +171,15 @@ export function ProfilePhotosEditor({
           <p className="text-sm text-[#6B7A8C]">Subiendo portada…</p>
         ) : null}
         {avatarError ? <p className="text-sm text-red-700">{avatarError}</p> : null}
+        {showRetryAvatar && onRetryAvatar ? (
+          <button
+            type="button"
+            onClick={onRetryAvatar}
+            className="text-sm font-semibold text-[#1A9BB0] underline"
+          >
+            Reintentar subida
+          </button>
+        ) : null}
       </div>
     </div>
   );
