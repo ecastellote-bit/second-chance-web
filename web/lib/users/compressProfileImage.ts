@@ -9,11 +9,8 @@ const JPEG_QUALITY = 0.85;
  * Reduce peso y tamaño antes de enviar al servidor (crítico en celular + Vercel).
  */
 export async function compressProfileImage(file: File): Promise<File> {
-  if (!resolveProfileFileMime(file)) {
-    throw new Error("image_invalid_type");
-  }
-
   if (typeof createImageBitmap !== "function") {
+    if (!resolveProfileFileMime(file)) throw new Error("image_invalid_type");
     return file;
   }
 
@@ -49,6 +46,7 @@ export async function compressProfileImage(file: File): Promise<File> {
     const base = file.name.replace(/\.[^.]+$/i, "") || "foto";
     return new File([blob], `${base}.jpg`, { type: "image/jpeg" });
   } catch {
+    if (!resolveProfileFileMime(file)) throw new Error("image_invalid_type");
     return file;
   } finally {
     bitmap?.close();

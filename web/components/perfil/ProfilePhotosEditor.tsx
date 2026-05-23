@@ -15,6 +15,9 @@ type Props = {
   onAvatarChange: (file: File | null) => void;
   onCoverChange: (file: File | null) => void;
   avatarError?: string;
+  avatarUploading?: boolean;
+  avatarReady?: boolean;
+  coverUploading?: boolean;
 };
 
 export function ProfilePhotosEditor({
@@ -26,6 +29,9 @@ export function ProfilePhotosEditor({
   onAvatarChange,
   onCoverChange,
   avatarError,
+  avatarUploading = false,
+  avatarReady = false,
+  coverUploading = false,
 }: Props) {
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -151,6 +157,15 @@ export function ProfilePhotosEditor({
           una escena que te represente. La foto de perfil sigue siendo obligatoria por seguridad.
           JPG, PNG o WebP · hasta 3 MB cada una.
         </p>
+        {avatarUploading ? (
+          <p className="text-sm font-medium text-[#1A9BB0]">Subiendo foto de perfil…</p>
+        ) : null}
+        {avatarReady ? (
+          <p className="text-sm font-medium text-[#15803D]">Foto lista · ya podés crear el perfil</p>
+        ) : null}
+        {coverUploading ? (
+          <p className="text-sm text-[#6B7A8C]">Subiendo portada…</p>
+        ) : null}
         {avatarError ? <p className="text-sm text-red-700">{avatarError}</p> : null}
       </div>
     </div>

@@ -7,7 +7,7 @@ import {
 } from "@/lib/storage/vercelBlobEnv";
 import {
   getProfileMediaBlobPathname,
-  validateProfileMediaFile,
+  resolveProfileMediaForUpload,
   type ProfileMediaKind,
 } from "@/lib/users/profileMediaValidation";
 
@@ -15,6 +15,7 @@ export type { ProfileMediaKind } from "@/lib/users/profileMediaValidation";
 export {
   PROFILE_MEDIA_MAX_BYTES,
   getProfileMediaBlobPathname,
+  resolveProfileMediaForUpload,
   validateProfileMediaFile,
 } from "@/lib/users/profileMediaValidation";
 
@@ -41,12 +42,17 @@ export async function saveProfileMedia(
   userId: string,
   file: File,
 ): Promise<{ url: string }> {
-  const { mime, ext } = validateProfileMediaFile(file);
+  const { mime, ext } = resolveProfileMediaForUpload(file);
   const pathname = getProfileMediaBlobPathname(kind, userId, ext);
+  const bytes = Buffer.from(await file.arrayBuffer());
+
+  if (bytes.length === 0) {
+    throw new Error("image_empty");
+  }
 
   if (isVercelBlobConfigured()) {
     try {
-      const written = await put(pathname, file, {
+      const written = await put(pathname, bytes, {
         access: "public",
         contentType: mime,
         addRandomSuffix: false,
@@ -61,11 +67,10 @@ export async function saveProfileMedia(
 
   assertVercelBlobForProduction("profile_media");
 
-  const buffer = Buffer.from(await file.arrayBuffer());
   const folder = kind === "avatar" ? "avatars" : "covers";
   const dir = path.join(process.cwd(), "public", "uploads", folder);
   await mkdir(dir, { recursive: true });
-  await writeFile(profileMediaFilePath(kind, userId, ext), buffer);
+  await writeFile(profileMediaFilePath(kind, userId, ext), bytes);
 
   return { url: profileMediaPublicPath(kind, userId, ext) };
 }

@@ -38,16 +38,25 @@ function mediaUploadError(
       ? "La portada tardó demasiado en subir."
       : "La foto tardó demasiado en subir. Probá con otra imagen o mejor señal.";
   }
+  if (code === "image_empty") {
+    return "La imagen llegó vacía. Elegí la foto otra vez.";
+  }
+  if (code?.includes("upload_failed")) {
+    return kind === "cover"
+      ? "No se pudo guardar la portada. Probá con JPG más liviana."
+      : "No se pudo guardar la foto en el servidor. Probá con JPG o PNG (máx. 3 MB).";
+  }
   return kind === "cover"
     ? "No se pudo guardar la portada."
-    : "Tenés que subir una foto de perfil.";
+    : "Elegí una foto de perfil (JPG o PNG) y esperá a ver «Foto lista» antes de continuar.";
 }
 
 function errorCodeFromThrown(err: unknown): string | undefined {
   if (!(err instanceof Error)) return undefined;
   const msg = err.message;
-  if (msg.includes(":")) return msg.split(":")[0];
-  return msg;
+  const head = msg.includes(":") ? msg.split(":")[0] : msg;
+  if (head.includes("upload_failed")) return head;
+  return head;
 }
 
 function profileSaveError(code: string | undefined): string {
@@ -83,9 +92,67 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState("");
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
   const [loading, setLoading] = useState(mode === "edit");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!avatarFile) return;
+
+    let cancelled = false;
+    const file = avatarFile;
+    const userId = getOrCreateUserId();
+
+    setAvatarUploading(true);
+    setAvatarError("");
+
+    uploadProfileMedia("avatar", userId, file)
+      .then((url) => {
+        if (cancelled) return;
+        setAvatarUrl(url);
+        setAvatarFile(null);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setAvatarError(mediaUploadError("avatar", errorCodeFromThrown(err)));
+      })
+      .finally(() => {
+        if (!cancelled) setAvatarUploading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [avatarFile]);
+
+  useEffect(() => {
+    if (!coverFile) return;
+
+    let cancelled = false;
+    const file = coverFile;
+    const userId = getOrCreateUserId();
+
+    setCoverUploading(true);
+
+    uploadProfileMedia("cover", userId, file)
+      .then((url) => {
+        if (cancelled) return;
+        setCoverUrl(url);
+        setCoverFile(null);
+      })
+      .catch(() => {
+        // Portada opcional: el preview local alcanza; se reintenta al guardar si hace falta.
+      })
+      .finally(() => {
+        if (!cancelled) setCoverUploading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [coverFile]);
 
   useEffect(() => {
     if (mode !== "edit") return;
@@ -111,25 +178,33 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
     e.preventDefault();
     setSaving(true);
     setError("");
-    setAvatarError("");
 
     const userId = getOrCreateUserId();
 
     try {
+      if (avatarUploading) {
+        setError("Esperá unos segundos: la foto de perfil se está subiendo.");
+        return;
+      }
+
       let resolvedAvatarUrl = avatarUrl?.trim() || null;
       let resolvedCoverUrl = coverUrl?.trim() || null;
 
-      if (avatarFile) {
+      if (!resolvedAvatarUrl && avatarFile) {
         try {
           resolvedAvatarUrl = await uploadProfileMedia("avatar", userId, avatarFile);
+          setAvatarUrl(resolvedAvatarUrl);
+          setAvatarFile(null);
         } catch (err) {
           throw new Error(mediaUploadError("avatar", errorCodeFromThrown(err)));
         }
       }
 
-      if (coverFile) {
+      if (!resolvedCoverUrl && coverFile) {
         try {
           resolvedCoverUrl = await uploadProfileMedia("cover", userId, coverFile);
+          setCoverUrl(resolvedCoverUrl);
+          setCoverFile(null);
         } catch (err) {
           setError(
             `${mediaUploadError("cover", errorCodeFromThrown(err))} Podés crear el perfil igual; después editás la portada.`,
@@ -138,8 +213,10 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
       }
 
       if (!resolvedAvatarUrl) {
-        setAvatarError("La foto de perfil es obligatoria en VocationUp.");
-        setSaving(false);
+        setAvatarError(
+          avatarError ||
+            "Falta la foto de perfil. Tocá el círculo de la foto, elegí JPG o PNG y esperá «Foto lista».",
+        );
         return;
       }
 
@@ -215,6 +292,9 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
           onAvatarChange={setAvatarFile}
           onCoverChange={setCoverFile}
           avatarError={avatarError}
+          avatarUploading={avatarUploading}
+          avatarReady={Boolean(avatarUrl?.trim()) && !avatarUploading}
+          coverUploading={coverUploading}
         />
 
         <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-[#E8EEF3] bg-white p-5 shadow-sm">
@@ -266,14 +346,16 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
 
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || avatarUploading || !avatarUrl?.trim()}
             className="w-full rounded-xl bg-[#0B2E59] py-3 text-sm font-bold text-white disabled:opacity-60"
           >
             {saving
               ? "Guardando…"
-              : mode === "create"
-                ? copy.submitCreate
-                : copy.submitEdit}
+              : avatarUploading
+                ? "Subiendo foto…"
+                : mode === "create"
+                  ? copy.submitCreate
+                  : copy.submitEdit}
           </button>
         </form>
       </div>

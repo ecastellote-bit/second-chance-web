@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { saveProfileMedia } from "@/lib/users/profileMediaStorage";
 
+export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
@@ -23,7 +24,11 @@ export async function POST(req: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "avatar_upload_failed";
     const status =
-      message === "image_invalid_type" || message === "image_too_large" ? 400 : 500;
+      message === "image_invalid_type" ||
+      message === "image_too_large" ||
+      message === "image_empty"
+        ? 400
+        : 500;
     return NextResponse.json({ ok: false, error: message }, { status });
   }
 }

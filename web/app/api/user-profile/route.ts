@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+export const runtime = "nodejs";
 export const maxDuration = 60;
 import { getFoundationalCohortBatch } from "@/lib/learning/foundationalCohort";
 import { findUserProfileById, upsertUserProfile } from "@/lib/users/userProfileStore";

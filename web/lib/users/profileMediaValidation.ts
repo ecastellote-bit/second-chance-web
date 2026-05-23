@@ -49,3 +49,26 @@ export function validateProfileMediaFile(
   if (!ext) throw new Error("image_invalid_type");
   return { mime, ext };
 }
+
+/** Servidor: el FormData del celu a veces llega sin MIME aunque el archivo sea válido. */
+export function resolveProfileMediaForUpload(
+  file: File,
+): { mime: string; ext: "jpg" | "png" | "webp" } {
+  try {
+    return validateProfileMediaFile(file);
+  } catch (error) {
+    if (file.size === 0) throw error;
+    if (file.size > PROFILE_MEDIA_MAX_BYTES) throw new Error("image_too_large");
+
+    const name = file.name.toLowerCase();
+    if (
+      name.endsWith(".jpg") ||
+      name.endsWith(".jpeg") ||
+      file.type === "image/jpeg" ||
+      !file.type?.trim()
+    ) {
+      return { mime: "image/jpeg", ext: "jpg" };
+    }
+    throw error;
+  }
+}
