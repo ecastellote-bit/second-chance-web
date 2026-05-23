@@ -12,6 +12,7 @@ import {
   markProfileComplete,
 } from "@/lib/users/activeUserSession";
 import { parseChipInput, type VuUserProfileRecord } from "@/lib/users/userProfileTypes";
+import { uploadProfileMedia } from "@/lib/users/uploadProfileMediaClient";
 import { ProfilePhotosEditor } from "@/components/perfil/ProfilePhotosEditor";
 
 function mediaUploadError(
@@ -24,7 +25,7 @@ function mediaUploadError(
       : "La foto supera 3 MB. Elegí otra más liviana.";
   }
   if (code === "image_invalid_type") {
-    return "Formato no válido. Usá JPG, PNG o WebP.";
+    return "Formato no válido. Usá JPG o PNG (si el celu guardó HEIC, exportá como JPG).";
   }
   if (code?.startsWith("blob_not_configured")) {
     return "El almacenamiento del sitio aún no está listo. Probá en unos minutos o avisá al equipo.";
@@ -32,6 +33,13 @@ function mediaUploadError(
   return kind === "cover"
     ? "No se pudo guardar la portada."
     : "Tenés que subir una foto de perfil.";
+}
+
+function errorCodeFromThrown(err: unknown): string | undefined {
+  if (!(err instanceof Error)) return undefined;
+  const msg = err.message;
+  if (msg.includes(":")) return msg.split(":")[0];
+  return msg;
 }
 
 function profileSaveError(code: string | undefined): string {
@@ -101,33 +109,22 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
       let resolvedCoverUrl = coverUrl?.trim() || null;
 
       if (coverFile) {
-        const coverForm = new FormData();
-        coverForm.set("userId", userId);
-        coverForm.set("cover", coverFile);
-        const coverRes = await fetch("/api/user-profile/cover", {
-          method: "POST",
-          body: coverForm,
-        });
-        const coverData = await coverRes.json();
-        if (!coverData.ok || !coverData.coverUrl) {
-          throw new Error(mediaUploadError("cover", coverData.error));
+        try {
+          resolvedCoverUrl = await uploadProfileMedia("cover", userId, coverFile);
+        } catch (err) {
+          // Portada opcional: no bloqueamos el alta si falla la subida en el celu.
+          setError(
+            `${mediaUploadError("cover", errorCodeFromThrown(err))} Podés crear el perfil igual; después editás la portada.`,
+          );
         }
-        resolvedCoverUrl = coverData.coverUrl;
       }
 
       if (avatarFile) {
-        const avatarForm = new FormData();
-        avatarForm.set("userId", userId);
-        avatarForm.set("avatar", avatarFile);
-        const avatarRes = await fetch("/api/user-profile/avatar", {
-          method: "POST",
-          body: avatarForm,
-        });
-        const avatarData = await avatarRes.json();
-        if (!avatarData.ok || !avatarData.avatarUrl) {
-          throw new Error(mediaUploadError("avatar", avatarData.error));
+        try {
+          resolvedAvatarUrl = await uploadProfileMedia("avatar", userId, avatarFile);
+        } catch (err) {
+          throw new Error(mediaUploadError("avatar", errorCodeFromThrown(err)));
         }
-        resolvedAvatarUrl = avatarData.avatarUrl;
       }
 
       if (!resolvedAvatarUrl) {

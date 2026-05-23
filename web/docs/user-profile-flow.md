@@ -37,7 +37,7 @@ Opcional: país. Se enlaza `diagnosticArchiveId` si ya completó el diagnóstico
 
 - Cliente: `localStorage` → `vu_user_id`, cache de perfil completo
 - Servidor local: `data/user-profiles.jsonl` + `public/uploads/`
-- **Vercel (producción):** Vercel Blob (`BLOB_READ_WRITE_TOKEN`) — fotos en `profile-media/` y perfil en `user-profiles/{userId}.json`
+- **Vercel (producción):** Vercel Blob (`BLOB_READ_WRITE_TOKEN`) — fotos suben **desde el navegador** a `profile-media/` (`/api/user-profile/media-upload`); perfil en `user-profiles/{userId}.json`
 - Sin login/password en esta etapa (auth real = siguiente fase)
 
 ## Gate

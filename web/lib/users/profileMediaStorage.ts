@@ -5,11 +5,18 @@ import {
   assertVercelBlobForProduction,
   isVercelBlobConfigured,
 } from "@/lib/storage/vercelBlobEnv";
+import {
+  getProfileMediaBlobPathname,
+  validateProfileMediaFile,
+  type ProfileMediaKind,
+} from "@/lib/users/profileMediaValidation";
 
-const MAX_BYTES = 3 * 1024 * 1024;
-const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp"]);
-
-export type ProfileMediaKind = "avatar" | "cover";
+export type { ProfileMediaKind } from "@/lib/users/profileMediaValidation";
+export {
+  PROFILE_MEDIA_MAX_BYTES,
+  getProfileMediaBlobPathname,
+  validateProfileMediaFile,
+} from "@/lib/users/profileMediaValidation";
 
 export function profileMediaPublicPath(
   kind: ProfileMediaKind,
@@ -29,55 +36,32 @@ export function profileMediaFilePath(
   return path.join(process.cwd(), "public", "uploads", folder, `${userId}.${ext}`);
 }
 
-function profileMediaBlobPath(
-  kind: ProfileMediaKind,
-  userId: string,
-  ext: "jpg" | "png" | "webp",
-): string {
-  const folder = kind === "avatar" ? "avatars" : "covers";
-  return `profile-media/${folder}/${userId}.${ext}`;
-}
-
-export function extFromMime(mime: string): "jpg" | "png" | "webp" | null {
-  if (mime === "image/jpeg") return "jpg";
-  if (mime === "image/png") return "png";
-  if (mime === "image/webp") return "webp";
-  return null;
-}
-
 export async function saveProfileMedia(
   kind: ProfileMediaKind,
   userId: string,
   file: File,
 ): Promise<{ url: string }> {
-  if (!ALLOWED.has(file.type)) {
-    throw new Error("image_invalid_type");
-  }
-  if (file.size > MAX_BYTES) {
-    throw new Error("image_too_large");
-  }
-
-  const ext = extFromMime(file.type);
-  if (!ext) throw new Error("image_invalid_type");
-
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const { mime, ext } = validateProfileMediaFile(file);
+  const pathname = getProfileMediaBlobPathname(kind, userId, ext);
 
   if (isVercelBlobConfigured()) {
     try {
-      const written = await put(profileMediaBlobPath(kind, userId, ext), buffer, {
+      const written = await put(pathname, file, {
         access: "public",
-        contentType: file.type,
+        contentType: mime,
         addRandomSuffix: false,
         allowOverwrite: true,
       });
       return { url: written.url };
-    } catch {
-      throw new Error(`${kind}_upload_failed`);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "unknown";
+      throw new Error(`${kind}_upload_failed:${detail}`);
     }
   }
 
   assertVercelBlobForProduction("profile_media");
 
+  const buffer = Buffer.from(await file.arrayBuffer());
   const folder = kind === "avatar" ? "avatars" : "covers";
   const dir = path.join(process.cwd(), "public", "uploads", folder);
   await mkdir(dir, { recursive: true });
