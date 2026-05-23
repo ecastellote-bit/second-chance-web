@@ -10,6 +10,7 @@ import {
   validateProfileMediaFile,
   type ProfileMediaKind,
 } from "@/lib/users/profileMediaValidation";
+import { profileMediaDeliveryUrl } from "@/lib/users/profileMediaDelivery";
 
 const BLOB_CLIENT_TIMEOUT_MS = 25_000;
 const BASE64_TIMEOUT_MS = 45_000;
@@ -50,13 +51,13 @@ async function uploadViaBlobClient(
   const pathname = getProfileMediaBlobPathname(kind, userId, ext);
 
   const result = await upload(pathname, jpeg, {
-    access: "public",
+    access: "private",
     handleUploadUrl: "/api/user-profile/media-upload",
     clientPayload: JSON.stringify({ userId, kind }),
   });
 
-  if (!result.url) throw new Error(`${kind}_upload_failed:no_url`);
-  return result.url;
+  if (!result.url && !result.pathname) throw new Error(`${kind}_upload_failed:no_url`);
+  return profileMediaDeliveryUrl(pathname);
 }
 
 /** Camino B: JSON base64 (respaldo si Blob client falla). */
