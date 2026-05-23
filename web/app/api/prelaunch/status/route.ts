@@ -22,6 +22,18 @@ export async function GET() {
         : "Crítico en Vercel antes de pioneros",
     },
     {
+      id: "blob_public_media",
+      label: "BLOB_READ_WRITE_TOKEN_PUBLIC",
+      ok: Boolean(process.env.BLOB_READ_WRITE_TOKEN_PUBLIC?.trim()),
+      hint: "Store público solo para fotos de perfil (recomendado en producción)",
+    },
+    {
+      id: "blob_public_media_flag",
+      label: "NEXT_PUBLIC_VU_PROFILE_MEDIA_PUBLIC",
+      ok: process.env.NEXT_PUBLIC_VU_PROFILE_MEDIA_PUBLIC === "1",
+      hint: "Debe ser 1 cuando exista el store público de fotos",
+    },
+    {
       id: "cohort",
       label: "Cohort batch",
       ok: Boolean(cohortBatch),

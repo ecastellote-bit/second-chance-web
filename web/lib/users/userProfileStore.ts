@@ -1,6 +1,6 @@
 import { appendFile, mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
-import { head, list, put } from "@vercel/blob";
+import { get, list, put } from "@vercel/blob";
 import {
   assertVercelBlobForProduction,
   isVercelBlobConfigured,
@@ -21,12 +21,19 @@ function profileBlobPath(userId: string): string {
   return `${PROFILE_BLOB_PREFIX}/${userId}.json`;
 }
 
+async function readJsonFromPrivateBlob<T>(pathname: string): Promise<T | null> {
+  const result = await get(pathname, { access: "private" });
+  if (!result || result.statusCode !== 200 || !result.stream) return null;
+  const raw = await new Response(result.stream).text();
+  return JSON.parse(raw) as T;
+}
+
 async function readProfileFromBlob(userId: string): Promise<VuUserProfileRecord | null> {
   try {
-    const meta = await head(profileBlobPath(userId));
-    const res = await fetch(meta.url);
-    if (!res.ok) return null;
-    const record = (await res.json()) as VuUserProfileRecord;
+    const record = await readJsonFromPrivateBlob<VuUserProfileRecord>(
+      profileBlobPath(userId),
+    );
+    if (!record) return null;
     if (record.recordType !== "vu_user_profile" || record.userId !== userId) {
       return null;
     }
@@ -55,10 +62,8 @@ async function listProfilesFromBlob(limit: number): Promise<VuUserProfileRecord[
 
   for (const blob of blobs) {
     try {
-      const res = await fetch(blob.url);
-      if (!res.ok) continue;
-      const record = (await res.json()) as VuUserProfileRecord;
-      if (record.recordType === "vu_user_profile" && record.userId) {
+      const record = await readJsonFromPrivateBlob<VuUserProfileRecord>(blob.pathname);
+      if (record?.recordType === "vu_user_profile" && record.userId) {
         profiles.push(record);
       }
     } catch {

@@ -2,11 +2,14 @@ import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { isVercelBlobConfigured, assertVercelBlobForProduction } from "@/lib/storage/vercelBlobEnv";
 import {
+  getProfileMediaBlobPutOptions,
+  resolveUploadedProfileMediaUrl,
+} from "@/lib/storage/profileMediaBlob";
+import {
   getProfileMediaBlobPathname,
   PROFILE_MEDIA_MAX_BYTES,
   type ProfileMediaKind,
 } from "@/lib/users/profileMediaValidation";
-import { profileMediaDeliveryUrl } from "@/lib/users/profileMediaDelivery";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -65,14 +68,18 @@ export async function POST(req: Request) {
 
     const pathname = getProfileMediaBlobPathname(kind, userId, "jpg");
 
-    await put(pathname, bytes, {
-      access: "private",
+    const blobOptions = getProfileMediaBlobPutOptions();
+    const written = await put(pathname, bytes, {
+      ...blobOptions,
       contentType: "image/jpeg",
       addRandomSuffix: false,
       allowOverwrite: true,
     });
 
-    return NextResponse.json({ ok: true, url: profileMediaDeliveryUrl(pathname) });
+    return NextResponse.json({
+      ok: true,
+      url: resolveUploadedProfileMediaUrl(pathname, written.url),
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "upload_failed";
     return NextResponse.json({ ok: false, error: message }, { status: 500 });

@@ -6,11 +6,14 @@ import {
   isVercelBlobConfigured,
 } from "@/lib/storage/vercelBlobEnv";
 import {
+  getProfileMediaBlobPutOptions,
+  resolveUploadedProfileMediaUrl,
+} from "@/lib/storage/profileMediaBlob";
+import {
   getProfileMediaBlobPathname,
   resolveProfileMediaForUpload,
   type ProfileMediaKind,
 } from "@/lib/users/profileMediaValidation";
-import { profileMediaDeliveryUrl } from "@/lib/users/profileMediaDelivery";
 
 export type { ProfileMediaKind } from "@/lib/users/profileMediaValidation";
 export {
@@ -53,13 +56,14 @@ export async function saveProfileMedia(
 
   if (isVercelBlobConfigured()) {
     try {
-      await put(pathname, bytes, {
-        access: "private",
+      const blobOptions = getProfileMediaBlobPutOptions();
+      const written = await put(pathname, bytes, {
+        ...blobOptions,
         contentType: mime,
         addRandomSuffix: false,
         allowOverwrite: true,
       });
-      return { url: profileMediaDeliveryUrl(pathname) };
+      return { url: resolveUploadedProfileMediaUrl(pathname, written.url) };
     } catch (error) {
       const detail = error instanceof Error ? error.message : "unknown";
       throw new Error(`${kind}_upload_failed:${detail}`);

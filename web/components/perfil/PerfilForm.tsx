@@ -271,7 +271,7 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
       }
 
       markProfileComplete(data.profile);
-      router.push(redirectTo);
+      router.replace(redirectTo);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
     } finally {

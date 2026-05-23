@@ -2,6 +2,10 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { get } from "@vercel/blob";
 import { NextResponse } from "next/server";
+import {
+  getPublicProfileMediaBlobToken,
+  isPublicProfileMediaBlobConfigured,
+} from "@/lib/storage/profileMediaBlob";
 import { isVercelBlobConfigured } from "@/lib/storage/vercelBlobEnv";
 import { isSafeProfileMediaPathname } from "@/lib/users/profileMediaDelivery";
 
@@ -32,7 +36,21 @@ async function readLocalUpload(pathname: string): Promise<Response | null> {
   }
 }
 
-/** Sirve fotos de perfil guardadas en Blob privado (o disco local en dev). */
+async function readFromBlob(pathname: string) {
+  let result = await get(pathname, { access: "private" });
+  if (
+    (!result || result.statusCode !== 200) &&
+    isPublicProfileMediaBlobConfigured()
+  ) {
+    result = await get(pathname, {
+      access: "public",
+      token: getPublicProfileMediaBlobToken(),
+    });
+  }
+  return result;
+}
+
+/** Respaldo: sirve fotos del store privado (legacy) o local en dev. */
 export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
   const pathname = searchParams.get("pathname")?.trim() ?? "";
@@ -47,7 +65,7 @@ export async function GET(request: Request): Promise<Response> {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
-  const result = await get(pathname, { access: "private" });
+  const result = await readFromBlob(pathname);
 
   if (!result || result.statusCode !== 200 || !result.stream) {
     const local = await readLocalUpload(pathname);

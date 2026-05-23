@@ -2,6 +2,9 @@
 
 import { upload } from "@vercel/blob/client";
 import {
+  profileMediaUsesPublicStoreClient,
+} from "@/lib/storage/profileMediaBlob";
+import {
   compressProfileImage,
   profileImageToBase64,
 } from "@/lib/users/compressProfileImage";
@@ -50,13 +53,15 @@ async function uploadViaBlobClient(
   const { ext } = validateProfileMediaFile(jpeg);
   const pathname = getProfileMediaBlobPathname(kind, userId, ext);
 
+  const access = profileMediaUsesPublicStoreClient() ? "public" : "private";
+
   const result = await upload(pathname, jpeg, {
-    access: "private",
+    access,
     handleUploadUrl: "/api/user-profile/media-upload",
     clientPayload: JSON.stringify({ userId, kind }),
   });
 
-  if (!result.url && !result.pathname) throw new Error(`${kind}_upload_failed:no_url`);
+  if (access === "public" && result.url) return result.url;
   return profileMediaDeliveryUrl(pathname);
 }
 

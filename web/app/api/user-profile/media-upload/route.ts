@@ -1,6 +1,6 @@
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
-import { isVercelBlobConfigured } from "@/lib/storage/vercelBlobEnv";
+import { getProfileMediaUploadToken } from "@/lib/storage/profileMediaBlob";
 import {
   getProfileMediaBlobPathname,
   type ProfileMediaKind,
@@ -35,9 +35,10 @@ function isSafeUserId(userId: string): boolean {
   return /^vu_[a-z0-9_]+$/i.test(userId);
 }
 
-/** Token para subida directa celu → Blob (sin webhook onUploadCompleted). */
+/** Token para subida directa celu → Blob (store público de fotos si está configurado). */
 export async function POST(request: Request): Promise<NextResponse> {
-  if (!isVercelBlobConfigured()) {
+  const uploadToken = getProfileMediaUploadToken();
+  if (!uploadToken) {
     return NextResponse.json(
       { error: "blob_not_configured:profile_media_upload" },
       { status: 503 },
@@ -50,6 +51,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const jsonResponse = await handleUpload({
       body,
       request,
+      token: uploadToken,
       onBeforeGenerateToken: async (pathname, clientPayload) => {
         const payload = parsePayload(clientPayload);
         const userId = payload.userId?.trim() ?? "";
