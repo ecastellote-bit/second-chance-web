@@ -14,6 +14,36 @@ import {
 import { parseChipInput, type VuUserProfileRecord } from "@/lib/users/userProfileTypes";
 import { ProfilePhotosEditor } from "@/components/perfil/ProfilePhotosEditor";
 
+function mediaUploadError(
+  kind: "cover" | "avatar",
+  code: string | undefined,
+): string {
+  if (code === "image_too_large") {
+    return kind === "cover"
+      ? "La portada supera 3 MB."
+      : "La foto supera 3 MB. Elegí otra más liviana.";
+  }
+  if (code === "image_invalid_type") {
+    return "Formato no válido. Usá JPG, PNG o WebP.";
+  }
+  if (code?.startsWith("blob_not_configured")) {
+    return "El almacenamiento del sitio aún no está listo. Probá en unos minutos o avisá al equipo.";
+  }
+  return kind === "cover"
+    ? "No se pudo guardar la portada."
+    : "Tenés que subir una foto de perfil.";
+}
+
+function profileSaveError(code: string | undefined): string {
+  if (code?.startsWith("blob_not_configured")) {
+    return "El almacenamiento del sitio aún no está listo. Probá en unos minutos o avisá al equipo.";
+  }
+  if (code === "profile_incomplete") {
+    return "Completá todos los campos obligatorios del perfil.";
+  }
+  return code ?? "No se pudo guardar el perfil";
+}
+
 type Props = {
   mode: "create" | "edit";
   redirectTo?: string;
@@ -80,11 +110,7 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
         });
         const coverData = await coverRes.json();
         if (!coverData.ok || !coverData.coverUrl) {
-          throw new Error(
-            coverData.error === "image_too_large"
-              ? "La portada supera 3 MB."
-              : "No se pudo guardar la portada.",
-          );
+          throw new Error(mediaUploadError("cover", coverData.error));
         }
         resolvedCoverUrl = coverData.coverUrl;
       }
@@ -99,13 +125,7 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
         });
         const avatarData = await avatarRes.json();
         if (!avatarData.ok || !avatarData.avatarUrl) {
-          throw new Error(
-            avatarData.error === "image_too_large"
-              ? "La foto supera 3 MB. Elegí otra más liviana."
-              : avatarData.error === "image_invalid_type"
-                ? "Formato no válido. Usá JPG, PNG o WebP."
-                : "Tenés que subir una foto de perfil.",
-          );
+          throw new Error(mediaUploadError("avatar", avatarData.error));
         }
         resolvedAvatarUrl = avatarData.avatarUrl;
       }
@@ -136,7 +156,7 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
 
       const data = await res.json();
       if (!data.ok || !data.profile) {
-        throw new Error(data.error ?? "No se pudo guardar el perfil");
+        throw new Error(profileSaveError(data.error));
       }
 
       markProfileComplete(data.profile);

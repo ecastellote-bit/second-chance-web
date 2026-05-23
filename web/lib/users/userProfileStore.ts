@@ -1,24 +1,78 @@
 import { appendFile, mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
+import { head, list, put } from "@vercel/blob";
+import {
+  assertVercelBlobForProduction,
+  isVercelBlobConfigured,
+} from "@/lib/storage/vercelBlobEnv";
 import {
   isUserProfileComplete,
   type UserProfilePayload,
   type VuUserProfileRecord,
 } from "./userProfileTypes";
 
-function storePath(): string {
+const PROFILE_BLOB_PREFIX = "user-profiles";
+
+function localStorePath(): string {
   return path.join(process.cwd(), "data", "user-profiles.jsonl");
 }
 
-export async function findUserProfileById(
-  userId: string,
-): Promise<VuUserProfileRecord | null> {
-  const profiles = await listUserProfiles(500);
-  return profiles.find((p) => p.userId === userId) ?? null;
+function profileBlobPath(userId: string): string {
+  return `${PROFILE_BLOB_PREFIX}/${userId}.json`;
 }
 
-export async function listUserProfiles(limit = 200): Promise<VuUserProfileRecord[]> {
-  const filePath = storePath();
+async function readProfileFromBlob(userId: string): Promise<VuUserProfileRecord | null> {
+  try {
+    const meta = await head(profileBlobPath(userId));
+    const res = await fetch(meta.url);
+    if (!res.ok) return null;
+    const record = (await res.json()) as VuUserProfileRecord;
+    if (record.recordType !== "vu_user_profile" || record.userId !== userId) {
+      return null;
+    }
+    return record;
+  } catch {
+    return null;
+  }
+}
+
+async function writeProfileToBlob(profile: VuUserProfileRecord): Promise<void> {
+  await put(profileBlobPath(profile.userId), JSON.stringify(profile), {
+    access: "private",
+    contentType: "application/json",
+    addRandomSuffix: false,
+    allowOverwrite: true,
+  });
+}
+
+async function listProfilesFromBlob(limit: number): Promise<VuUserProfileRecord[]> {
+  const { blobs } = await list({
+    prefix: `${PROFILE_BLOB_PREFIX}/`,
+    limit: Math.min(limit, 1000),
+  });
+
+  const profiles: VuUserProfileRecord[] = [];
+
+  for (const blob of blobs) {
+    try {
+      const res = await fetch(blob.url);
+      if (!res.ok) continue;
+      const record = (await res.json()) as VuUserProfileRecord;
+      if (record.recordType === "vu_user_profile" && record.userId) {
+        profiles.push(record);
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return profiles
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    .slice(0, limit);
+}
+
+async function listProfilesFromLocal(limit: number): Promise<VuUserProfileRecord[]> {
+  const filePath = localStorePath();
   try {
     const raw = await readFile(filePath, "utf8");
     const lines = raw.trim().split("\n").filter(Boolean);
@@ -40,10 +94,30 @@ export async function listUserProfiles(limit = 200): Promise<VuUserProfileRecord
   }
 }
 
+export async function findUserProfileById(
+  userId: string,
+): Promise<VuUserProfileRecord | null> {
+  if (isVercelBlobConfigured()) {
+    return readProfileFromBlob(userId);
+  }
+
+  const profiles = await listProfilesFromLocal(500);
+  return profiles.find((p) => p.userId === userId) ?? null;
+}
+
+export async function listUserProfiles(limit = 200): Promise<VuUserProfileRecord[]> {
+  if (isVercelBlobConfigured()) {
+    return listProfilesFromBlob(limit);
+  }
+  return listProfilesFromLocal(limit);
+}
+
 export async function upsertUserProfile(
   payload: UserProfilePayload,
   options?: { forceUserId?: string },
 ): Promise<{ profile: VuUserProfileRecord; created: boolean }> {
+  assertVercelBlobForProduction("user_profile");
+
   const userId =
     options?.forceUserId?.trim() ||
     payload.userId?.trim() ||
@@ -80,7 +154,12 @@ export async function upsertUserProfile(
     throw new Error("profile_incomplete");
   }
 
-  const filePath = storePath();
+  if (isVercelBlobConfigured()) {
+    await writeProfileToBlob(profile);
+    return { profile, created: !existing };
+  }
+
+  const filePath = localStorePath();
   await mkdir(path.dirname(filePath), { recursive: true });
   await appendFile(filePath, `${JSON.stringify(profile)}\n`, "utf8");
 

@@ -36,7 +36,8 @@ Opcional: país. Se enlaza `diagnosticArchiveId` si ya completó el diagnóstico
 ## Persistencia (MVP)
 
 - Cliente: `localStorage` → `vu_user_id`, cache de perfil completo
-- Servidor: `data/user-profiles.jsonl` vía `POST /api/user-profile`
+- Servidor local: `data/user-profiles.jsonl` + `public/uploads/`
+- **Vercel (producción):** Vercel Blob (`BLOB_READ_WRITE_TOKEN`) — fotos en `profile-media/` y perfil en `user-profiles/{userId}.json`
 - Sin login/password en esta etapa (auth real = siguiente fase)
 
 ## Gate

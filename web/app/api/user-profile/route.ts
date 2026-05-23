@@ -84,7 +84,11 @@ export async function POST(req: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "save_failed";
     const status =
-      message === "profile_incomplete" || message === "avatar_required" ? 400 : 500;
+      message === "profile_incomplete" ||
+      message === "avatar_required" ||
+      message.startsWith("blob_not_configured")
+        ? 400
+        : 500;
     return NextResponse.json({ ok: false, error: message }, { status });
   }
 }
