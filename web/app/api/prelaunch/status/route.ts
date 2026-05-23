@@ -23,8 +23,11 @@ export async function GET() {
     },
     {
       id: "blob_public_media",
-      label: "BLOB_READ_WRITE_TOKEN_PUBLIC",
-      ok: Boolean(process.env.BLOB_READ_WRITE_TOKEN_PUBLIC?.trim()),
+      label: "BLOB_PUBLIC_READ_WRITE_TOKEN",
+      ok: Boolean(
+        process.env.BLOB_READ_WRITE_TOKEN_PUBLIC?.trim() ||
+          process.env.BLOB_PUBLIC_READ_WRITE_TOKEN?.trim(),
+      ),
       hint: "Store público solo para fotos de perfil (recomendado en producción)",
     },
     {

@@ -2,7 +2,11 @@ import { profileMediaDeliveryUrl } from "@/lib/users/profileMediaDelivery";
 
 /** Token del Blob store **público** solo para fotos de perfil/portada. */
 export function getPublicProfileMediaBlobToken(): string | undefined {
-  return process.env.BLOB_READ_WRITE_TOKEN_PUBLIC?.trim() || undefined;
+  return (
+    process.env.BLOB_READ_WRITE_TOKEN_PUBLIC?.trim() ||
+    process.env.BLOB_PUBLIC_READ_WRITE_TOKEN?.trim() ||
+    undefined
+  );
 }
 
 export function isPublicProfileMediaBlobConfigured(): boolean {
