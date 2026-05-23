@@ -1,4 +1,4 @@
-import { head, list, put } from "@vercel/blob";
+import { head, list, put, get } from "@vercel/blob";
 import type {
   HumanCompleteCaseRecord,
   HumanLearningExtractRecord,
@@ -133,10 +133,10 @@ export async function getHumanCaseBundle(
   const pathname = blobPath(archiveId);
 
   try {
-    const meta = await head(pathname);
-    const res = await fetch(meta.url);
-    if (!res.ok) return null;
-    return (await res.json()) as HumanCaseBlobBundle;
+    const result = await get(pathname, { access: "private" });
+    if (!result || result.statusCode !== 200 || !result.stream) return null;
+    const raw = await new Response(result.stream).text();
+    return JSON.parse(raw) as HumanCaseBlobBundle;
   } catch {
     return null;
   }
@@ -167,9 +167,10 @@ export async function listHumanCaseBundles(limit = 100): Promise<HumanCaseListIt
     if (!match) continue;
 
     try {
-      const res = await fetch(blob.url);
-      if (!res.ok) continue;
-      const bundle = (await res.json()) as HumanCaseBlobBundle;
+      const result = await get(blob.pathname, { access: "private" });
+      if (!result || result.statusCode !== 200 || !result.stream) continue;
+      const raw = await new Response(result.stream).text();
+      const bundle = JSON.parse(raw) as HumanCaseBlobBundle;
       items.push({
         archiveId: bundle.archiveId,
         storedAt: bundle.storedAt,
@@ -194,4 +195,42 @@ export async function listHumanCaseBundles(limit = 100): Promise<HumanCaseListIt
   return items.sort(
     (a, b) => new Date(b.storedAt).getTime() - new Date(a.storedAt).getTime(),
   );
+}
+
+/** Marca en Blob que el usuario pidió revisión humana explícita. */
+export async function markHumanCaseReviewRequested(
+  archiveId: string,
+  note?: string,
+): Promise<boolean> {
+  const bundle = await getHumanCaseBundle(archiveId);
+  if (!bundle) return false;
+
+  const prior = bundle.complete.payload.humanReview as
+    | Record<string, unknown>
+    | undefined;
+
+  bundle.complete.storagePolicy.reviewStatus = "pending_human_review";
+  bundle.complete.payload.humanReview = {
+    expectedPrimaryFamily: String(prior?.expectedPrimaryFamily ?? ""),
+    acceptableFamilies: Array.isArray(prior?.acceptableFamilies)
+      ? (prior?.acceptableFamilies as string[])
+      : [],
+    rivalFamilies: Array.isArray(prior?.rivalFamilies)
+      ? (prior?.rivalFamilies as string[])
+      : [],
+    verdict: "pending_human_review",
+    correctionNote:
+      note?.trim() ||
+      String(prior?.correctionNote ?? "") ||
+      "Usuario solicitó revisión humana al finalizar el diagnóstico.",
+    shouldBecomeLearnedCase: prior?.shouldBecomeLearnedCase === true,
+    userRequestedAt: new Date().toISOString(),
+  };
+
+  await putHumanCaseBundle({
+    complete: bundle.complete,
+    extract: bundle.extract,
+  });
+
+  return true;
 }

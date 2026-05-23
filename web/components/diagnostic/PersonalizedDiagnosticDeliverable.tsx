@@ -88,13 +88,13 @@ export function PersonalizedDiagnosticDeliverable({
   if (!lc?.sentenciaRevelacion && !lc?.resumen) return null;
 
   return (
-    <div className="space-y-16 md:space-y-20">
+    <div className="space-y-12 sm:space-y-16 md:space-y-20">
       {/* HERO — sentencia */}
-      <section className="rounded-2xl bg-neutral-950 text-white px-8 py-12 md:px-12 md:py-16">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-400 mb-6">
+      <section className="rounded-2xl bg-neutral-950 text-white px-5 py-10 sm:px-8 md:px-12 md:py-16">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-400 mb-4 sm:mb-6">
           Lo que tu historia pide decir
         </p>
-        <p className="text-2xl md:text-3xl lg:text-4xl font-semibold leading-snug tracking-tight text-balance">
+        <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold leading-snug tracking-tight text-balance">
           {lc.sentenciaRevelacion}
         </p>
         <p className="mt-8 text-sm text-neutral-400 max-w-2xl leading-relaxed">

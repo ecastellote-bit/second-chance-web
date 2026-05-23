@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useFullAnswers } from "../fullAnswersContext";
 import { persistContextualFromFinalReading } from "@/lib/tematicas/persistContextualOnAnalyze";
 import { HumanCaseArchiveGate } from "@/components/diagnostic/HumanCaseArchiveGate";
+import { RequestHumanReviewButton } from "@/components/diagnostic/RequestHumanReviewButton";
 import { buildFoundationalClientMeta } from "@/lib/learning/foundationalCohort";
 import {
   PersonalizedDiagnosticDeliverable,
@@ -1171,8 +1172,8 @@ export default function ResultPage() {
 
   return (
     <HumanCaseArchiveGate archivePayload={autoArchivePayload}>
-      {() => (
-    <main className="min-h-screen bg-white text-black px-4 sm:px-8 py-10 md:py-14">
+      {({ archiveId }) => (
+    <main className="min-h-[100dvh] bg-white text-black px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-14 pb-24">
       <div
         className={`mx-auto space-y-10 ${
           hasPersonalizedPresentation ? "max-w-6xl" : "max-w-3xl"
@@ -2390,13 +2391,19 @@ export default function ResultPage() {
         )}
 
         {hasPersonalizedPresentation && (
-          <div className="flex justify-center pt-4">
+          <div className="rounded-2xl border border-[#E8EEF3] bg-[#F8FAFC] px-4 py-8 sm:px-8 space-y-6 text-center">
+            <RequestHumanReviewButton archiveId={archiveId} className="flex flex-col items-center" />
             <button
+              type="button"
               onClick={() => router.push("/full/themes")}
-              className="px-10 py-4 bg-black text-white rounded-xl text-base font-medium hover:bg-neutral-800 transition-colors"
+              className="w-full sm:w-auto rounded-xl bg-black px-10 py-4 text-base font-medium text-white hover:bg-neutral-800 transition-colors"
             >
               Elegir mi temática y dar el siguiente paso
             </button>
+            <p className="text-sm text-neutral-600">
+              Después podés crear tu perfil, entrar a la plaza y sembrar tu primer
+              proyecto.
+            </p>
           </div>
         )}
       </div>

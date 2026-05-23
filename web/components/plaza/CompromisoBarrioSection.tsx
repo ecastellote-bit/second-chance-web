@@ -33,7 +33,7 @@ export function CompromisoBarrioSection() {
         {saved.id === "crear_proyecto" ? (
           <button
             type="button"
-            onClick={() => router.push("/proyectos")}
+            onClick={() => router.push("/proyectos/sembrar")}
             className="vu-focus mt-3 text-[13px] font-semibold text-[#1A9BB0] underline"
           >
             Ir a proyectos del barrio

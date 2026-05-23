@@ -4,7 +4,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 import { getFoundationalCohortBatch } from "@/lib/learning/foundationalCohort";
 import { findUserProfileById, upsertUserProfile } from "@/lib/users/userProfileStore";
-import { parseChipInput } from "@/lib/users/userProfileTypes";
+import { parseChipInput, isUserProfileComplete } from "@/lib/users/userProfileTypes";
 import { appendObservatoryEvent, buildObservatoryEvent } from "@/lib/observatory/store";
 
 export async function GET(req: Request) {
@@ -22,7 +22,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     ok: true,
     profile,
-    complete: Boolean(profile),
+    complete: Boolean(profile && isUserProfileComplete(profile)),
   });
 }
 

@@ -6,6 +6,8 @@ import { CirculosLeftNav } from "@/components/circulos/CirculosLeftNav";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
 import { VuWarmImage } from "@/components/ui/VuWarmImage";
 import { FoundingMemberBadge } from "@/components/founder/FoundingMemberBadge";
+import { isFounderCommunityPreviewActive } from "@/lib/founder/communityPreviewBypass";
+import { ensureFoundingMemberAccess } from "@/lib/learning/ensureFoundingMemberAccess";
 import { isFoundingMemberQualified } from "@/lib/learning/foundationalMember";
 import { FounderSeedsSection } from "@/components/proyectos/FounderSeedsSection";
 import { PROYECTOS_CATALOG, PROYECTOS_HEADER } from "@/lib/content/proyectosCatalog";
@@ -14,7 +16,22 @@ export function ProyectosListView() {
   const [canSembrar, setCanSembrar] = useState(false);
 
   useEffect(() => {
-    setCanSembrar(isFoundingMemberQualified());
+    let cancelled = false;
+
+    async function check() {
+      if (isFounderCommunityPreviewActive()) {
+        if (!cancelled) setCanSembrar(true);
+        return;
+      }
+      const ok =
+        isFoundingMemberQualified() || (await ensureFoundingMemberAccess());
+      if (!cancelled) setCanSembrar(ok);
+    }
+
+    check();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (

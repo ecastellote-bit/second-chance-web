@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PROFILE_FLOW_COPY } from "@/lib/content/profileFlowCopy";
 import { getFoundationalCohortBatch } from "@/lib/learning/foundationalCohort";
-import { getFoundingMemberArchiveId } from "@/lib/learning/foundationalMember";
+import {
+  grantFoundingMember,
+  getFoundingMemberArchiveId,
+} from "@/lib/learning/foundationalMember";
 import {
   fetchUserProfile,
   getOrCreateUserId,
@@ -186,6 +189,9 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
     setAportarRaw(profile.aportar.join(", "));
     setAvatarUrl(profile.avatarUrl);
     setCoverUrl(profile.coverUrl ?? null);
+    if (profile.diagnosticArchiveId?.trim()) {
+      grantFoundingMember(profile.diagnosticArchiveId.trim());
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {

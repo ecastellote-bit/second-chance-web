@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PROFILE_FLOW_COPY } from "@/lib/content/profileFlowCopy";
+import { ensureFoundingMemberAccess } from "@/lib/learning/ensureFoundingMemberAccess";
 import {
   fetchUserProfile,
   getOrCreateUserId,
@@ -35,6 +36,7 @@ export function UserProfileGate({ children }: { children: React.ReactNode }) {
       }
 
       if (isProfileCompleteCached()) {
+        await ensureFoundingMemberAccess();
         if (!cancelled) {
           setHasProfile(true);
           setReady(true);
@@ -43,6 +45,7 @@ export function UserProfileGate({ children }: { children: React.ReactNode }) {
       }
 
       const profile = await fetchUserProfile(getOrCreateUserId());
+      await ensureFoundingMemberAccess();
       if (!cancelled) {
         setHasProfile(isUserProfileComplete(profile));
         setReady(true);
