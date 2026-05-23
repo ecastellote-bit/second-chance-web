@@ -1,34 +1,27 @@
 "use client";
 
-import { upload } from "@vercel/blob/client";
-import {
-  getProfileMediaBlobPathname,
-  validateProfileMediaFile,
-  type ProfileMediaKind,
-} from "@/lib/users/profileMediaValidation";
+import { compressProfileImage } from "@/lib/users/compressProfileImage";
+import type { ProfileMediaKind } from "@/lib/users/profileMediaValidation";
 
-export function shouldUseClientProfileUpload(): boolean {
-  if (typeof window === "undefined") return false;
-  const host = window.location.hostname;
-  return host !== "localhost" && host !== "127.0.0.1";
-}
+const UPLOAD_TIMEOUT_MS = 45_000;
 
-/** Sube directo del celu/navegador a Vercel Blob (evita límite de FormData en el servidor). */
-export async function uploadProfileMediaFromBrowser(
-  kind: ProfileMediaKind,
-  userId: string,
-  file: File,
-): Promise<string> {
-  const { ext } = validateProfileMediaFile(file);
-  const pathname = getProfileMediaBlobPathname(kind, userId, ext);
-
-  const blob = await upload(pathname, file, {
-    access: "public",
-    handleUploadUrl: "/api/user-profile/media-upload",
-    clientPayload: JSON.stringify({ userId, kind }),
+export function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  code: string,
+): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(code)), ms);
+    promise
+      .then((value) => {
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
   });
-
-  return blob.url;
 }
 
 export async function uploadProfileMediaViaApi(
@@ -42,6 +35,7 @@ export async function uploadProfileMediaViaApi(
 
   const endpoint =
     kind === "avatar" ? "/api/user-profile/avatar" : "/api/user-profile/cover";
+
   const res = await fetch(endpoint, { method: "POST", body: form });
   const text = await res.text();
   let data: { ok?: boolean; error?: string; avatarUrl?: string; coverUrl?: string };
@@ -58,17 +52,16 @@ export async function uploadProfileMediaViaApi(
   return url;
 }
 
+/** Comprime en el navegador y sube vía API (Blob en servidor). Sin client upload de Vercel. */
 export async function uploadProfileMedia(
   kind: ProfileMediaKind,
   userId: string,
   file: File,
 ): Promise<string> {
-  if (shouldUseClientProfileUpload()) {
-    try {
-      return await uploadProfileMediaFromBrowser(kind, userId, file);
-    } catch {
-      // Fallback si el token exchange falla
-    }
-  }
-  return uploadProfileMediaViaApi(kind, userId, file);
+  const prepared = await compressProfileImage(file);
+  return withTimeout(
+    uploadProfileMediaViaApi(kind, userId, prepared),
+    UPLOAD_TIMEOUT_MS,
+    `${kind}_upload_timeout`,
+  );
 }

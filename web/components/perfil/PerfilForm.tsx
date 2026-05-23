@@ -12,7 +12,10 @@ import {
   markProfileComplete,
 } from "@/lib/users/activeUserSession";
 import { parseChipInput, type VuUserProfileRecord } from "@/lib/users/userProfileTypes";
-import { uploadProfileMedia } from "@/lib/users/uploadProfileMediaClient";
+import {
+  uploadProfileMedia,
+  withTimeout,
+} from "@/lib/users/uploadProfileMediaClient";
 import { ProfilePhotosEditor } from "@/components/perfil/ProfilePhotosEditor";
 
 function mediaUploadError(
@@ -30,6 +33,11 @@ function mediaUploadError(
   if (code?.startsWith("blob_not_configured")) {
     return "El almacenamiento del sitio aún no está listo. Probá en unos minutos o avisá al equipo.";
   }
+  if (code?.endsWith("_upload_timeout")) {
+    return kind === "cover"
+      ? "La portada tardó demasiado en subir."
+      : "La foto tardó demasiado en subir. Probá con otra imagen o mejor señal.";
+  }
   return kind === "cover"
     ? "No se pudo guardar la portada."
     : "Tenés que subir una foto de perfil.";
@@ -45,6 +53,9 @@ function errorCodeFromThrown(err: unknown): string | undefined {
 function profileSaveError(code: string | undefined): string {
   if (code?.startsWith("blob_not_configured")) {
     return "El almacenamiento del sitio aún no está listo. Probá en unos minutos o avisá al equipo.";
+  }
+  if (code === "profile_save_timeout") {
+    return "Guardar el perfil tardó demasiado. Revisá la conexión e intentá de nuevo.";
   }
   if (code === "profile_incomplete") {
     return "Completá todos los campos obligatorios del perfil.";
@@ -108,22 +119,21 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
       let resolvedAvatarUrl = avatarUrl?.trim() || null;
       let resolvedCoverUrl = coverUrl?.trim() || null;
 
-      if (coverFile) {
-        try {
-          resolvedCoverUrl = await uploadProfileMedia("cover", userId, coverFile);
-        } catch (err) {
-          // Portada opcional: no bloqueamos el alta si falla la subida en el celu.
-          setError(
-            `${mediaUploadError("cover", errorCodeFromThrown(err))} Podés crear el perfil igual; después editás la portada.`,
-          );
-        }
-      }
-
       if (avatarFile) {
         try {
           resolvedAvatarUrl = await uploadProfileMedia("avatar", userId, avatarFile);
         } catch (err) {
           throw new Error(mediaUploadError("avatar", errorCodeFromThrown(err)));
+        }
+      }
+
+      if (coverFile) {
+        try {
+          resolvedCoverUrl = await uploadProfileMedia("cover", userId, coverFile);
+        } catch (err) {
+          setError(
+            `${mediaUploadError("cover", errorCodeFromThrown(err))} Podés crear el perfil igual; después editás la portada.`,
+          );
         }
       }
 
@@ -133,25 +143,33 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
         return;
       }
 
-      const res = await fetch("/api/user-profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId,
-          displayName,
-          headline,
-          momentoActual,
-          country: country.trim() || undefined,
-          buscando: parseChipInput(buscandoRaw),
-          aportar: parseChipInput(aportarRaw),
-          avatarUrl: resolvedAvatarUrl,
-          coverUrl: resolvedCoverUrl,
-          diagnosticArchiveId: getFoundingMemberArchiveId(),
-          cohortBatch: getFoundationalCohortBatch(),
+      const res = await withTimeout(
+        fetch("/api/user-profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId,
+            displayName,
+            headline,
+            momentoActual,
+            country: country.trim() || undefined,
+            buscando: parseChipInput(buscandoRaw),
+            aportar: parseChipInput(aportarRaw),
+            avatarUrl: resolvedAvatarUrl,
+            coverUrl: resolvedCoverUrl,
+            diagnosticArchiveId: getFoundingMemberArchiveId(),
+            cohortBatch: getFoundationalCohortBatch(),
+          }),
         }),
-      });
+        30_000,
+        "profile_save_timeout",
+      );
 
-      const data = await res.json();
+      const data = (await res.json()) as {
+        ok?: boolean;
+        profile?: VuUserProfileRecord;
+        error?: string;
+      };
       if (!data.ok || !data.profile) {
         throw new Error(profileSaveError(data.error));
       }
