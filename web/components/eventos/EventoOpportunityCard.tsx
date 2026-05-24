@@ -51,10 +51,7 @@ export function EventoOpportunityCard({ event }: { event: OpportunityEvent }) {
           <span className="font-semibold text-[#1A9BB0]">{event.modalityLabel}</span>
         </div>
 
-        <p className="text-[12px] text-[#6B7A8C]">
-          <span className="font-semibold text-[#0B2E59]">{event.participants}</span> personas ya se
-          anotaron
-        </p>
+        <p className="text-[12px] text-[#6B7A8C]">Convocatoria semilla · ejemplo para orientarte</p>
 
         <Link
           href={`/eventos/${event.id}`}

@@ -8,6 +8,7 @@ import {
   NeighborhoodActivityDetail,
 } from "@/components/neighborhood/NeighborhoodActivityDetail";
 import { EVENTOS_CATALOG } from "@/lib/content/eventosCatalog";
+import { COMMUNITY_SEED_INTERIOR_BODY } from "@/lib/content/communitySeedCopy";
 
 export default function EventoDetailPage() {
   const params = useParams();
@@ -43,10 +44,7 @@ export default function EventoDetailPage() {
         </Link>
       }
     >
-      <p>
-        El detalle completo y la inscripción se abren en la próxima etapa. Por ahora podés explorar
-        el calendario del barrio.
-      </p>
+      <p>{COMMUNITY_SEED_INTERIOR_BODY}</p>
     </NeighborhoodActivityDetail>
     </UserProfileGate>
   );

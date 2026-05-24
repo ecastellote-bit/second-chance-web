@@ -3,21 +3,13 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { setActivationChoice } from "@/lib/activacion/storage";
-import { mapGuidedActivationToCartel } from "@/lib/full/activationBridge";
+import { mapGuidedActivationToStoredPath } from "@/lib/full/activationBridge";
 import {
-  archivedCurrentResultToFinalReading,
-  getGuidedThemesFromResult,
-} from "@/lib/full/restoreArchivedCaseToSession";
+  resolveGuidedThemesForReading,
+  type GuidedThemeOption,
+} from "@/lib/full/resolveGuidedThemesForReading";
+import { archivedCurrentResultToFinalReading } from "@/lib/full/restoreArchivedCaseToSession";
 import { useFullAnswers } from "../fullAnswersContext";
-
-type GuidedThemeOption = {
-  id: string;
-  shortLabel: string;
-  userFacingText: string;
-  layer?: string;
-  score: number;
-  activationPaths: string[];
-};
 
 type ActivationOption = {
   id: string;
@@ -60,6 +52,10 @@ function ThemesPageContent() {
   const [step, setStep] = useState<"themes" | "activation" | "confirmed">("themes");
   const [loading, setLoading] = useState(false);
   const [hydrating, setHydrating] = useState(Boolean(archiveId));
+  const [themesRecovery, setThemesRecovery] = useState<"idle" | "missing" | "regenerated">(
+    "idle",
+  );
+  const [retryKey, setRetryKey] = useState(0);
 
   const resultBackHref = archiveId
     ? `/full/result/archivo/${encodeURIComponent(archiveId)}`
@@ -104,13 +100,29 @@ function ThemesPageContent() {
 
   useEffect(() => {
     if (!analysis.result) return;
-    const raw = getGuidedThemesFromResult(
+
+    const { themes: resolved, source } = resolveGuidedThemesForReading(
       analysis.result as unknown as Record<string, unknown>,
     );
-    if (raw.length > 0) {
-      setThemes(raw as GuidedThemeOption[]);
+
+    if (resolved.length > 0) {
+      setThemes(resolved);
+      setThemesRecovery(source === "regenerated" ? "regenerated" : "idle");
+
+      if (source === "regenerated" && analysis.result) {
+        setAnalysis(
+          {
+            ...analysis.result,
+            _guidedThemes: resolved,
+          } as typeof analysis.result,
+        );
+      }
+      return;
     }
-  }, [analysis.result]);
+
+    setThemes([]);
+    setThemesRecovery("missing");
+  }, [analysis.result, retryKey, setAnalysis]);
 
   async function handleThemeSelect(theme: GuidedThemeOption) {
     setSelectedTheme(theme);
@@ -200,7 +212,7 @@ function ThemesPageContent() {
           <button
             onClick={() => {
               const path = selectedActivation?.path;
-              setActivationChoice(mapGuidedActivationToCartel(path));
+              setActivationChoice(mapGuidedActivationToStoredPath(path));
               router.push("/plaza");
             }}
             className="px-6 py-3 bg-black text-white rounded-lg text-sm font-medium hover:bg-neutral-800 transition-colors"
@@ -274,20 +286,42 @@ function ThemesPageContent() {
           </p>
         </div>
 
-        {themes.length === 0 && (
-          <div className="border border-amber-200 bg-amber-50 rounded-xl p-6 text-center space-y-3">
-            <p className="text-sm text-amber-900">
-              No encontramos temáticas guardadas en este caso. Podés explorar el barrio igual
-              o contactar al equipo para re-vincular tu lectura.
+        {themes.length === 0 && themesRecovery === "missing" && (
+          <div className="rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] p-6 text-center space-y-4">
+            <p className="text-sm leading-relaxed text-[#243647]">
+              No pudimos reconstruir tus temáticas desde este archivo. Podés volver al resultado
+              o regenerar esta etapa.
             </p>
-            <button
-              type="button"
-              onClick={() => router.push("/plaza")}
-              className="rounded-lg bg-black px-5 py-2 text-sm text-white"
-            >
-              Ir al barrio
-            </button>
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+              <button
+                type="button"
+                onClick={() => router.push(resultBackHref)}
+                className="rounded-xl bg-[#0B2E59] px-5 py-3 text-sm font-semibold text-white"
+              >
+                Volver al resultado
+              </button>
+              <button
+                type="button"
+                onClick={() => setRetryKey((k) => k + 1)}
+                className="rounded-xl border border-[#0B2E59]/25 px-5 py-3 text-sm font-semibold text-[#0B2E59]"
+              >
+                Reintentar selección
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push("/plaza?mapa=1")}
+                className="rounded-xl border border-[#1A9BB0]/40 px-5 py-3 text-sm font-semibold text-[#0B2E59]"
+              >
+                Explorar la plaza
+              </button>
+            </div>
           </div>
+        )}
+
+        {themesRecovery === "regenerated" && themes.length > 0 && (
+          <p className="rounded-xl border border-[#C6D92D]/40 bg-[#F4F9E0] px-4 py-3 text-sm text-[#243647]">
+            Reconstruimos tus temáticas a partir de tu lectura archivada.
+          </p>
         )}
 
         <div className="space-y-4">

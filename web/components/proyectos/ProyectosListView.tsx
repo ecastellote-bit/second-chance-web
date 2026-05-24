@@ -104,7 +104,7 @@ export function ProyectosListView() {
                     <h2 className="text-sm font-bold leading-snug text-[#0B2E59]">{p.title}</h2>
                     <p className="text-xs leading-relaxed text-[#6B7A8C] line-clamp-2">{p.summary}</p>
                     <p className="mt-1 text-[11px] font-medium text-[#6B7A8C]">
-                      {p.participants} interesados · Me interesa sumarme →
+                      Espacio semilla · explorar ejemplo →
                     </p>
                   </div>
                 </Link>

@@ -1,19 +1,29 @@
-import type { ActivacionCartelId } from "@/lib/content/activacionCatalog";
+import type { OfficialActivationPathId } from "@/lib/content/officialActivationPaths";
 
-/** Puente entre activación del diagnóstico (/full/themes) y carteles de la plaza. */
+/** Puente entre activación del diagnóstico (/full/themes) y elección guardada en sesión. */
+const OFFICIAL_PATHS: OfficialActivationPathId[] = [
+  "asociarme_con_otras_personas",
+  "formarme_en_algo_nuevo",
+  "integrar_proyectos_existentes",
+  "armar_mi_propio_proyecto",
+  "explorar_primero_comunidad",
+];
+
+export function mapGuidedActivationToStoredPath(
+  activationPathId: string | undefined,
+): OfficialActivationPathId {
+  if (
+    activationPathId &&
+    OFFICIAL_PATHS.includes(activationPathId as OfficialActivationPathId)
+  ) {
+    return activationPathId as OfficialActivationPathId;
+  }
+  return "explorar_primero_comunidad";
+}
+
+/** @deprecated Usar mapGuidedActivationToStoredPath */
 export function mapGuidedActivationToCartel(
   activationPathId: string | undefined,
-): ActivacionCartelId {
-  switch (activationPathId) {
-    case "armar_mi_propio_proyecto":
-    case "integrar_proyectos_existentes":
-      return "presentar_proyecto";
-    case "asociarme_con_otras_personas":
-      return "asociarme";
-    case "formarme_en_algo_nuevo":
-      return "explorar_comunidad";
-    case "explorar_primero_comunidad":
-    default:
-      return "explorar_comunidad";
-  }
+): OfficialActivationPathId {
+  return mapGuidedActivationToStoredPath(activationPathId);
 }

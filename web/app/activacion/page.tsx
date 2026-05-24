@@ -6,7 +6,7 @@ import { MvpPioneerBanner } from "@/components/mvp/MvpPioneerBanner";
 import { DeepReadingCard } from "@/components/neighborhood/DeepReadingCTA";
 import { VuMobileShell } from "@/components/layout/VuMobileShell";
 import { VuAtmosphereBand } from "@/components/ui/VuAtmosphereBand";
-import { ACTIVACION_CARTELES, ACTIVACION_HEADER } from "@/lib/content/activacionCatalog";
+import { ACTIVACION_HEADER } from "@/lib/content/activacionCatalog";
 import {
   getActivacionSuggestions,
   loadContextualBridge,
@@ -21,7 +21,7 @@ export default function ActivacionPage() {
   }, []);
 
   const review = ready ? loadContextualBridge() : null;
-  const { hints, suggestedCartelIds } = getActivacionSuggestions(review);
+  const { hints, suggestedPathIds } = getActivacionSuggestions(review);
 
   return (
     <UserProfileGate>
@@ -43,17 +43,13 @@ export default function ActivacionPage() {
               </h1>
               <p className="mt-1.5 text-[15px] leading-relaxed text-[#6B7A8C]">
                 {hints.length > 0
-                  ? "Según tu diagnóstico, estos carteles encajan primero. Elegí cómo entrar al barrio."
-                  : ACTIVACION_HEADER.subtitle}
+                  ? "Según tu diagnóstico, estos caminos encajan primero. Elegí cómo entrar al barrio."
+                  : "Elegí uno de los cinco caminos oficiales para entrar al barrio. Después podés usar las tres puertas."}
               </p>
             </div>
           </div>
         </div>
-        <ActivationHub
-          cartels={ACTIVACION_CARTELES}
-          activationHints={hints}
-          suggestedCartelIds={suggestedCartelIds}
-        />
+        <ActivationHub activationHints={hints} suggestedPathIds={suggestedPathIds} />
         <DeepReadingCard />
       </div>
     </VuMobileShell>

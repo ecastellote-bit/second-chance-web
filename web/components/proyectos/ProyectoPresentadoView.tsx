@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
 import type { PresentedProject } from "@/lib/content/proyectoPresentadoCatalog";
+import { COMMUNITY_EXAMPLE_CONVERSATIONS_LABEL } from "@/lib/content/communitySeedCopy";
 
 function ModalityIcon({ modality }: { modality: PresentedProject["modality"] }) {
   const cls = "h-4 w-4";
@@ -150,16 +151,10 @@ export function ProyectoPresentadoView({ project }: { project: PresentedProject 
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <div className="rounded-[20px] bg-white/8 px-4 py-3 ring-1 ring-white/10">
-              <p className="text-2xl font-bold text-[#C6D92D]">{project.interestedCount}</p>
-              <p className="text-xs font-medium text-[#94A3B8]">Interesados</p>
-            </div>
-            <div className="rounded-[20px] bg-white/8 px-4 py-3 ring-1 ring-white/10">
-              <p className="text-2xl font-bold text-[#1A9BB0]">{project.commentCount}</p>
-              <p className="text-xs font-medium text-[#94A3B8]">Comentarios</p>
-            </div>
-          </div>
+          <p className="mt-4 rounded-[20px] border border-white/15 bg-white/8 px-4 py-3 text-sm leading-relaxed text-[#CBD5E1]">
+            Proyecto semilla de ejemplo para orientarte en el barrio. Podés guardar interés; las
+            conversaciones reales se abren con la ola fundadora.
+          </p>
 
           <div className="mt-4 flex flex-wrap gap-2">
             {project.tags.map((tag) => (
@@ -190,10 +185,10 @@ export function ProyectoPresentadoView({ project }: { project: PresentedProject 
               id="conversacion-proyecto"
               className="mb-1 text-sm font-bold text-white"
             >
-              Quienes ya se sumaron
+              {COMMUNITY_EXAMPLE_CONVERSATIONS_LABEL}
             </h2>
             <p className="mb-5 text-xs text-[#94A3B8]">
-              Interés real — no likes sueltos. Así se arma el taller.
+              Estas voces ilustran el tono del espacio; no son chats en vivo todavía.
             </p>
             <div className="space-y-4">
               {project.comments.map((c) => (

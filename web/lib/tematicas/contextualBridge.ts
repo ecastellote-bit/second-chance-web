@@ -1,4 +1,5 @@
 import type { ActivacionCartelId } from "@/lib/content/activacionCatalog";
+import type { OfficialActivationPathId } from "@/lib/content/officialActivationPaths";
 import type { TematicaCard } from "@/lib/content/tematicasCatalog";
 import type { ContextualSituationReview } from "@/lib/engines/contextualSituationJudge";
 
@@ -26,6 +27,8 @@ export type ParsedActivationHint = {
   path: string;
   reason: string;
   fit: "high" | "medium" | "low";
+  pathId: OfficialActivationPathId | null;
+  /** @deprecated Usar pathId */
   cartelId: ActivacionCartelId | null;
   label: string;
 };
@@ -55,6 +58,16 @@ const GUIDED_THEME_TO_TEMATICA: Record<string, string> = {
   volver_a_sentir_parte_de_algo: "comunidad_pertenencia",
 };
 
+const ACTIVATION_PATH_ALIASES: Record<string, OfficialActivationPathId> = {
+  explorar_primero_la_comunidad: "explorar_primero_comunidad",
+  explorar_primero_comunidad: "explorar_primero_comunidad",
+  asociarme_con_otras_personas: "asociarme_con_otras_personas",
+  formarme_en_algo_nuevo: "formarme_en_algo_nuevo",
+  integrar_proyectos_existentes: "integrar_proyectos_existentes",
+  armar_mi_propio_proyecto: "armar_mi_propio_proyecto",
+};
+
+/** @deprecated Solo compatibilidad visual heredada */
 const ACTIVATION_PATH_TO_CARTEL: Record<string, ActivacionCartelId> = {
   explorar_primero_la_comunidad: "explorar_comunidad",
   explorar_primero_comunidad: "explorar_comunidad",
@@ -113,6 +126,10 @@ function mapGuidedThemeToTematica(themeId: string, label: string, reason: string
   }
 
   return null;
+}
+
+function mapActivationPathToOfficialId(path: string): OfficialActivationPathId | null {
+  return ACTIVATION_PATH_ALIASES[path] ?? null;
 }
 
 function mapActivationPathToCartel(path: string): ActivacionCartelId | null {
@@ -216,6 +233,7 @@ export function parseActivationHints(
     path: hint.path,
     reason: hint.reason,
     fit: hint.fit,
+    pathId: mapActivationPathToOfficialId(hint.path),
     cartelId: mapActivationPathToCartel(hint.path),
     label: ACTIVATION_PATH_LABELS[hint.path] ?? hint.path.replace(/_/g, " "),
   }));
@@ -275,9 +293,18 @@ export function orderTematicasWithContextualHints(
 
 export function getActivacionSuggestions(review: ContextualReviewSnapshot | null): {
   hints: ParsedActivationHint[];
+  suggestedPathIds: OfficialActivationPathId[];
+  /** @deprecated Usar suggestedPathIds */
   suggestedCartelIds: ActivacionCartelId[];
 } {
   const hints = parseActivationHints(review);
+  const suggestedPathIds = [
+    ...new Set(
+      hints
+        .map((h) => h.pathId)
+        .filter((id): id is OfficialActivationPathId => id != null),
+    ),
+  ];
   const suggestedCartelIds = [
     ...new Set(
       hints
@@ -285,5 +312,5 @@ export function getActivacionSuggestions(review: ContextualReviewSnapshot | null
         .filter((id): id is ActivacionCartelId => id != null),
     ),
   ];
-  return { hints, suggestedCartelIds };
+  return { hints, suggestedPathIds, suggestedCartelIds };
 }

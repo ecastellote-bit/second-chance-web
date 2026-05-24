@@ -46,7 +46,7 @@ export function PerfilUsuarioView({ profile }: { profile: PerfilUsuario }) {
                     >
                       <span className="text-sm font-semibold text-[#0B2E59]">{c.title}</span>
                       <span className="text-[11px] text-[#6B7A8C]">
-                        {c.online} en línea · {c.members} miembros
+                        Espacio semilla
                       </span>
                     </Link>
                   </li>

@@ -11,6 +11,7 @@ import {
   MIS_CIRCULOS_IDS,
   SUGERIDOS_IDS,
 } from "@/lib/content/circulosCatalog";
+import { COMMUNITY_SEED_FOOTNOTE } from "@/lib/content/communitySeedCopy";
 
 export function CirculosView() {
   return (
@@ -47,6 +48,9 @@ export function CirculosView() {
                 </h1>
                 <p className="mt-2 text-[15px] leading-relaxed text-[#6B7A8C]">
                   {CIRCULOS_HEADER.subtitle}
+                </p>
+                <p className="mt-3 rounded-xl border border-[#E8EEF3] bg-white px-4 py-3 text-[13px] leading-relaxed text-[#6B7A8C]">
+                  {COMMUNITY_SEED_FOOTNOTE}
                 </p>
               </div>
 

@@ -2,22 +2,20 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { ActivacionCartel, ActivacionCartelId } from "@/lib/content/activacionCatalog";
 import { setActivationChoice } from "@/lib/activacion/storage";
+import {
+  OFFICIAL_ACTIVATION_PATHS,
+  type OfficialActivationPath,
+  type OfficialActivationPathIcon,
+} from "@/lib/content/officialActivationPaths";
 import { trackObservatoryEvent } from "@/lib/observatory/client";
 import type { ParsedActivationHint } from "@/lib/tematicas/contextualBridge";
+import type { OfficialActivationPathId } from "@/lib/content/officialActivationPaths";
 
-function CartelIcon({ type }: { type: ActivacionCartel["icon"] }) {
+function PathIcon({ type }: { type: OfficialActivationPathIcon }) {
   const cls = "h-5 w-5";
   switch (type) {
-    case "present":
-      return (
-        <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="5" width="18" height="14" rx="2" />
-          <path d="M8 12h8M12 8v8" />
-        </svg>
-      );
-    case "associate":
+    case "people":
       return (
         <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="9" cy="8" r="3" />
@@ -25,13 +23,25 @@ function CartelIcon({ type }: { type: ActivacionCartel["icon"] }) {
           <path d="M4 20c0-3 2-5 5-5s5 2 5 5" />
         </svg>
       );
-    case "jobs":
+    case "book":
       return (
         <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M4 7h16v12H4V7zM9 7V5h6v2" />
+          <path d="M4 6h16v14H4V6zM8 6V4h8v2" />
         </svg>
       );
-    case "explore":
+    case "rocket":
+      return (
+        <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 3l2 7h7l-5.5 4 2 7-5.5-4-5.5 4 2-7L5 10h7l2-7z" />
+        </svg>
+      );
+    case "puzzle":
+      return (
+        <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M8 8h3V5h5v3h3v5h-3v5h-5v-3H8V8z" />
+        </svg>
+      );
+    case "compass":
       return (
         <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="9" />
@@ -41,14 +51,14 @@ function CartelIcon({ type }: { type: ActivacionCartel["icon"] }) {
   }
 }
 
-function ActivationCartelCard({
-  cartel,
+function ActivationPathCard({
+  path,
   selected,
   suggested,
   hintReason,
   onSelect,
 }: {
-  cartel: ActivacionCartel;
+  path: OfficialActivationPath;
   selected: boolean;
   suggested?: boolean;
   hintReason?: string;
@@ -74,44 +84,43 @@ function ActivationCartelCard({
           selected ? "bg-[#C6D92D] text-[#0B2E59]" : "bg-[#E6F6FA] text-[#1A9BB0]",
         ].join(" ")}
       >
-        <CartelIcon type={cartel.icon} />
+        <PathIcon type={path.icon} />
       </span>
       {suggested ? (
         <span className="rounded-full bg-[#C6D92D] px-2 py-0.5 text-[9px] font-bold uppercase text-[#0B2E59]">
-          Sugerida
+          Sugerido
         </span>
       ) : null}
-      <span className="text-[12px] font-bold leading-snug text-[#0B2E59]">{cartel.label}</span>
+      <span className="text-[12px] font-bold leading-snug text-[#0B2E59]">{path.label}</span>
       <span className="text-[10px] leading-relaxed text-[#6B7A8C] line-clamp-3">
-        {hintReason ?? cartel.description}
+        {hintReason ?? path.description}
       </span>
     </button>
   );
 }
 
 export function ActivationHub({
-  cartels,
   activationHints = [],
-  suggestedCartelIds = [],
+  suggestedPathIds = [],
 }: {
-  cartels: ActivacionCartel[];
   activationHints?: ParsedActivationHint[];
-  suggestedCartelIds?: ActivacionCartelId[];
+  suggestedPathIds?: OfficialActivationPathId[];
 }) {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const hintByCartel = new Map(
+  const hintByPath = new Map(
     activationHints
-      .filter((h) => h.cartelId)
-      .map((h) => [h.cartelId as ActivacionCartelId, h.reason]),
+      .filter((h) => h.pathId)
+      .map((h) => [h.pathId as OfficialActivationPathId, h.reason]),
   );
 
-  const handleSelect = (cartel: ActivacionCartel) => {
-    setSelectedId(cartel.id);
-    setActivationChoice(cartel.id);
+  const handleSelect = (path: OfficialActivationPath) => {
+    setSelectedId(path.id);
+    setActivationChoice(path.id);
     trackObservatoryEvent("funnel.activacion_cartel", "funnel", {
-      cartelId: cartel.id,
+      cartelId: path.id,
+      activationPathId: path.id,
     });
     router.push("/plaza");
   };
@@ -124,27 +133,28 @@ export function ActivationHub({
         </p>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-3">
-        {[...cartels]
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {[...OFFICIAL_ACTIVATION_PATHS]
           .sort((a, b) => {
-            const as = suggestedCartelIds.includes(a.id) ? 0 : 1;
-            const bs = suggestedCartelIds.includes(b.id) ? 0 : 1;
+            const as = suggestedPathIds.includes(a.id) ? 0 : 1;
+            const bs = suggestedPathIds.includes(b.id) ? 0 : 1;
             return as - bs;
           })
-          .map((cartel) => (
-            <ActivationCartelCard
-              key={cartel.id}
-              cartel={cartel}
-              selected={selectedId === cartel.id}
-              suggested={suggestedCartelIds.includes(cartel.id)}
-              hintReason={hintByCartel.get(cartel.id)}
-              onSelect={() => handleSelect(cartel)}
+          .map((path) => (
+            <ActivationPathCard
+              key={path.id}
+              path={path}
+              selected={selectedId === path.id}
+              suggested={suggestedPathIds.includes(path.id)}
+              hintReason={hintByPath.get(path.id)}
+              onSelect={() => handleSelect(path)}
             />
           ))}
       </div>
 
       <p className="mt-6 text-center text-xs text-[#6B7A8C] leading-relaxed px-2">
-        Última antesala al barrio: después verás tu plaza, las tres puertas y el mapa del ecosistema.
+        Elegí uno de los cinco caminos oficiales. Después verás tu plaza, las tres puertas y el mapa
+        del ecosistema.
       </p>
     </div>
   );

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { NeighborhoodActivityDetail } from "@/components/neighborhood/NeighborhoodActivityDetail";
 import type { ProyectoListItem } from "@/lib/content/proyectosCatalog";
+import { COMMUNITY_SEED_BADGE, COMMUNITY_SEED_INTERIOR_BODY } from "@/lib/content/communitySeedCopy";
 
 export function ProyectoStubView({ project }: { project: ProyectoListItem }) {
   return (
@@ -11,7 +12,7 @@ export function ProyectoStubView({ project }: { project: ProyectoListItem }) {
       backLabel="Proyectos"
       image={project.image}
       title={project.title}
-      meta={`${project.participants} personas sumadas`}
+      meta={COMMUNITY_SEED_BADGE}
       badge={{ label: project.label, bg: "rgba(198,217,45,0.35)", text: "#0B2E59" }}
       footer={
         <>
@@ -31,10 +32,7 @@ export function ProyectoStubView({ project }: { project: ProyectoListItem }) {
       }
     >
       <p>{project.summary}</p>
-      <p className="mt-4">
-        Este proyecto se abre en la próxima etapa del MVP humano. Por ahora podés sumarte al taller
-        vecinal destacado.
-      </p>
+      <p className="mt-4">{COMMUNITY_SEED_INTERIOR_BODY}</p>
     </NeighborhoodActivityDetail>
   );
 }

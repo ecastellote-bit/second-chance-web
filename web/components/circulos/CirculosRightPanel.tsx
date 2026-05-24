@@ -8,6 +8,7 @@ import {
   SUGERIDOS_IDS,
   type CircleItem,
 } from "@/lib/content/circulosCatalog";
+import { COMMUNITY_SEED_BADGE } from "@/lib/content/communitySeedCopy";
 
 function MiniCircleRow({ circle }: { circle: CircleItem }) {
   return (
@@ -26,9 +27,7 @@ function MiniCircleRow({ circle }: { circle: CircleItem }) {
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-semibold text-[#0B2E59]">{circle.title}</span>
-        <span className="text-[11px] text-[#6B7A8C]">
-          {circle.online} en línea · {circle.members} miembros
-        </span>
+        <span className="text-[11px] text-[#6B7A8C]">{COMMUNITY_SEED_BADGE}</span>
       </span>
       <svg
         viewBox="0 0 24 24"
@@ -110,9 +109,7 @@ export function CirculosMobileStrip({ title, ids }: { title: string; ids: string
               className="vu-focus flex w-[200px] flex-col gap-2 rounded-[20px] border border-[#E8EEF3] bg-white p-3 shadow-[0_4px_16px_rgba(15,42,70,0.06)]"
             >
               <p className="text-sm font-bold text-[#0B2E59] line-clamp-2">{circle.title}</p>
-              <p className="text-[11px] text-[#6B7A8C]">
-                {circle.online} en línea · {circle.members} miembros
-              </p>
+              <p className="text-[11px] text-[#6B7A8C]">{COMMUNITY_SEED_BADGE}</p>
             </Link>
           </div>
         ))}

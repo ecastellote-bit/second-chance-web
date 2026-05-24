@@ -4,30 +4,22 @@ import { VuWarmImage } from "@/components/ui/VuWarmImage";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
+import { COMMUNITY_DOORS, type CommunityDoor } from "@/lib/content/activacionCatalog";
 import {
-  ACTIVACION_CARTELES,
-  COMMUNITY_DOORS,
-  getActivacionCartel,
-  type ActivacionCartelId,
-  type CommunityDoor,
-} from "@/lib/content/activacionCatalog";
+  getOfficialActivationPath,
+  type OfficialActivationPathIcon,
+  type OfficialActivationPathId,
+} from "@/lib/content/officialActivationPaths";
 import { CompromisoBarrioSection } from "@/components/plaza/CompromisoBarrioSection";
 import { MvpPioneerBanner } from "@/components/mvp/MvpPioneerBanner";
 import { PLAZA_IMAGE } from "@/lib/content/plazaPaths";
 import { trackObservatoryEvent } from "@/lib/observatory/client";
 import { useEffect } from "react";
 
-function CartelIcon({ type }: { type: (typeof ACTIVACION_CARTELES)[0]["icon"] }) {
+function PathIcon({ type }: { type: OfficialActivationPathIcon }) {
   const cls = "h-5 w-5";
   switch (type) {
-    case "present":
-      return (
-        <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="5" width="18" height="14" rx="2" />
-          <path d="M8 12h8M12 8v8" />
-        </svg>
-      );
-    case "associate":
+    case "people":
       return (
         <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="9" cy="8" r="3" />
@@ -35,14 +27,25 @@ function CartelIcon({ type }: { type: (typeof ACTIVACION_CARTELES)[0]["icon"] })
           <path d="M4 20c0-3 2-5 5-5s5 2 5 5" />
         </svg>
       );
-    case "jobs":
+    case "book":
       return (
         <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M4 7h16v12H4V7zM9 7V5h6v2" />
-          <path d="M8 12h8" />
+          <path d="M4 6h16v14H4V6zM8 6V4h8v2" />
         </svg>
       );
-    case "explore":
+    case "rocket":
+      return (
+        <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 3l2 7h7l-5.5 4 2 7-5.5-4-5.5 4 2-7L5 10h7l2-7z" />
+        </svg>
+      );
+    case "puzzle":
+      return (
+        <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M8 8h3V5h5v3h3v5h-3v5h-5v-3H8V8z" />
+        </svg>
+      );
+    case "compass":
       return (
         <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="9" />
@@ -88,22 +91,27 @@ function CommunityDoorCard({ door }: { door: CommunityDoor }) {
 }
 
 type Props = {
-  cartelId: ActivacionCartelId;
+  activationPathId: OfficialActivationPathId;
   onOpenMap: () => void;
   onChangeCartel: () => void;
 };
 
-export function PlazaPostActivacionView({ cartelId, onOpenMap, onChangeCartel }: Props) {
+export function PlazaPostActivacionView({
+  activationPathId,
+  onOpenMap,
+  onChangeCartel,
+}: Props) {
   const router = useRouter();
-  const cartel = getActivacionCartel(cartelId);
+  const path = getOfficialActivationPath(activationPathId);
 
   useEffect(() => {
     trackObservatoryEvent("funnel.plaza_post_activacion", "funnel", {
-      cartelId,
+      cartelId: activationPathId,
+      activationPathId,
     });
-  }, [cartelId]);
+  }, [activationPathId]);
 
-  if (!cartel) {
+  if (!path) {
     return null;
   }
 
@@ -136,14 +144,14 @@ export function PlazaPostActivacionView({ cartelId, onOpenMap, onChangeCartel }:
         <section className="rounded-[22px] border-2 border-[#C6D92D]/50 bg-white p-4 shadow-[0_8px_28px_rgba(15,42,70,0.1)]">
           <div className="flex items-start gap-3">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#C6D92D] text-[#0B2E59]">
-              <CartelIcon type={cartel.icon} />
+              <PathIcon type={path.icon} />
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-bold uppercase tracking-wide text-[#1A9BB0]">
                 Tu activación
               </p>
-              <p className="mt-0.5 text-[14px] font-bold leading-snug text-[#0B2E59]">{cartel.label}</p>
-              <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">{cartel.plazaWelcome}</p>
+              <p className="mt-0.5 text-[14px] font-bold leading-snug text-[#0B2E59]">{path.label}</p>
+              <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">{path.plazaWelcome}</p>
             </div>
           </div>
           <button
@@ -161,7 +169,7 @@ export function PlazaPostActivacionView({ cartelId, onOpenMap, onChangeCartel }:
             Primer tramo sugerido
           </h2>
           <div className="mt-3 flex flex-col gap-2">
-            {cartel.primaryLinks.map((link) => (
+            {path.primaryLinks.map((link) => (
               <button
                 key={link.route}
                 type="button"

@@ -7,6 +7,7 @@ import {
   type CircleItem,
   type CircleStatus,
 } from "@/lib/content/circulosCatalog";
+import { COMMUNITY_SEED_BADGE } from "@/lib/content/communitySeedCopy";
 
 const STATUS_STYLE: Record<
   CircleStatus,
@@ -98,12 +99,9 @@ export function CircleCard({ circle, compact }: { circle: CircleItem; compact?: 
         <div className="flex items-center justify-between gap-2">
           <MemberAvatars initials={circle.avatars} />
           <p className="text-right text-[11px] leading-tight text-[#6B7A8C]">
-            <span className="font-semibold text-[#0B2E59]">{circle.members}</span> miembros
+            <span className="font-semibold text-[#0B2E59]">{COMMUNITY_SEED_BADGE}</span>
             <br />
-            <span className="inline-flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#1A9BB0]" aria-hidden />
-              {circle.online} en línea
-            </span>
+            <span>Ejemplos para orientarte</span>
           </p>
         </div>
 

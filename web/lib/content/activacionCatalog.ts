@@ -19,7 +19,8 @@ export type ActivacionCartel = {
 
 export const ACTIVACION_HEADER = {
   title: "Activación",
-  subtitle: "Elegí cómo querés entrar al barrio. Después podés usar las tres puertas.",
+  subtitle:
+    "Elegí uno de los cinco caminos oficiales para entrar al barrio. Después podés usar las tres puertas.",
 } as const;
 
 export const ACTIVACION_CARTELES: ActivacionCartel[] = [

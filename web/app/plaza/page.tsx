@@ -4,7 +4,7 @@ import { PlazaInicialView } from "@/components/plaza/PlazaInicialView";
 import { PlazaPostActivacionView } from "@/components/plaza/PlazaPostActivacionView";
 import { UserProfileGate } from "@/components/perfil/UserProfileGate";
 import { getActivationChoice } from "@/lib/activacion/storage";
-import type { ActivacionCartelId } from "@/lib/content/activacionCatalog";
+import type { OfficialActivationPathId } from "@/lib/content/officialActivationPaths";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
@@ -12,11 +12,11 @@ function PlazaPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const showMap = searchParams.get("mapa") === "1";
-  const [cartelId, setCartelId] = useState<ActivacionCartelId | null>(null);
+  const [activationPathId, setActivationPathId] = useState<OfficialActivationPathId | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setCartelId(getActivationChoice());
+    setActivationPathId(getActivationChoice());
     setReady(true);
   }, []);
 
@@ -28,18 +28,18 @@ function PlazaPageContent() {
     );
   }
 
-  if (showMap || !cartelId) {
+  if (showMap || !activationPathId) {
     return (
       <PlazaInicialView
-        showEntradaLink={Boolean(cartelId)}
-        onOpenEntrada={cartelId ? () => router.push("/plaza") : undefined}
+        showEntradaLink={Boolean(activationPathId)}
+        onOpenEntrada={activationPathId ? () => router.push("/plaza") : undefined}
       />
     );
   }
 
   return (
     <PlazaPostActivacionView
-      cartelId={cartelId}
+      activationPathId={activationPathId}
       onOpenMap={() => router.push("/plaza?mapa=1")}
       onChangeCartel={() => router.push("/activacion")}
     />

@@ -8,6 +8,7 @@ import {
   NeighborhoodActivityDetail,
 } from "@/components/neighborhood/NeighborhoodActivityDetail";
 import { CIRCULOS_CATALOG } from "@/lib/content/circulosCatalog";
+import { COMMUNITY_SEED_INTERIOR_BODY } from "@/lib/content/communitySeedCopy";
 
 export default function CirculoDetailPage() {
   const params = useParams();
@@ -32,7 +33,7 @@ export default function CirculoDetailPage() {
       backLabel="Círculos"
       image={circle.image}
       title={circle.title}
-      meta={`${circle.members} personas · ${circle.online} en línea ahora`}
+      meta="Espacio semilla · ejemplos para orientarte"
       badge={CIRCLE_STATUS_BADGE[circle.status]}
       footer={
         <>
@@ -52,10 +53,7 @@ export default function CirculoDetailPage() {
       }
     >
       <p>{circle.description}</p>
-      <p className="mt-4">
-        El espacio interior de este círculo se abre en la próxima etapa. Por ahora podés explorar
-        los demás desde la plaza.
-      </p>
+      <p className="mt-4">{COMMUNITY_SEED_INTERIOR_BODY}</p>
     </NeighborhoodActivityDetail>
     </UserProfileGate>
   );
