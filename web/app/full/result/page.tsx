@@ -1171,7 +1171,12 @@ export default function ResultPage() {
 
   return (
     <HumanCaseArchiveGate archivePayload={autoArchivePayload}>
-      {({ archiveId }) => (
+      {({ archiveId }) => {
+        const themesHref = `/full/themes?archiveId=${encodeURIComponent(archiveId)}`;
+        const plazaHref = "/plaza";
+        const perfilHref = `/perfil/crear?redirect=${encodeURIComponent(themesHref)}`;
+
+        return (
     <main className="min-h-[100dvh] bg-white text-black px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-14 pb-24">
       <div
         className={`mx-auto space-y-10 ${
@@ -1198,7 +1203,10 @@ export default function ResultPage() {
         </div>
 
         {hasPersonalizedPresentation && presentation && (
-          <PersonalizedDiagnosticDeliverable presentation={presentation} />
+          <PersonalizedDiagnosticDeliverable
+            presentation={presentation}
+            navigation={{ themesHref, plazaHref }}
+          />
         )}
 
         {!hasPersonalizedPresentation && (
@@ -2381,7 +2389,7 @@ export default function ResultPage() {
             Te preparamos algunas temáticas que resuenan con lo que apareció en tu caso.
           </p>
           <button
-            onClick={() => router.push("/full/themes")}
+            onClick={() => router.push(themesHref)}
             className="px-8 py-3 bg-black text-white rounded-lg text-sm font-medium hover:bg-neutral-800 transition-colors"
           >
             Elegir mi temática
@@ -2392,22 +2400,39 @@ export default function ResultPage() {
         {hasPersonalizedPresentation && (
           <div className="rounded-2xl border border-[#E8EEF3] bg-[#F8FAFC] px-4 py-8 sm:px-8 space-y-6 text-center">
             <RequestHumanReviewButton archiveId={archiveId} className="flex flex-col items-center" />
-            <button
-              type="button"
-              onClick={() => router.push("/full/themes")}
-              className="w-full sm:w-auto rounded-xl bg-black px-10 py-4 text-base font-medium text-white hover:bg-neutral-800 transition-colors"
-            >
-              Elegir mi temática y dar el siguiente paso
-            </button>
-            <p className="text-sm text-neutral-600">
-              Después podés crear tu perfil, entrar a la plaza y sembrar tu primer
-              proyecto.
+            <p className="text-xs text-[#6B7A8C] max-w-md mx-auto">
+              Para el barrio necesitás perfil en VocationUp. Si ya lo tenés, podés ir
+              directo a temáticas o a la plaza.
             </p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <button
+                type="button"
+                onClick={() => router.push(perfilHref)}
+                className="rounded-xl bg-[#0B2E59] px-8 py-3 text-sm font-medium text-white"
+              >
+                Crear perfil y continuar
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push(themesHref)}
+                className="rounded-xl border border-black/20 px-8 py-3 text-sm font-medium text-[#0B2E59]"
+              >
+                Elegir temática
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push(plazaHref)}
+                className="rounded-xl border border-[#1A9BB0]/40 px-8 py-3 text-sm font-medium text-[#0B2E59]"
+              >
+                Ir al barrio
+              </button>
+            </div>
           </div>
         )}
       </div>
     </main>
-      )}
+        );
+      }}
     </HumanCaseArchiveGate>
   );
 }

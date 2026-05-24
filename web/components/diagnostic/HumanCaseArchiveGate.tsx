@@ -116,6 +116,10 @@ export function HumanCaseArchiveGate({
   }
 
   const serverPersisted = state === "confirmed";
+  const themesHref = archiveId
+    ? `/full/themes?archiveId=${encodeURIComponent(archiveId)}`
+    : "/full/themes";
+  const perfilHref = `/perfil/crear?redirect=${encodeURIComponent(themesHref)}`;
 
   return (
     <div className="space-y-6">
@@ -136,7 +140,7 @@ export function HumanCaseArchiveGate({
             aprendizaje validado.
           </p>
           <a
-            href="/perfil/crear?redirect=/full/themes"
+            href={perfilHref}
             className="mt-3 inline-block text-[13px] font-semibold text-[#1A9BB0] underline"
           >
             Crear tu perfil en VocationUp (obligatorio para el barrio) →
