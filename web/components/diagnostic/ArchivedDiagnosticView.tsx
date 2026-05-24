@@ -7,18 +7,38 @@ import {
   type PresentationForView,
 } from "@/components/diagnostic/PersonalizedDiagnosticDeliverable";
 import { RequestHumanReviewButton } from "@/components/diagnostic/RequestHumanReviewButton";
+import { useFullAnswers } from "@/app/full/fullAnswersContext";
+import { archivedCurrentResultToFinalReading } from "@/lib/full/restoreArchivedCaseToSession";
 import { setActiveHumanArchiveId } from "@/lib/learning/activeHumanArchive";
 import { grantFoundingMember } from "@/lib/learning/foundationalMember";
+
+type LearningReadiness = {
+  hasSourceInput?: boolean;
+  hasNarrativeIntake?: boolean;
+  hasNarrativeCoherenceReview?: boolean;
+  hasExperienceDistillation?: boolean;
+  hasLearningTrace?: boolean;
+  hasGuidedThemes?: boolean;
+  hasLearningExtract?: boolean;
+  readyForHumanCalibration?: boolean;
+};
 
 type Props = {
   archiveId: string;
 };
 
 export function ArchivedDiagnosticView({ archiveId }: Props) {
+  const { setAnalysis, isHydrated } = useFullAnswers();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [presentation, setPresentation] = useState<PresentationForView | null>(null);
   const [headline, setHeadline] = useState("Tu lectura");
+  const [learning, setLearning] = useState<LearningReadiness | null>(null);
+  const [currentResult, setCurrentResult] = useState<Record<string, unknown> | null>(null);
+
+  const themesHref = `/full/themes?archiveId=${encodeURIComponent(archiveId)}`;
+  const plazaHref = `/plaza`;
+  const perfilHref = `/perfil/crear?redirect=${encodeURIComponent(themesHref)}`;
 
   useEffect(() => {
     let cancelled = false;
@@ -35,13 +55,10 @@ export function ArchivedDiagnosticView({ archiveId }: Props) {
           ok?: boolean;
           complete?: {
             payload?: {
-              currentResult?: {
-                personalizedPresentation?: PresentationForView;
-                displayedMainDirection?: string;
-                corePattern?: string;
-              };
+              currentResult?: Record<string, unknown>;
             };
           };
+          learningReadiness?: LearningReadiness;
           error?: string;
         };
 
@@ -50,7 +67,7 @@ export function ArchivedDiagnosticView({ archiveId }: Props) {
         }
 
         const cr = data.complete.payload.currentResult;
-        const pres = cr.personalizedPresentation ?? null;
+        const pres = cr.personalizedPresentation as PresentationForView | undefined;
         const hasPresentation = Boolean(
           pres?.lecturaCentral?.sentenciaRevelacion?.trim() ||
             pres?.lecturaCentral?.resumen?.trim(),
@@ -62,12 +79,16 @@ export function ArchivedDiagnosticView({ archiveId }: Props) {
 
         if (cancelled) return;
 
-        setPresentation(pres);
+        setPresentation(pres ?? null);
         setHeadline(
-          cr.displayedMainDirection?.trim() ||
-            cr.corePattern?.trim() ||
+          (typeof cr.displayedMainDirection === "string"
+            ? cr.displayedMainDirection
+            : "") ||
+            (typeof cr.corePattern === "string" ? cr.corePattern : "") ||
             "Tu lectura",
         );
+        setLearning(data.learningReadiness ?? null);
+        setCurrentResult(cr);
         setActiveHumanArchiveId(archiveId);
         grantFoundingMember(archiveId);
       } catch (err) {
@@ -83,7 +104,12 @@ export function ArchivedDiagnosticView({ archiveId }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [archiveId]);
+  }, [archiveId, setAnalysis]);
+
+  useEffect(() => {
+    if (!isHydrated || !currentResult) return;
+    setAnalysis(archivedCurrentResultToFinalReading(currentResult));
+  }, [isHydrated, currentResult, setAnalysis]);
 
   if (loading) {
     return (
@@ -104,9 +130,6 @@ export function ArchivedDiagnosticView({ archiveId }: Props) {
             ID: <code className="font-mono text-xs">{archiveId}</code>
             {error ? ` · ${error}` : null}
           </p>
-          <p className="text-sm text-[#6B7A8C]">
-            Si tenés el archivo .json, importalo desde recuperar caso.
-          </p>
           <Link
             href="/full/result/recuperar"
             className="inline-block rounded-xl bg-[#0B2E59] px-5 py-3 text-sm font-semibold text-white"
@@ -117,6 +140,11 @@ export function ArchivedDiagnosticView({ archiveId }: Props) {
       </main>
     );
   }
+
+  const learningOk =
+    learning?.hasSourceInput &&
+    learning?.hasNarrativeCoherenceReview &&
+    learning?.hasExperienceDistillation;
 
   return (
     <main className="min-h-[100dvh] bg-white px-4 py-8 pb-24 text-black sm:px-6 md:px-8">
@@ -130,6 +158,28 @@ export function ArchivedDiagnosticView({ archiveId }: Props) {
           </p>
         </div>
 
+        {learning && (
+          <div
+            className={`rounded-xl border px-4 py-3 text-sm ${
+              learningOk
+                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                : "border-amber-200 bg-amber-50 text-amber-900"
+            }`}
+          >
+            {learningOk ? (
+              <p>
+                Tu caso quedó archivado con cuestionario, Juez de Coherencia Narrativa y
+                capas de aprendizaje para calibrar los jueces del sistema.
+              </p>
+            ) : (
+              <p>
+                Lectura visible. Algunas capas de aprendizaje pueden estar incompletas en
+                este backup; el equipo puede completarlas en revisión humana.
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="max-w-4xl space-y-3">
           <p className="text-sm uppercase tracking-[0.2em] text-neutral-500">
             Resultado de tu lectura
@@ -139,22 +189,35 @@ export function ArchivedDiagnosticView({ archiveId }: Props) {
           </h1>
         </div>
 
-        <PersonalizedDiagnosticDeliverable presentation={presentation} />
+        <PersonalizedDiagnosticDeliverable
+          presentation={presentation}
+          navigation={{ themesHref, plazaHref }}
+        />
 
         <div className="rounded-2xl border border-[#E8EEF3] bg-[#F8FAFC] px-4 py-8 sm:px-8 space-y-6 text-center">
           <RequestHumanReviewButton archiveId={archiveId} className="flex flex-col items-center" />
+          <p className="text-xs text-[#6B7A8C] max-w-md mx-auto">
+            Para el barrio necesitás perfil en VocationUp. Si ya lo tenés, podés ir directo a
+            temáticas o a la plaza.
+          </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
-              href="/perfil/crear?redirect=/full/themes"
+              href={perfilHref}
               className="rounded-xl bg-black px-8 py-3 text-sm font-medium text-white"
             >
               Crear perfil y continuar
             </Link>
             <Link
-              href="/full/themes"
+              href={themesHref}
               className="rounded-xl border border-black/20 px-8 py-3 text-sm font-medium text-[#0B2E59]"
             >
               Elegir temática
+            </Link>
+            <Link
+              href={plazaHref}
+              className="rounded-xl border border-[#1A9BB0]/40 px-8 py-3 text-sm font-medium text-[#0B2E59]"
+            >
+              Ir al barrio
             </Link>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   appendHumanCaseReviewNote,
+  buildHumanCaseLearningReadiness,
   findHumanCompleteCaseById,
   getLatestReviewNoteForCase,
   listHumanLearningExtracts,
@@ -26,7 +27,18 @@ export async function GET(_req: Request, { params }: RouteParams) {
     extracts.find((item) => item.archiveId === archiveId) ?? null;
   const reviewNote = await getLatestReviewNoteForCase(archiveId);
 
-  return NextResponse.json({ ok: true, complete, learningExtract, reviewNote });
+  const learningReadiness = buildHumanCaseLearningReadiness(
+    complete.payload,
+    Boolean(learningExtract),
+  );
+
+  return NextResponse.json({
+    ok: true,
+    complete,
+    learningExtract,
+    reviewNote,
+    learningReadiness,
+  });
 }
 
 export async function PATCH(req: Request, { params }: RouteParams) {

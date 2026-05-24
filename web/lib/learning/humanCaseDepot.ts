@@ -156,6 +156,37 @@ function getDistillation(result: Record<string, unknown>): Record<string, unknow
   return isRecord(candidate) ? candidate : null;
 }
 
+/** Señales de que el caso archivado alimenta jueces y aprendizaje. */
+export function buildHumanCaseLearningReadiness(
+  payload: HumanCasePayload,
+  hasLearningExtract: boolean,
+) {
+  const result = getResult(payload);
+  const distillation = getDistillation(result);
+  const learningTrace = isRecord(distillation?.learningTrace)
+    ? distillation.learningTrace
+    : distillation;
+  const source = isRecord(payload.sourceInput) ? payload.sourceInput : null;
+  const guidedThemes = result._guidedThemes;
+
+  return {
+    hasSourceInput: Boolean(source),
+    hasNarrativeIntake: Boolean(
+      isRecord(source?.narrative) || isRecord(source?.fullAnswersContext),
+    ),
+    hasCurrentResult: Boolean(payload.currentResult),
+    hasNarrativeCoherenceReview: Boolean(result.narrativeCoherenceReview),
+    hasPersonalizedPresentation: Boolean(result.personalizedPresentation),
+    hasExperienceDistillation: Boolean(distillation),
+    hasLearningTrace: Boolean(learningTrace),
+    hasGuidedThemes: Array.isArray(guidedThemes) && guidedThemes.length > 0,
+    hasLearningExtract,
+    readyForHumanCalibration: Boolean(
+      payload.currentResult && (payload.sourceInput || distillation),
+    ),
+  };
+}
+
 function getContextualReview(
   result: Record<string, unknown>,
 ): Record<string, unknown> | null {

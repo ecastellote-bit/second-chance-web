@@ -1,5 +1,12 @@
 "use client";
 
+import Link from "next/link";
+
+export type DeliverableNavigation = {
+  themesHref: string;
+  plazaHref: string;
+};
+
 type CitaFundamentada = {
   texto?: string;
   fuente?: "narrativo" | "intake";
@@ -81,8 +88,10 @@ function SectionLabel({
 
 export function PersonalizedDiagnosticDeliverable({
   presentation,
+  navigation,
 }: {
   presentation: PresentationForView;
+  navigation?: DeliverableNavigation;
 }) {
   const lc = presentation.lecturaCentral;
   if (!lc?.sentenciaRevelacion && !lc?.resumen) return null;
@@ -305,11 +314,19 @@ export function PersonalizedDiagnosticDeliverable({
           {safeArray(presentation.siguientePaso.themeTeaser).length > 0 && (
             <ul className="flex flex-wrap justify-center gap-3">
               {safeArray(presentation.siguientePaso?.themeTeaser).map((theme, i) => (
-                <li
-                  key={`theme-${i}`}
-                  className="rounded-full border border-neutral-300 px-4 py-2 text-sm text-neutral-800"
-                >
-                  {theme}
+                <li key={`theme-${i}`}>
+                  {navigation?.themesHref ? (
+                    <Link
+                      href={navigation.themesHref}
+                      className="inline-block rounded-full border border-neutral-300 px-4 py-2 text-sm text-neutral-800 hover:border-black hover:bg-neutral-50 transition-colors"
+                    >
+                      {theme}
+                    </Link>
+                  ) : (
+                    <span className="inline-block rounded-full border border-neutral-300 px-4 py-2 text-sm text-neutral-800">
+                      {theme}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -322,6 +339,22 @@ export function PersonalizedDiagnosticDeliverable({
                 <> — {presentation.siguientePaso.activacionSugerida.plazaWelcomeLine}</>
               )}
             </p>
+          )}
+          {navigation && (
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-center pt-2">
+              <Link
+                href={navigation.themesHref}
+                className="rounded-xl bg-black px-8 py-3 text-sm font-medium text-white"
+              >
+                Elegir temática
+              </Link>
+              <Link
+                href={navigation.plazaHref}
+                className="rounded-xl border border-black/20 px-8 py-3 text-sm font-medium text-neutral-900"
+              >
+                Ir al barrio
+              </Link>
+            </div>
           )}
         </section>
       )}

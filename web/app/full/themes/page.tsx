@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { setActivationChoice } from "@/lib/activacion/storage";
 import { mapGuidedActivationToCartel } from "@/lib/full/activationBridge";
+import {
+  archivedCurrentResultToFinalReading,
+  getGuidedThemesFromResult,
+} from "@/lib/full/restoreArchivedCaseToSession";
 import { useFullAnswers } from "../fullAnswersContext";
 
 type GuidedThemeOption = {
@@ -43,9 +47,11 @@ const ICON_MAP: Record<string, string> = {
   compass: "🧭",
 };
 
-export default function ThemesPage() {
+function ThemesPageContent() {
   const router = useRouter();
-  const { analysis } = useFullAnswers();
+  const searchParams = useSearchParams();
+  const archiveId = searchParams.get("archiveId")?.trim() ?? "";
+  const { analysis, setAnalysis, isHydrated } = useFullAnswers();
 
   const [themes, setThemes] = useState<GuidedThemeOption[]>([]);
   const [selectedTheme, setSelectedTheme] = useState<GuidedThemeOption | null>(null);
@@ -53,18 +59,58 @@ export default function ThemesPage() {
   const [selectedActivation, setSelectedActivation] = useState<ActivationOption | null>(null);
   const [step, setStep] = useState<"themes" | "activation" | "confirmed">("themes");
   const [loading, setLoading] = useState(false);
+  const [hydrating, setHydrating] = useState(Boolean(archiveId));
+
+  const resultBackHref = archiveId
+    ? `/full/result/archivo/${encodeURIComponent(archiveId)}`
+    : "/full/result";
 
   useEffect(() => {
-    if (!analysis.result) {
-      router.replace("/full/result");
-      return;
+    if (!isHydrated) return;
+
+    async function ensureResult() {
+      if (analysis.result) {
+        setHydrating(false);
+        return;
+      }
+
+      if (!archiveId) {
+        router.replace("/full/result");
+        return;
+      }
+
+      setHydrating(true);
+      try {
+        const res = await fetch(`/api/human-cases/${encodeURIComponent(archiveId)}`);
+        const data = (await res.json()) as {
+          ok?: boolean;
+          complete?: { payload?: { currentResult?: Record<string, unknown> } };
+        };
+        const cr = data.complete?.payload?.currentResult;
+        if (!res.ok || !data.ok || !cr) {
+          router.replace("/full/result/recuperar");
+          return;
+        }
+        setAnalysis(archivedCurrentResultToFinalReading(cr));
+      } catch {
+        router.replace("/full/result/recuperar");
+      } finally {
+        setHydrating(false);
+      }
     }
 
-    const raw = (analysis.result as unknown as Record<string, unknown>)._guidedThemes;
-    if (Array.isArray(raw) && raw.length > 0) {
+    void ensureResult();
+  }, [analysis.result, archiveId, isHydrated, router, setAnalysis]);
+
+  useEffect(() => {
+    if (!analysis.result) return;
+    const raw = getGuidedThemesFromResult(
+      analysis.result as unknown as Record<string, unknown>,
+    );
+    if (raw.length > 0) {
       setThemes(raw as GuidedThemeOption[]);
     }
-  }, [analysis.result, router]);
+  }, [analysis.result]);
 
   async function handleThemeSelect(theme: GuidedThemeOption) {
     setSelectedTheme(theme);
@@ -88,7 +134,6 @@ export default function ThemesPage() {
         setStep("activation");
       }
     } catch {
-      // fallback: go straight to next-step
       router.push("/full/next-step");
     } finally {
       setLoading(false);
@@ -121,7 +166,13 @@ export default function ThemesPage() {
     }
   }
 
-  if (!analysis.result) return null;
+  if (hydrating || !analysis.result) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-white text-sm text-neutral-500">
+        Cargando tus temáticas…
+      </main>
+    );
+  }
 
   if (step === "confirmed") {
     return (
@@ -169,9 +220,7 @@ export default function ThemesPage() {
             <p className="text-sm uppercase tracking-wide text-neutral-500">
               Elegiste: {selectedTheme?.shortLabel}
             </p>
-            <h1 className="text-2xl font-semibold">
-              ¿Cómo querés empezar?
-            </h1>
+            <h1 className="text-2xl font-semibold">¿Cómo querés empezar?</h1>
             <p className="text-sm text-neutral-700 leading-6">
               No hay una forma correcta. Elegí la que más se parezca a lo que sentís ahora.
             </p>
@@ -218,18 +267,26 @@ export default function ThemesPage() {
           <p className="text-sm uppercase tracking-wide text-neutral-500">
             Una lectura se convierte en camino
           </p>
-          <h1 className="text-2xl font-semibold">
-            ¿Qué te resuena más?
-          </h1>
+          <h1 className="text-2xl font-semibold">¿Qué te resuena más?</h1>
           <p className="text-sm text-neutral-700 leading-6">
-            Basándonos en tu lectura, estas son las temáticas que más se alinean con
-            lo que apareció. Elegí una — no es para siempre, es para empezar.
+            Basándonos en tu lectura, estas son las temáticas que más se alinean con lo que
+            apareció. Elegí una — no es para siempre, es para empezar.
           </p>
         </div>
 
         {themes.length === 0 && (
-          <div className="border border-neutral-200 rounded-xl p-6 text-center">
-            <p className="text-neutral-500">Cargando temáticas...</p>
+          <div className="border border-amber-200 bg-amber-50 rounded-xl p-6 text-center space-y-3">
+            <p className="text-sm text-amber-900">
+              No encontramos temáticas guardadas en este caso. Podés explorar el barrio igual
+              o contactar al equipo para re-vincular tu lectura.
+            </p>
+            <button
+              type="button"
+              onClick={() => router.push("/plaza")}
+              className="rounded-lg bg-black px-5 py-2 text-sm text-white"
+            >
+              Ir al barrio
+            </button>
           </div>
         )}
 
@@ -242,20 +299,32 @@ export default function ThemesPage() {
               className="w-full text-left border border-neutral-200 rounded-xl p-5 space-y-2 hover:border-black hover:shadow-sm transition-all disabled:opacity-50"
             >
               <p className="text-lg font-medium">{theme.shortLabel}</p>
-              <p className="text-sm text-neutral-700 leading-6">
-                {theme.userFacingText}
-              </p>
+              <p className="text-sm text-neutral-700 leading-6">{theme.userFacingText}</p>
             </button>
           ))}
         </div>
 
         <button
-          onClick={() => router.push("/full/result")}
+          onClick={() => router.push(resultBackHref)}
           className="text-sm text-neutral-500 underline"
         >
           Volver al resultado
         </button>
       </div>
     </main>
+  );
+}
+
+export default function ThemesPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center bg-white text-sm text-neutral-500">
+          Cargando…
+        </main>
+      }
+    >
+      <ThemesPageContent />
+    </Suspense>
   );
 }
