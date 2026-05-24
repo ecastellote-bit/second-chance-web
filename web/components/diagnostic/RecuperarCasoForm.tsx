@@ -4,15 +4,32 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { normalizeHumanCaseImport } from "@/lib/learning/normalizeHumanCaseImport";
+import { parseHumanCaseJsonText } from "@/lib/learning/parseHumanCaseJsonText";
 import { setActiveHumanArchiveId } from "@/lib/learning/activeHumanArchive";
 import { grantFoundingMember } from "@/lib/learning/foundationalMember";
+
+function friendlyImportError(err: unknown): string {
+  if (!(err instanceof Error)) return "No se pudo importar";
+  if (err.message === "import_unauthorized") {
+    return "Clave de importación incorrecta. Revisá la clave en Vercel o en ?key= de la URL.";
+  }
+  if (err.message === "current_result_required") {
+    return "El backup no trae la lectura (currentResult). Probá con otro archivo .json.";
+  }
+  return err.message;
+}
 
 export function RecuperarCasoForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [importKey, setImportKey] = useState(searchParams.get("key") ?? "");
+  const [archiveIdOpen, setArchiveIdOpen] = useState(
+    searchParams.get("id") ?? "local_mpj6g0d5",
+  );
   const [status, setStatus] = useState<"idle" | "loading" | "error" | "done">("idle");
   const [message, setMessage] = useState("");
+  const [selectedFileName, setSelectedFileName] = useState("");
+
   const importJson = useCallback(
     async (raw: unknown, forceId?: string) => {
       const enriched =
@@ -37,7 +54,6 @@ export function RecuperarCasoForm() {
       const data = (await res.json()) as {
         ok?: boolean;
         archiveId?: string;
-        viewUrl?: string;
         error?: string;
       };
 
@@ -47,7 +63,6 @@ export function RecuperarCasoForm() {
 
       setActiveHumanArchiveId(data.archiveId);
       grantFoundingMember(data.archiveId);
-
       setStatus("done");
       return data.archiveId;
     },
@@ -64,17 +79,23 @@ export function RecuperarCasoForm() {
       if (!file) return;
       setStatus("loading");
       setMessage("");
+      setSelectedFileName(file.name);
 
       try {
         const text = await file.text();
-        const raw = JSON.parse(text) as unknown;
+        if (!text.trim()) {
+          throw new Error(
+            "El archivo llegó vacío. En el celular, abrilo desde Descargas o Archivos y volvé a elegirlo.",
+          );
+        }
+        const raw = parseHumanCaseJsonText(text);
         const fromName = archiveIdFromFilename(file.name);
         const archiveId = await importJson(raw, fromName || undefined);
         setMessage(`Caso importado: ${archiveId}`);
         router.push(`/full/result/archivo/${encodeURIComponent(archiveId)}`);
       } catch (err) {
         setStatus("error");
-        setMessage(err instanceof Error ? err.message : "No se pudo importar");
+        setMessage(friendlyImportError(err));
       }
     },
     [importJson, router],
@@ -89,13 +110,13 @@ export function RecuperarCasoForm() {
       setMessage("");
 
       try {
-        const raw = JSON.parse(textarea.value) as unknown;
+        const raw = parseHumanCaseJsonText(textarea.value);
         const archiveId = await importJson(raw);
         setMessage(`Caso importado: ${archiveId}`);
         router.push(`/full/result/archivo/${encodeURIComponent(archiveId)}`);
       } catch (err) {
         setStatus("error");
-        setMessage(err instanceof Error ? err.message : "No se pudo importar");
+        setMessage(friendlyImportError(err));
       }
     },
     [importJson, router],
@@ -114,54 +135,71 @@ export function RecuperarCasoForm() {
 
         <label className="block space-y-2">
           <span className="text-xs font-semibold uppercase tracking-wide text-[#6B7A8C]">
-            Clave de importación (si te la pasaron)
+            Clave de importación
           </span>
           <input
             type="password"
             value={importKey}
             onChange={(e) => setImportKey(e.target.value)}
-            placeholder="Opcional en local"
+            placeholder="La misma que configuraste en Vercel"
             className="w-full rounded-xl border border-[#E8EEF3] px-4 py-3 text-sm"
             autoComplete="off"
           />
         </label>
 
-        <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#C6D92D] bg-white px-6 py-12 text-center">
-          <span className="text-sm font-semibold text-[#0B2E59]">
-            Tocá para elegir tu .json
-          </span>
-          <span className="text-xs text-[#6B7A8C]">vocationup-caso-*.json</span>
-          <input
-            type="file"
-            accept=".json,application/json"
-            className="sr-only"
-            disabled={status === "loading"}
-            onChange={(e) => void onFile(e.target.files?.[0] ?? null)}
-          />
-        </label>
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#0B2E59]">
+            Paso 1 — Elegir archivo (recomendado)
+          </p>
+          <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#C6D92D] bg-white px-6 py-12 text-center">
+            <span className="text-sm font-semibold text-[#0B2E59]">
+              {status === "loading" && selectedFileName
+                ? `Importando ${selectedFileName}…`
+                : "Tocá acá para elegir tu .json"}
+            </span>
+            <span className="text-xs text-[#6B7A8C]">vocationup-caso-local_mpj6g0d5.json</span>
+            {selectedFileName && status !== "loading" ? (
+              <span className="text-xs font-medium text-emerald-700">{selectedFileName}</span>
+            ) : null}
+            <input
+              type="file"
+              accept="application/json,.json"
+              className="sr-only"
+              disabled={status === "loading"}
+              onChange={(e) => void onFile(e.target.files?.[0] ?? null)}
+            />
+          </label>
+          <p className="text-xs text-[#6B7A8C]">
+            Al elegir el archivo se importa solo. No hace falta tocar el botón azul de abajo.
+          </p>
+        </div>
 
-        <form onSubmit={onPasteSubmit} className="space-y-3">
+        <form onSubmit={onPasteSubmit} className="space-y-3 rounded-2xl border border-[#E8EEF3] bg-white p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-[#6B7A8C]">
-            O pegá el contenido del JSON
+            Paso 2 — Solo si no podés subir archivo: pegar JSON
           </p>
           <textarea
             name="jsonPaste"
-            rows={6}
+            rows={5}
             className="w-full rounded-xl border border-[#E8EEF3] px-4 py-3 font-mono text-xs"
-            placeholder='{"archiveVersion":"human_case_depot_v1",...}'
+            placeholder="Pegá acá todo el contenido del archivo (desde { hasta el final)"
           />
           <button
             type="submit"
             disabled={status === "loading"}
             className="w-full rounded-xl bg-[#0B2E59] py-3 text-sm font-semibold text-white disabled:opacity-50"
           >
-            {status === "loading" ? "Importando…" : "Importar y ver lectura"}
+            {status === "loading" ? "Importando…" : "Importar texto pegado"}
           </button>
         </form>
 
         {message ? (
           <p
-            className={`text-sm ${status === "error" ? "text-red-600" : "text-emerald-700"}`}
+            className={`rounded-xl px-4 py-3 text-sm ${
+              status === "error"
+                ? "bg-red-50 text-red-700"
+                : "bg-emerald-50 text-emerald-800"
+            }`}
           >
             {message}
           </p>
@@ -170,9 +208,7 @@ export function RecuperarCasoForm() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            const form = e.currentTarget;
-            const input = form.elements.namedItem("archiveId") as HTMLInputElement;
-            const id = input.value.trim();
+            const id = archiveIdOpen.trim();
             if (!id) return;
             setActiveHumanArchiveId(id);
             grantFoundingMember(id);
@@ -183,10 +219,14 @@ export function RecuperarCasoForm() {
           <p className="text-xs font-semibold uppercase tracking-wide text-[#6B7A8C]">
             Ya importado — abrir por ID
           </p>
+          <p className="text-xs text-[#6B7A8C]">
+            Usá esto solo después de importar el .json. Si no importaste, primero el Paso 1.
+          </p>
           <input
             name="archiveId"
             type="text"
-            placeholder="local_mpj6g0d5"
+            value={archiveIdOpen}
+            onChange={(e) => setArchiveIdOpen(e.target.value)}
             className="w-full rounded-xl border border-[#E8EEF3] px-4 py-3 font-mono text-sm"
           />
           <button
