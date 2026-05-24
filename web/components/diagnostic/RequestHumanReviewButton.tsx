@@ -64,7 +64,7 @@ export function RequestHumanReviewButton({ archiveId, className = "" }: Props) {
       {state === "error" ? (
         <p className="text-center text-sm text-red-700">
           No pudimos registrar la solicitud. Tu caso igual quedó guardado — avisá
-          al facilitador con tu ID:{" "}
+          al equipo con tu ID de archivo:{" "}
           <span className="font-mono font-semibold">{archiveId}</span>
         </p>
       ) : null}

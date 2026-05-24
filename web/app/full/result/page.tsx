@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { shouldShowStaffDiagnosticInternals } from "@/lib/public/showStaffDiagnosticInternals";
+import { toPublicFamilyLabel } from "@/lib/public/humanFamilyLabel";
 import { useFullAnswers } from "../fullAnswersContext";
 import { persistContextualFromFinalReading } from "@/lib/tematicas/persistContextualOnAnalyze";
 import { HumanCaseArchiveGate } from "@/components/diagnostic/HumanCaseArchiveGate";
@@ -358,14 +360,13 @@ function toTextItems(value: unknown): string[] {
 }
 
 function getFamilyLabel(family: FamilyScoreForView): string {
-  return (
+  const raw =
     family.label ??
     family.familyLabel ??
     family.family ??
     family.id ??
-    family.familyId ??
-    "Dirección sin nombre"
-  );
+    family.familyId;
+  return toPublicFamilyLabel(raw ?? null) ?? "Una dirección vocacional";
 }
 
 function getFamilyScore(family: FamilyScoreForView): number {
@@ -887,7 +888,25 @@ function persistArchiveConfirmationTrace(trace: ArchiveConfirmationTrace): void 
 }
 
 export default function ResultPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[100dvh] flex items-center justify-center p-8 text-neutral-600">
+          Cargando tu lectura…
+        </div>
+      }
+    >
+      <ResultPageInner />
+    </Suspense>
+  );
+}
+
+function ResultPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const showDiagnosticInternals = shouldShowStaffDiagnosticInternals(
+    searchParams.get("debug"),
+  );
   const fullAnswersContext = useFullAnswers();
   const { analysis } = fullAnswersContext;
 
@@ -1197,7 +1216,7 @@ export default function ResultPage() {
 
           <p className="text-base md:text-lg text-neutral-700 leading-relaxed">
             {hasPersonalizedPresentation
-              ? "Cada sección está fundamentada en una capa del sistema que ya leyó tu historia. Esto no es una etiqueta: es una sentencia armada con evidencia."
+              ? "Tu lectura está armada con evidencia de tu relato y de tu momento actual. No es una etiqueta: es un punto de partida para moverte con dirección."
               : "Esto no es una etiqueta. Es una lectura basada en patrones que aparecen en tu historia."}
           </p>
         </div>
@@ -1232,6 +1251,8 @@ export default function ResultPage() {
           </>
         )}
 
+        {showDiagnosticInternals ? (
+        <>
         {/* TENSIÓN DIAGNÓSTICA INTERNA */}
         {isConflictReading && (
           <div className="border border-red-300 bg-red-50 rounded-xl p-6 space-y-4">
@@ -2274,6 +2295,9 @@ export default function ResultPage() {
           </div>
         )}
 
+        </>
+        ) : null}
+
         {/* COMPRESIÓN */}
         {isCompressed && (
           <div className="border border-neutral-300 bg-neutral-50 rounded-xl p-6 space-y-3">
@@ -2287,7 +2311,7 @@ export default function ResultPage() {
           </div>
         )}
 
-        {/* EXPORTAR CASO PARA APRENDIZAJE */}
+        {showDiagnosticInternals ? (
         <div className="border border-neutral-300 bg-neutral-50 rounded-xl p-6 space-y-3">
           <h3 className="text-lg font-medium">
             Exportar caso para aprendizaje
@@ -2360,6 +2384,7 @@ export default function ResultPage() {
             Copiar caso para revisión
           </button>
         </div>
+        ) : null}
 
         {/* CIERRE */}
         {!hasPersonalizedPresentation && (

@@ -63,7 +63,7 @@ export default function TematicasPage() {
               Fruto de tu etapa diagnóstica
             </p>
             <p className="mt-1 text-[13px] leading-relaxed text-[#243647]">
-              El juez contextual del sistema sugirió estas lecturas a partir de lo que contaste.
+              Según tu diagnóstico, estas lecturas encajan primero con lo que contaste.
               Podés elegir otra si no resuena — nos ayuda a afinar.
             </p>
             {contextual.cautions[0] ? (

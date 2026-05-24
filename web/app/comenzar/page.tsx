@@ -31,9 +31,9 @@ const STEPS = [
   {
     n: 3,
     title: "Activación",
-    body: "Cuatro carteles: cómo querés entrar al ecosistema.",
+    body: "Elegí una forma de empezar en el barrio: cinco caminos de activación.",
     href: "/activacion",
-    cta: "Elegir cartel",
+    cta: "Elegir camino",
   },
   {
     n: 4,
@@ -53,7 +53,7 @@ export default function ComenzarPage() {
     <div className="flex min-h-[100dvh] flex-col bg-[#F8FAFC] font-[family-name:var(--font-inter)] pb-24">
       <header className="px-5 pt-12 pb-2">
         <p className="text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">
-          Recorrido MVP
+          Recorrido inicial
         </p>
         <h1 className="mt-2 text-[1.6rem] font-bold leading-tight text-[#0B2E59]">
           Comenzar en VocationUp

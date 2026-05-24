@@ -110,12 +110,14 @@ function FundadorPageContent() {
           )}
         </div>
 
-        <p className="text-[12px] text-[#6B7A8C]">
-          Pre-lanzamiento:{" "}
-          <Link href="/lab/prelaunch" className="font-semibold text-[#1A9BB0] underline">
-            checklist técnico (1)
-          </Link>
-        </p>
+        {process.env.NODE_ENV !== "production" ? (
+          <p className="text-[12px] text-[#6B7A8C]">
+            Taller interno:{" "}
+            <Link href="/lab/prelaunch" className="font-semibold text-[#1A9BB0] underline">
+              checklist pre-lanzamiento
+            </Link>
+          </p>
+        ) : null}
 
         <section className="space-y-3 pt-4">
           <h2 className="text-lg font-bold text-[#0B2E59]">Recorrido del barrio</h2>

@@ -179,7 +179,7 @@ export function PlazaInicialView({ showEntradaLink, onOpenEntrada }: PlazaInicia
             </Link>
             <span className="flex items-center gap-1.5 rounded-full bg-[#0B2E59]/80 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-[#C6D92D] animate-pulse" aria-hidden />
-              Comunidad activa
+              Barrio en siembra
             </span>
           </div>
           <h1

@@ -107,9 +107,9 @@ export function PersonalizedDiagnosticDeliverable({
           {lc.sentenciaRevelacion}
         </p>
         <p className="mt-8 text-sm text-neutral-400 max-w-2xl leading-relaxed">
-          Fundamentado en coherencia narrativa, evidencia de tu relato y lectura
-          situacional. No es una etiqueta: es una sentencia que el sistema pudo
-          armar porque vos ya trajiste el material.
+          Fundamentado en tu relato, en lo que contaste de tu momento y en las
+          señales que aparecen con claridad. No es una etiqueta: es una lectura
+          que se apoya en lo que ya trajiste.
         </p>
       </section>
 
@@ -119,7 +119,7 @@ export function PersonalizedDiagnosticDeliverable({
           <SectionLabel
             step="01 · Lectura central"
             title="Quién aparece en tu historia"
-            fundamento="Síntesis del juez de coherencia narrativa sobre tu relato completo."
+            fundamento="Síntesis de coherencia sobre tu relato completo."
           />
           <p className="text-lg md:text-xl text-neutral-800 leading-relaxed max-w-4xl">
             {lc.resumen}
@@ -133,7 +133,7 @@ export function PersonalizedDiagnosticDeliverable({
           <SectionLabel
             step="02 · Tensión viva"
             title="Lo que está en juego"
-            fundamento="Eje del juez narrativo: lo que se enfrenta en vos hoy, en tus propias palabras."
+            fundamento="Lo que se enfrenta en vos hoy, en tus propias palabras."
           />
           <p className="text-xl md:text-2xl font-medium text-neutral-900 leading-relaxed">
             {lc.tensionViva}
@@ -147,7 +147,7 @@ export function PersonalizedDiagnosticDeliverable({
           <SectionLabel
             step="03 · Por qué esta lectura"
             title="El argumento que sostiene la sentencia"
-            fundamento="Razonamiento del auditor narrativo: por qué el sistema llega aquí y no a un cierre automático."
+            fundamento="Por qué esta lectura encaja con tu historia y no con un cierre automático."
           />
           <p className="text-base md:text-lg text-neutral-800 leading-relaxed max-w-4xl whitespace-pre-wrap">
             {lc.porQue}
@@ -161,7 +161,7 @@ export function PersonalizedDiagnosticDeliverable({
           <SectionLabel
             step="04 · En tus palabras"
             title="Evidencia que no inventamos"
-            fundamento="Citas del juez narrativo y fragmentos extraídos de tu intake; cada una con su fundamento."
+            fundamento="Fragmentos de tu relato que sostienen esta lectura; cada uno con su fundamento."
           />
           <div className="grid gap-6 md:grid-cols-2">
             {safeArray(presentation.enTusPalabras).map((cita, index) => (
@@ -171,7 +171,7 @@ export function PersonalizedDiagnosticDeliverable({
               >
                 <div className="flex flex-wrap gap-2 text-xs uppercase tracking-wide text-neutral-500">
                   <span className="rounded-full bg-neutral-100 px-2 py-0.5">
-                    {cita.fuente === "narrativo" ? "Auditoría narrativa" : "Tu relato"}
+                    {cita.fuente === "narrativo" ? "Lectura narrativa" : "Tu relato"}
                   </span>
                   {cita.momento && (
                     <span className="rounded-full bg-neutral-100 px-2 py-0.5">
@@ -198,7 +198,7 @@ export function PersonalizedDiagnosticDeliverable({
           <SectionLabel
             step="05 · Alertas de lectura"
             title="Qué no conviene ignorar"
-            fundamento="Banderas del juez narrativo y del momento vital: honestidad antes que cierre."
+            fundamento="Señales del momento vital: honestidad antes que cierre."
           />
           <div className="space-y-4">
             {safeArray(presentation.alertasLectura).map((alerta, index) => (
@@ -226,7 +226,7 @@ export function PersonalizedDiagnosticDeliverable({
           <SectionLabel
             step="06 · Momento vital"
             title="Dónde estás parada hoy"
-            fundamento="Juez situacional: fuerzas del presente que condicionan cómo se despliega lo anterior."
+            fundamento="Fuerzas del presente que condicionan cómo se despliega lo anterior."
           />
           <p className="text-base md:text-lg text-neutral-800 leading-relaxed max-w-4xl">
             {presentation.momentoVital}
@@ -292,7 +292,7 @@ export function PersonalizedDiagnosticDeliverable({
           <SectionLabel
             step="09 · Frontera"
             title="Lo que no cerramos"
-            fundamento="Honestidad del sistema: frontera, compresión o revisión humana si aplica."
+            fundamento="Frontera abierta, compresión o revisión humana si aplica."
           />
           <p className="text-base md:text-lg text-neutral-800 leading-relaxed max-w-4xl">
             {presentation.loQueNoCerramos}

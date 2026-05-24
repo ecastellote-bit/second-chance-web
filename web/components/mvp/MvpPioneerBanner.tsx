@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const DISMISS_KEY = "vu_mvp_banner_dismissed";
+const DISMISS_KEY = "vu_founder_wave_banner_dismissed";
 
 export function MvpPioneerBanner() {
   const [visible, setVisible] = useState(false);
@@ -19,11 +19,11 @@ export function MvpPioneerBanner() {
       role="status"
     >
       <p className="text-[11px] font-bold uppercase tracking-wide text-[#0B2E59]">
-        MVP en prueba
+        Ola fundadora
       </p>
       <p className="mt-1 text-[13px] leading-relaxed text-[#243647]">
-        Estamos probando VocationUp con personas reales. Si algo confunde o incomoda, anotalo:
-        nos ayuda más que el elogio.
+        Estamos abriendo el barrio con los primeros usuarios. Tu participación ayuda a sembrar
+        esta primera etapa — si algo confunde, contanos.
       </p>
       <button
         type="button"

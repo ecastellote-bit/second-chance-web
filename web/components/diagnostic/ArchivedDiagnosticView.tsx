@@ -168,8 +168,8 @@ export function ArchivedDiagnosticView({ archiveId }: Props) {
           >
             {learningOk ? (
               <p>
-                Tu caso quedó archivado con cuestionario, Juez de Coherencia Narrativa y
-                capas de aprendizaje para calibrar los jueces del sistema.
+                Tu caso quedó archivado con tu cuestionario y tu lectura completa. Podés
+                retomar temáticas, activación y el barrio cuando quieras.
               </p>
             ) : (
               <p>

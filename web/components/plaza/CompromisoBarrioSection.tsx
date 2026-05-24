@@ -8,6 +8,10 @@ import {
   setBarrioCommitment,
   type BarrioCommitmentId,
 } from "@/lib/activacion/commitment";
+import {
+  postCommunityActivity,
+  postCommunityMessage,
+} from "@/lib/community/communityClient";
 import { trackObservatoryEvent } from "@/lib/observatory/client";
 
 export function CompromisoBarrioSection() {
@@ -28,7 +32,7 @@ export function CompromisoBarrioSection() {
           <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">{saved.note}</p>
         ) : null}
         <p className="mt-3 text-[12px] text-[#6B7A8C]">
-          Un facilitador del equipo puede contactarte para ayudarte con el próximo paso.
+          Quedó registrado para esta etapa fundadora. Podés ver el detalle en Actividad y Mensajes.
         </p>
         {saved.id === "crear_proyecto" ? (
           <button
@@ -56,7 +60,7 @@ export function CompromisoBarrioSection() {
     <section className="mt-8">
       <h2 className="text-[15px] font-bold text-[#0B2E59]">Tu compromiso con el barrio</h2>
       <p className="mt-1 text-[13px] leading-relaxed text-[#6B7A8C]">
-        Los pioneros del MVP nos ayudan a sembrar la comunidad. Elegí un paso pequeño y real.
+        Tu participación ayuda a sembrar esta primera etapa del barrio. Elegí un paso pequeño y real.
       </p>
       <div className="mt-4 flex flex-col gap-2">
         {BARRIO_COMMITMENT_OPTIONS.map((opt) => (
@@ -93,8 +97,10 @@ export function CompromisoBarrioSection() {
       <button
         type="button"
         disabled={!selected}
-        onClick={() => {
+        onClick={async () => {
           if (!selected) return;
+          const label =
+            BARRIO_COMMITMENT_OPTIONS.find((o) => o.id === selected)?.label ?? selected;
           const entry = {
             id: selected,
             at: new Date().toISOString(),
@@ -104,6 +110,26 @@ export function CompromisoBarrioSection() {
           setSaved(entry);
           trackObservatoryEvent("funnel.barrio_commitment", "funnel", {
             commitmentId: selected,
+          });
+          const dedupe = `barrio_commitment:${selected}`;
+          await postCommunityActivity({
+            type: "system_next_step",
+            title: "Guardaste tu compromiso",
+            body: `Registramos: ${label}. Tu compromiso quedó guardado para esta etapa fundadora.`,
+            ctaLabel: "Ver mi actividad",
+            ctaHref: "/actividad",
+            dedupeKey: dedupe,
+            meta: { commitmentId: selected },
+          });
+          await postCommunityMessage({
+            from: "VocationUp",
+            subject: "Compromiso registrado",
+            body: "Tu compromiso quedó registrado para esta etapa fundadora. Lo vas a ver reflejado en Actividad.",
+            kind: "next_step",
+            ctaLabel: "Ver mensajes",
+            ctaHref: "/mensajes",
+            dedupeKey: `msg_${dedupe}`,
+            meta: { commitmentId: selected },
           });
         }}
         className="vu-focus mt-4 flex min-h-[48px] w-full items-center justify-center rounded-2xl bg-[#C6D92D] text-sm font-bold text-[#0B2E59] disabled:opacity-40"
