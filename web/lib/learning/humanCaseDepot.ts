@@ -7,6 +7,7 @@ import {
   listHumanCaseBundles,
   putHumanCaseBundle,
 } from "./humanCaseDurableStore";
+import { isVercelBlobConfigured } from "@/lib/storage/vercelBlobEnv";
 
 export const HUMAN_CASE_ARCHIVE_VERSION = "human_case_depot_v1";
 export const BROWSER_HUMAN_SOURCE = "browser_human_case_v1";
@@ -396,6 +397,12 @@ export function getHumanCaseDepotPaths(): HumanCaseDepotPaths {
   };
 }
 
+/** En Vercel con Blob, el filesystem es solo lectura — no escribir JSONL local. */
+function shouldWriteFilesystemMirror(): boolean {
+  if (process.env.VERCEL === "1" && isVercelBlobConfigured()) return false;
+  return true;
+}
+
 async function appendJsonlIfNew(
   filePath: string,
   idField: string,
@@ -450,7 +457,9 @@ export async function persistHumanCaseDepot(
   },
 ): Promise<PersistHumanCaseResult> {
   const paths = getHumanCaseDepotPaths();
-  await mkdir(path.dirname(paths.completePath), { recursive: true });
+  if (shouldWriteFilesystemMirror()) {
+    await mkdir(path.dirname(paths.completePath), { recursive: true });
+  }
 
   const completeRecord = buildHumanCompleteCaseRecord(payload, options);
   const extractRecord = buildHumanLearningExtract(completeRecord);
@@ -485,19 +494,30 @@ export async function persistHumanCaseDepot(
     };
   }
 
-  const complete = await appendJsonlIfNew(
-    paths.completePath,
-    "archiveId",
-    completeRecord.archiveId,
-    completeRecord,
-  );
+  let complete: { appended: boolean; reason?: string };
+  let extract: { appended: boolean; reason?: string };
 
-  const extract = await appendJsonlIfNew(
-    paths.extractPath,
-    "extractId",
-    extractRecord.extractId,
-    extractRecord,
-  );
+  if (shouldWriteFilesystemMirror()) {
+    complete = await appendJsonlIfNew(
+      paths.completePath,
+      "archiveId",
+      completeRecord.archiveId,
+      completeRecord,
+    );
+
+    extract = await appendJsonlIfNew(
+      paths.extractPath,
+      "extractId",
+      extractRecord.extractId,
+      extractRecord,
+    );
+  } else if (durable.stored && durable.verified) {
+    complete = { appended: true, reason: "vercel_blob_primary" };
+    extract = { appended: true, reason: "vercel_blob_primary" };
+  } else {
+    complete = { appended: false, reason: "filesystem_disabled" };
+    extract = { appended: false, reason: "filesystem_disabled" };
+  }
 
   if (
     !storeStatus.configured &&
@@ -514,7 +534,7 @@ export async function persistHumanCaseDepot(
 
   let legacy: PersistHumanCaseResult["legacy"];
 
-  if (options?.alsoWriteLegacy !== false) {
+  if (options?.alsoWriteLegacy !== false && shouldWriteFilesystemMirror()) {
     const legacyRecord = {
       ...completeRecord,
       storagePolicy: {

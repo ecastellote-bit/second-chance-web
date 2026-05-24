@@ -1,4 +1,4 @@
-import { head, list, put, get } from "@vercel/blob";
+import { list, put, get } from "@vercel/blob";
 import type {
   HumanCompleteCaseRecord,
   HumanLearningExtractRecord,
@@ -103,8 +103,8 @@ export async function putHumanCaseBundle(params: {
 
   let verified = false;
   try {
-    const meta = await head(pathname);
-    verified = meta.pathname === pathname && meta.size > 0;
+    const result = await get(pathname, { access: "private" });
+    verified = Boolean(result && result.statusCode === 200 && result.blob.size > 0);
   } catch {
     verified = Boolean(written.url);
   }

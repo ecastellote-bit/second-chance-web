@@ -1155,7 +1155,6 @@ export default function ResultPage() {
       displayFrontierReading,
       summaryForUser: rawResult.summaryForUser ?? null,
       personalizedPresentation: rawResult.personalizedPresentation ?? null,
-      trace: rawResult.trace ?? null,
     },
     humanReview: {
       expectedPrimaryFamily: "",

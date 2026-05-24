@@ -1,4 +1,8 @@
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 import { computeAndCacheEmbedding } from "@/lib/engines/learningCycleEnricher";
 import {
   BROWSER_HUMAN_SOURCE,
