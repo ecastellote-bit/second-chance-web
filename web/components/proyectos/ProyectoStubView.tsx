@@ -21,20 +21,18 @@ export function ProyectoStubView({ project }: { project: ProyectoListItem }) {
             kind="project"
             projectId={project.id}
             projectTitle={project.title}
-            mode="join"
-            variant="primary"
-          />
-          <CommunityMicroAction
-            kind="project"
-            projectId={project.id}
-            projectTitle={project.title}
             mode="interest"
+            variant="primary"
+            label="Me interesa una idea así"
+            registeredLabel="Interés registrado"
           />
           <CommunityMicroAction
             kind="project"
             projectId={project.id}
             projectTitle={project.title}
             mode="observe"
+            label="Quiero observar algo parecido"
+            registeredLabel="Observación registrada"
           />
           <Link
             href="/proyectos"

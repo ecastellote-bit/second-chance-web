@@ -2,7 +2,7 @@
 
 import { VuWarmImage } from "@/components/ui/VuWarmImage";
 import Link from "next/link";
-import { useState } from "react";
+import { CommunityMicroAction } from "@/components/community/CommunityMicroAction";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
 import type { PresentedProject } from "@/lib/content/proyectoPresentadoCatalog";
 import { COMMUNITY_EXAMPLE_CONVERSATIONS_LABEL } from "@/lib/content/communitySeedCopy";
@@ -62,8 +62,6 @@ function CommentBubble({
 }
 
 export function ProyectoPresentadoView({ project }: { project: PresentedProject }) {
-  const [joined, setJoined] = useState(false);
-
   return (
     <div className="flex min-h-[100dvh] flex-col font-[family-name:var(--font-inter)] bg-[#0B2E59] text-white">
       <header className="absolute left-0 right-0 top-0 z-20 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
@@ -167,18 +165,18 @@ export function ProyectoPresentadoView({ project }: { project: PresentedProject 
             ))}
           </div>
 
-          <button
-            type="button"
-            onClick={() => setJoined(true)}
-            className={[
-              "vu-focus mt-6 flex w-full min-h-[52px] items-center justify-center gap-2 rounded-2xl text-base font-bold transition-transform active:scale-[0.99]",
-              joined
-                ? "bg-white/15 text-[#C6D92D] ring-2 ring-[#C6D92D]"
-                : "bg-[#C6D92D] text-[#0B2E59] shadow-[0_4px_20px_rgba(198,217,45,0.35)]",
-            ].join(" ")}
-          >
-            {joined ? "¡Gracias! Te avisamos cuando arranque" : "Me interesa sumarme"}
-          </button>
+          <div className="mt-6">
+            <CommunityMicroAction
+              kind="project"
+              projectId={project.id}
+              projectTitle={project.title}
+              mode="interest"
+              variant="primary"
+              label="Me interesa una idea así"
+              registeredLabel="Interés registrado"
+              className="!min-h-[52px] !rounded-2xl !text-base !font-bold !bg-[#C6D92D] !text-[#0B2E59]"
+            />
+          </div>
 
           <section className="mt-10" aria-labelledby="conversacion-proyecto">
             <h2

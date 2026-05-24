@@ -2,62 +2,8 @@
 
 import { VuWarmImage } from "@/components/ui/VuWarmImage";
 import Link from "next/link";
-import {
-  CIRCLE_STATUS_LABEL,
-  type CircleItem,
-  type CircleStatus,
-} from "@/lib/content/circulosCatalog";
+import type { CircleItem } from "@/lib/content/circulosCatalog";
 import { COMMUNITY_SEED_BADGE } from "@/lib/content/communitySeedCopy";
-
-const STATUS_STYLE: Record<
-  CircleStatus,
-  { bg: string; text: string; dot?: string }
-> = {
-  activo: { bg: "rgba(26,155,176,0.18)", text: "#0B2E59" },
-  nuevo: { bg: "rgba(198,217,45,0.35)", text: "#0B2E59" },
-  muy_activo: { bg: "rgba(26,155,176,0.28)", text: "#0B2E59", dot: "#1A9BB0" },
-  proximo_encuentro: { bg: "rgba(11,46,89,0.12)", text: "#0B2E59", dot: "#C6D92D" },
-};
-
-const AVATAR_COLORS = ["#1A9BB0", "#0B2E59", "#C6D92D", "#6B7A8C"];
-
-function StatusPill({ status }: { status: CircleStatus }) {
-  const style = STATUS_STYLE[status];
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide backdrop-blur-sm"
-      style={{ backgroundColor: style.bg, color: style.text }}
-    >
-      {style.dot ? (
-        <span
-          className="h-1.5 w-1.5 shrink-0 rounded-full"
-          style={{
-            backgroundColor: style.dot,
-            boxShadow: status === "muy_activo" ? `0 0 6px ${style.dot}` : undefined,
-          }}
-        />
-      ) : null}
-      {CIRCLE_STATUS_LABEL[status]}
-    </span>
-  );
-}
-
-function MemberAvatars({ initials }: { initials: string[] }) {
-  return (
-    <div className="flex -space-x-2">
-      {initials.slice(0, 4).map((init, i) => (
-        <span
-          key={`${init}-${i}`}
-          className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-[9px] font-bold text-white"
-          style={{ backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length] }}
-          aria-hidden
-        >
-          {init}
-        </span>
-      ))}
-    </div>
-  );
-}
 
 export function CircleCard({ circle, compact }: { circle: CircleItem; compact?: boolean }) {
   return (
@@ -83,8 +29,8 @@ export function CircleCard({ circle, compact }: { circle: CircleItem; compact?: 
               "linear-gradient(180deg, rgba(248,250,252,0.05) 0%, rgba(11,46,89,0.55) 100%)",
           }}
         />
-        <div className="absolute left-3 top-3">
-          <StatusPill status={circle.status} />
+        <div className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#0B2E59] backdrop-blur-sm">
+          {COMMUNITY_SEED_BADGE}
         </div>
       </div>
 
@@ -96,14 +42,9 @@ export function CircleCard({ circle, compact }: { circle: CircleItem; compact?: 
           </p>
         </div>
 
-        <div className="flex items-center justify-between gap-2">
-          <MemberAvatars initials={circle.avatars} />
-          <p className="text-right text-[11px] leading-tight text-[#6B7A8C]">
-            <span className="font-semibold text-[#0B2E59]">{COMMUNITY_SEED_BADGE}</span>
-            <br />
-            <span>Ejemplos para orientarte</span>
-          </p>
-        </div>
+        <p className="text-[12px] leading-relaxed text-[#6B7A8C]">
+          Espacio semilla para orientarte y marcar interés — sin membresía activa todavía.
+        </p>
 
         <Link
           href={`/circulos/${circle.id}`}

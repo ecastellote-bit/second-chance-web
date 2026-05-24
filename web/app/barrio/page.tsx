@@ -11,7 +11,7 @@ import { isFoundingMemberQualified } from "@/lib/learning/foundationalMember";
 
 const PHASE_LABEL: Record<string, string> = {
   diagnostic: "Diagnóstico",
-  purgatory: "Purgatorio",
+  purgatory: "Temáticas y activación",
   plaza: "Plaza y activación",
   doors: "Puertas",
   deep: "Profundización",

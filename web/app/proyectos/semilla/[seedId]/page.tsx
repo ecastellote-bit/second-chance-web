@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FounderPreviewBanner } from "@/components/founder/FounderPreviewBanner";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
+import { founderSeedStatusLabel } from "@/lib/public/founderSeedStatusLabel";
 import type { FounderProjectSeed } from "@/lib/learning/founderProjectSeeds";
 
 export default function FounderSeedPage() {
@@ -42,6 +43,8 @@ export default function FounderSeedPage() {
     );
   }
 
+  const statusLabel = founderSeedStatusLabel(seed.status);
+
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#F8FAFC] font-[family-name:var(--font-inter)]">
       <FounderPreviewBanner />
@@ -50,15 +53,46 @@ export default function FounderSeedPage() {
           ← Proyectos
         </Link>
         <p className="mt-6 text-[10px] font-bold uppercase tracking-wider text-[#C6D92D]">
-          Proyecto fundador · visibilidad prioritaria
+          Tu proyecto · ola fundadora
         </p>
         <h1 className="mt-2 text-2xl font-bold text-[#0B2E59]">{seed.title}</h1>
+        <p className="mt-3 inline-flex rounded-full bg-[#E6F6FA] px-3 py-1 text-[12px] font-semibold text-[#0B2E59]">
+          {statusLabel}
+        </p>
         <p className="mt-4 text-[15px] leading-relaxed text-[#243647] whitespace-pre-wrap">
           {seed.summary}
         </p>
-        <p className="mt-6 text-[12px] text-[#6B7A8C]">
-          Ola: {seed.cohortBatch} · Estado: {seed.status}
+        <p className="mt-6 rounded-2xl border border-[#E8EEF3] bg-white px-4 py-3 text-[13px] leading-relaxed text-[#6B7A8C]">
+          Esta semilla quedó guardada para la ola fundadora. En esta etapa cuidamos la
+          visibilidad de los proyectos para que el barrio crezca con sentido.
         </p>
+
+        <div className="mt-8 flex flex-col gap-2">
+          <Link
+            href="/actividad"
+            className="vu-focus flex min-h-[48px] items-center justify-center rounded-2xl bg-[#0B2E59] text-sm font-bold text-white"
+          >
+            Ver actividad
+          </Link>
+          <Link
+            href="/mensajes"
+            className="vu-focus flex min-h-[48px] items-center justify-center rounded-2xl border border-[#1A9BB0]/40 bg-white text-sm font-semibold text-[#0B2E59]"
+          >
+            Ver mensajes
+          </Link>
+          <Link
+            href="/proyectos"
+            className="vu-focus flex min-h-[48px] items-center justify-center rounded-2xl border border-[#E8EEF3] bg-white text-sm font-semibold text-[#6B7A8C]"
+          >
+            Volver a proyectos
+          </Link>
+          <Link
+            href="/plaza"
+            className="vu-focus flex min-h-[48px] items-center justify-center text-sm font-semibold text-[#1A9BB0] underline"
+          >
+            Ir a la plaza
+          </Link>
+        </div>
       </main>
       <VuBottomNav active="plaza" />
     </div>

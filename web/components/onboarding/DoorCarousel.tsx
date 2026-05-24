@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState, type TouchEvent } from "react";
 import type { VuDoorId } from "@/lib/design/tokens";
@@ -237,6 +238,12 @@ export function DoorCarousel() {
           <p className="text-xs text-[#6B7A8C]">o usá las flechas para ver las otras puertas</p>
         </div>
 
+        <Link
+          href="/activacion"
+          className="vu-focus flex min-h-[48px] w-full items-center justify-center rounded-2xl bg-[#0B2E59] text-sm font-bold text-white"
+        >
+          Elegir un camino de activación
+        </Link>
         <button
           type="button"
           onClick={() => router.push("/full/step-1")}

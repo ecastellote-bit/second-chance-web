@@ -52,7 +52,20 @@ export function CommunityDoorHub({ doorId }: { doorId: CommunityDoorId }) {
         ))}
       </ul>
 
-      <div className="mx-4 mt-6 rounded-2xl border border-dashed border-[#CBD5E1] bg-white/80 p-4">
+      <div className="mx-4 mt-4 rounded-2xl border border-[#1A9BB0]/25 bg-[#E6F6FA] p-4">
+        <p className="text-[13px] font-semibold text-[#0B2E59]">Forma oficial de empezar</p>
+        <p className="mt-1 text-[12px] leading-relaxed text-[#6B7A8C]">
+          Estas puertas orientan. Para elegir tu camino en la ola fundadora, usá activación.
+        </p>
+        <Link
+          href="/activacion"
+          className="vu-focus mt-3 inline-flex min-h-[44px] items-center text-[13px] font-bold text-[#1A9BB0] underline"
+        >
+          Elegir un camino de activación →
+        </Link>
+      </div>
+
+      <div className="mx-4 mt-4 rounded-2xl border border-dashed border-[#CBD5E1] bg-white/80 p-4">
         <p className="text-[13px] font-semibold text-[#0B2E59]">Mapa completo del barrio</p>
         <Link href="/barrio" className="mt-2 inline-block text-[13px] font-semibold text-[#1A9BB0] underline">
           Ver todos los caminos

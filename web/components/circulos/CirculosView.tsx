@@ -3,14 +3,13 @@
 import Link from "next/link";
 import { CircleCard } from "@/components/circulos/CircleCard";
 import { CirculosLeftNav } from "@/components/circulos/CirculosLeftNav";
-import { CirculosMobileStrip, CirculosRightPanel } from "@/components/circulos/CirculosRightPanel";
-import { VuBottomNav } from "@/components/layout/VuMobileShell";
 import {
-  CIRCULOS_CATALOG,
-  CIRCULOS_HEADER,
-  MIS_CIRCULOS_IDS,
-  SUGERIDOS_IDS,
-} from "@/lib/content/circulosCatalog";
+  CirculosMisCirculosMobile,
+  CirculosMobileStrip,
+  CirculosRightPanel,
+} from "@/components/circulos/CirculosRightPanel";
+import { VuBottomNav } from "@/components/layout/VuMobileShell";
+import { CIRCULOS_CATALOG, CIRCULOS_HEADER, SUGERIDOS_IDS } from "@/lib/content/circulosCatalog";
 import { COMMUNITY_SEED_FOOTNOTE } from "@/lib/content/communitySeedCopy";
 
 export function CirculosView() {
@@ -56,8 +55,12 @@ export function CirculosView() {
 
               {/* Paneles laterales en móvil: tiras horizontales */}
               <div className="xl:hidden">
-                <CirculosMobileStrip title="Mis círculos" ids={MIS_CIRCULOS_IDS} />
-                <CirculosMobileStrip title="Sugeridos para vos" ids={SUGERIDOS_IDS} />
+                <CirculosMisCirculosMobile />
+                <CirculosMobileStrip
+                  title="Espacios para explorar"
+                  hint="Puertas semilla — podés marcar interés al entrar"
+                  ids={SUGERIDOS_IDS}
+                />
               </div>
 
               <p className="mb-4 hidden text-sm text-[#6B7A8C] lg:block">

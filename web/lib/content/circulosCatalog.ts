@@ -107,10 +107,7 @@ export const CIRCULOS_CATALOG: CircleItem[] = [
   },
 ];
 
-/** Círculos donde el usuario ya participa (demo) */
-export const MIS_CIRCULOS_IDS = ["volver-a-escribir", "tecnologia-acompanado", "bienestar-equilibrio"];
-
-/** Sugerencias personalizadas (demo) */
+/** Espacios sugeridos para explorar (semilla, no membresía) */
 export const SUGERIDOS_IDS = ["reinicio-40", "creatividad-cotidiana", "impacto-social"];
 
 export const COMMUNITY_NAV = [

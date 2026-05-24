@@ -43,8 +43,8 @@ export const NEIGHBORHOOD_JOURNEY: NeighborhoodPath[] = [
   },
   {
     id: "themes",
-    title: "Purgatorio de temáticas",
-    description: "Elegís temática y forma de activación en la Comunidad.",
+    title: "Temáticas y activación",
+    description: "Elegís temática y forma de activación en el barrio.",
     route: "/full/themes",
     phase: "purgatory",
     requiresFoundingMember: true,

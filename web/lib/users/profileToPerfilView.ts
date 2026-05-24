@@ -31,25 +31,6 @@ export function userProfileToPerfilView(
       cta: "Ir a la plaza",
       href: "/plaza",
     },
-    hitos: profile.diagnosticArchiveId
-      ? [
-          {
-            id: "h-dx",
-            title: "Completaste tu diagnóstico vocacional",
-            when: "Registrado en VocationUp",
-          },
-          {
-            id: "h-profile",
-            title: "Creaste tu perfil en el barrio",
-            when: "Perfil activo",
-          },
-        ]
-      : [
-          {
-            id: "h-profile",
-            title: "Creaste tu perfil en el barrio",
-            when: "Perfil activo",
-          },
-        ],
+    hitos: [],
   };
 }
