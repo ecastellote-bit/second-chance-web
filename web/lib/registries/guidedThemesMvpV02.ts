@@ -645,7 +645,7 @@ export const guidedThemesSubfamilyV02: GuidedTheme[] = [
       id: "formarme_para_acompanar_mejor_subfamilia",
       shortLabel: "Orientar sin dirigir la vida del otro",
       userFacingText:
-        "Distinguir cuándo tu rol es clarificar marcos o enseñar (educator_interpreter) y cuándo se confunde con decidir el rumbo personal de quien escucha.",
+        "Distinguir cuándo tu rol es clarificar marcos o enseñar y cuándo se confunde con decidir el rumbo personal de quien escucha.",
       recognitionPhrase:
         "Te interesa formarte para acompañar mejor, pero no querés convertirte en la persona que “manda” la vida del otro.",
       linkedFamilies: ["educator_interpreter", "empathic_guide"],
@@ -678,7 +678,7 @@ export const guidedThemesSubfamilyV02: GuidedTheme[] = [
       id: "convertir_escucha_en_servicio_real_subfamilia",
       shortLabel: "Uno a uno vs sostén comunitario",
       userFacingText:
-        "Ver si tu ayuda se parece más a acompañamiento individual (empathic_guide) o a sostener grupos o redes (community_builder), sin mezclar las dos sin querer.",
+        "Ver si tu ayuda se parece más a acompañamiento individual o a sostener grupos o redes, sin mezclar las dos sin querer.",
       recognitionPhrase:
         "La duda no es solo si ayudás: es en qué escala y con qué responsabilidad lo hacés.",
       linkedFamilies: ["empathic_guide", "community_builder", "commercial_connector"],
@@ -744,7 +744,7 @@ export const guidedThemesSubfamilyV02: GuidedTheme[] = [
       id: "poner_mi_presencia_al_servicio_de_algo_mas_grande_subfamilia",
       shortLabel: "Causa pública sin perder calidez",
       userFacingText:
-        "Cuándo tu presencia aporta a advocacía o mensaje público (civic_advocate / public_communicator) y cuándo sigue siendo sobre todo escucha íntima.",
+        "Cuando tu presencia aporta a una causa o mensaje público, sin perder calidez ni escucha humana.",
       recognitionPhrase:
         "Te mueve lo colectivo, pero no querés diluir la calidad de contacto humano en megáfono vacío.",
       linkedFamilies: ["civic_advocate", "community_builder", "public_communicator"],

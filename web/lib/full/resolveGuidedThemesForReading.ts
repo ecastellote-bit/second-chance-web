@@ -2,6 +2,7 @@ import {
   selectGuidedThemes,
   type GuidedThemeSuggestion,
 } from "@/lib/engines/guidedThemeSelector";
+import { sanitizePublicThemeCopy } from "@/lib/content/sanitizePublicThemeCopy";
 import { getGuidedThemesFromResult } from "@/lib/full/restoreArchivedCaseToSession";
 
 export type GuidedThemeOption = {
@@ -46,7 +47,7 @@ function mapSuggestion(suggestion: GuidedThemeSuggestion): GuidedThemeOption {
   return {
     id: suggestion.theme.id,
     shortLabel: suggestion.theme.shortLabel,
-    userFacingText: suggestion.theme.userFacingText,
+    userFacingText: sanitizePublicThemeCopy(suggestion.theme.userFacingText),
     layer: suggestion.theme.themeLayer,
     score: suggestion.score,
     activationPaths: suggestion.theme.suggestedActivationPaths,
@@ -65,7 +66,7 @@ function mapStoredTheme(raw: unknown): GuidedThemeOption | null {
   return {
     id,
     shortLabel,
-    userFacingText: userFacingText || shortLabel,
+    userFacingText: sanitizePublicThemeCopy(userFacingText || shortLabel),
     layer: typeof item.layer === "string" ? item.layer : undefined,
     score: typeof item.score === "number" ? item.score : 0,
     activationPaths: Array.isArray(item.activationPaths)

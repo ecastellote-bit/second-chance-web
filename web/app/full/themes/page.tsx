@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { setActivationChoice } from "@/lib/activacion/storage";
+import { OFFICIAL_ACTIVATION_PATHS } from "@/lib/content/officialActivationPaths";
 import { mapGuidedActivationToStoredPath } from "@/lib/full/activationBridge";
 import {
   resolveGuidedThemesForReading,
@@ -187,6 +188,10 @@ function ThemesPageContent() {
   }
 
   if (step === "confirmed") {
+    const activationPath = selectedActivation?.path;
+    const isOwnProject = activationPath === "armar_mi_propio_proyecto";
+    const officialPath = OFFICIAL_ACTIVATION_PATHS.find((p) => p.id === activationPath);
+
     return (
       <main className="min-h-screen bg-white text-black px-6 py-10">
         <div className="max-w-2xl mx-auto space-y-8 text-center">
@@ -198,8 +203,11 @@ function ThemesPageContent() {
               {selectedActivation?.shortLabel ?? "Listo"}
             </h1>
             <p className="text-base text-neutral-700 leading-7">
-              {selectedActivation?.suggestedFirstStep ??
-                "Te preparamos el siguiente paso basado en lo que elegiste."}
+              {isOwnProject
+                ? (officialPath?.plazaWelcome ??
+                  "Tu camino es crear y presentar algo propio. En el siguiente paso vas a sembrar tu proyecto.")
+                : (selectedActivation?.suggestedFirstStep ??
+                  "Te preparamos el siguiente paso basado en lo que elegiste.")}
             </p>
           </div>
 
@@ -211,13 +219,12 @@ function ThemesPageContent() {
 
           <button
             onClick={() => {
-              const path = selectedActivation?.path;
-              setActivationChoice(mapGuidedActivationToStoredPath(path));
-              router.push("/plaza");
+              setActivationChoice(mapGuidedActivationToStoredPath(activationPath));
+              router.push(isOwnProject ? "/proyectos/sembrar" : "/plaza");
             }}
             className="px-6 py-3 bg-black text-white rounded-lg text-sm font-medium hover:bg-neutral-800 transition-colors"
           >
-            Entrar al barrio
+            {isOwnProject ? "Empezar mi proyecto" : "Entrar al barrio"}
           </button>
         </div>
       </main>
@@ -234,7 +241,8 @@ function ThemesPageContent() {
             </p>
             <h1 className="text-2xl font-semibold">¿Cómo querés empezar?</h1>
             <p className="text-sm text-neutral-700 leading-6">
-              No hay una forma correcta. Elegí la que más se parezca a lo que sentís ahora.
+              Para esta temática, te sugerimos estas formas de empezar. Elegí la que más se
+              parezca a lo que sentís ahora.
             </p>
           </div>
 
