@@ -8,6 +8,7 @@ import {
   type OfficialActivationPath,
   type OfficialActivationPathIcon,
 } from "@/lib/content/officialActivationPaths";
+import { postCommunityEvent } from "@/lib/community/communityClient";
 import { trackObservatoryEvent } from "@/lib/observatory/client";
 import type { ParsedActivationHint } from "@/lib/tematicas/contextualBridge";
 import type { OfficialActivationPathId } from "@/lib/content/officialActivationPaths";
@@ -122,7 +123,14 @@ export function ActivationHub({
       cartelId: path.id,
       activationPathId: path.id,
     });
-    router.push("/plaza");
+    void postCommunityEvent({
+      event: "activation_selected",
+      pathId: path.id,
+      pathLabel: path.label,
+    });
+    const nextHref =
+      path.id === "armar_mi_propio_proyecto" ? "/proyectos/sembrar" : "/plaza";
+    router.push(nextHref);
   };
 
   return (

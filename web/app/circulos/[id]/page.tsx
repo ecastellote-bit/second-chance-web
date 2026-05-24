@@ -7,6 +7,7 @@ import {
   CIRCLE_STATUS_BADGE,
   NeighborhoodActivityDetail,
 } from "@/components/neighborhood/NeighborhoodActivityDetail";
+import { CommunityMicroAction } from "@/components/community/CommunityMicroAction";
 import { CIRCULOS_CATALOG } from "@/lib/content/circulosCatalog";
 import { COMMUNITY_SEED_INTERIOR_BODY } from "@/lib/content/communitySeedCopy";
 
@@ -36,7 +37,20 @@ export default function CirculoDetailPage() {
       meta="Espacio semilla · ejemplos para orientarte"
       badge={CIRCLE_STATUS_BADGE[circle.status]}
       footer={
-        <>
+        <div className="flex w-full max-w-md flex-col gap-2">
+          <CommunityMicroAction
+            kind="circle"
+            circleId={circle.id}
+            circleTitle={circle.title}
+            mode="interested"
+            variant="primary"
+          />
+          <CommunityMicroAction
+            kind="circle"
+            circleId={circle.id}
+            circleTitle={circle.title}
+            mode="saved"
+          />
           <Link
             href="/plaza"
             className="vu-focus inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-[#0B2E59] px-6 text-sm font-semibold text-white"
@@ -49,7 +63,7 @@ export default function CirculoDetailPage() {
           >
             Ver otros círculos
           </Link>
-        </>
+        </div>
       }
     >
       <p>{circle.description}</p>

@@ -51,17 +51,33 @@ function SembrarForm() {
         <div className="max-w-md space-y-4 text-center">
           <h1 className="text-2xl font-bold text-[#0B2E59]">{copy.successTitle}</h1>
           <p className="text-sm leading-relaxed text-[#6B7A8C]">{copy.successBody}</p>
+          <p className="rounded-xl border border-[#C6D92D]/40 bg-[#F4F9E0] px-4 py-3 text-[13px] text-[#243647]">
+            Recibimos tu proyecto. Tu semilla quedó guardada para revisión de la ola fundadora.
+            Lo vas a ver en Actividad y Mensajes.
+          </p>
+          <Link
+            href="/actividad"
+            className="inline-block w-full rounded-xl bg-[#0B2E59] px-5 py-3 text-sm font-semibold text-white"
+          >
+            Ver mi actividad
+          </Link>
+          <Link
+            href="/mensajes"
+            className="inline-block w-full rounded-xl border border-[#0B2E59]/20 px-5 py-3 text-sm font-semibold text-[#0B2E59]"
+          >
+            Ver mensajes
+          </Link>
           <Link
             href="/proyectos"
-            className="inline-block rounded-xl bg-[#0B2E59] px-5 py-3 text-sm font-semibold text-white"
+            className="inline-block w-full rounded-xl border border-[#E8EEF3] px-5 py-3 text-sm font-semibold text-[#0B2E59]"
           >
-            Ver mesa de proyectos
+            Ver proyectos semilla
           </Link>
           <Link href="/plaza" className="block text-sm font-semibold text-[#1A9BB0] underline">
-            Volver a la plaza
+            Ir a la plaza
           </Link>
         </div>
-        <VuBottomNav active="plaza" />
+        <VuBottomNav active="actividad" />
       </main>
     );
   }

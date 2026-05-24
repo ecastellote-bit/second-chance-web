@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { recordProjectSeeded } from "@/lib/community/communityRecords";
 import { appendFounderProjectSeed, listFounderProjectSeeds } from "@/lib/learning/founderProjectSeeds";
 import { appendObservatoryEvent, buildObservatoryEvent } from "@/lib/observatory/store";
 
@@ -41,6 +42,16 @@ export async function POST(req: Request) {
       summary,
       cohortBatch: body.cohortBatch,
     });
+
+    const userId = typeof body.userId === "string" ? body.userId.trim() : "";
+    if (userId) {
+      await recordProjectSeeded({
+        userId,
+        archiveId: record.archiveId,
+        title: record.title,
+        seedId: record.seedId,
+      }).catch(() => {});
+    }
 
     await appendObservatoryEvent(
       buildObservatoryEvent({

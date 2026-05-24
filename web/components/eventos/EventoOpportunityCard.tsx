@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
+import { CommunityMicroAction } from "@/components/community/CommunityMicroAction";
 import { VuWarmImage } from "@/components/ui/VuWarmImage";
 import type { OpportunityEvent } from "@/lib/content/eventosCatalog";
 
@@ -53,15 +54,21 @@ export function EventoOpportunityCard({ event }: { event: OpportunityEvent }) {
 
         <p className="text-[12px] text-[#6B7A8C]">Convocatoria semilla · ejemplo para orientarte</p>
 
-        <Link
-          href={`/eventos/${event.id}`}
-          className="vu-focus mt-auto flex min-h-[44px] items-center justify-center gap-2 rounded-2xl bg-[#C6D92D] px-4 text-sm font-bold text-[#0B2E59] transition-transform active:scale-[0.99] hover:bg-[#b3c428]"
-        >
-          {event.cta}
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M5 12h14M13 6l6 6-6 6" />
-          </svg>
-        </Link>
+        <div className="mt-auto space-y-2">
+          <CommunityMicroAction
+            kind="formation_or_event"
+            targetId={event.id}
+            targetTitle={event.title}
+            targetKind="event"
+            variant="primary"
+          />
+          <Link
+            href={`/eventos/${event.id}`}
+            className="vu-focus flex min-h-[40px] items-center justify-center gap-2 text-sm font-semibold text-[#1A9BB0] underline"
+          >
+            {event.cta}
+          </Link>
+        </div>
       </div>
     </article>
   );

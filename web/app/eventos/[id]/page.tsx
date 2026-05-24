@@ -7,6 +7,7 @@ import {
   EVENT_LABEL_BADGE,
   NeighborhoodActivityDetail,
 } from "@/components/neighborhood/NeighborhoodActivityDetail";
+import { CommunityMicroAction } from "@/components/community/CommunityMicroAction";
 import { EVENTOS_CATALOG } from "@/lib/content/eventosCatalog";
 import { COMMUNITY_SEED_INTERIOR_BODY } from "@/lib/content/communitySeedCopy";
 
@@ -36,12 +37,28 @@ export default function EventoDetailPage() {
       meta={`${event.date} · ${event.modalityLabel}`}
       badge={EVENT_LABEL_BADGE[event.label]}
       footer={
-        <Link
-          href="/eventos"
-          className="vu-focus inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-[#0B2E59] px-6 text-sm font-semibold text-white"
-        >
-          Volver al calendario
-        </Link>
+        <div className="flex w-full max-w-md flex-col gap-2">
+          <CommunityMicroAction
+            kind="formation_or_event"
+            targetId={event.id}
+            targetTitle={event.title}
+            targetKind="event"
+            variant="primary"
+          />
+          <CommunityMicroAction
+            kind="formation_or_event"
+            targetId={event.id}
+            targetTitle={event.title}
+            targetKind="event"
+            notifySimilar
+          />
+          <Link
+            href="/eventos"
+            className="vu-focus inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-[#0B2E59] px-6 text-sm font-semibold text-white"
+          >
+            Volver al calendario
+          </Link>
+        </div>
       }
     >
       <p>{COMMUNITY_SEED_INTERIOR_BODY}</p>

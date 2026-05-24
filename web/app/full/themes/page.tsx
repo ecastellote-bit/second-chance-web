@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { setActivationChoice } from "@/lib/activacion/storage";
+import { postCommunityEvent } from "@/lib/community/communityClient";
 import { OFFICIAL_ACTIVATION_PATHS } from "@/lib/content/officialActivationPaths";
 import { mapGuidedActivationToStoredPath } from "@/lib/full/activationBridge";
 import {
@@ -170,6 +171,12 @@ function ThemesPageContent() {
 
       const data = await res.json();
       if (data.ok) {
+        const path = activation.path;
+        void postCommunityEvent({
+          event: "activation_selected",
+          pathId: path,
+          pathLabel: activation.shortLabel,
+        });
         setStep("confirmed");
       }
     } catch {
@@ -217,15 +224,24 @@ function ThemesPageContent() {
             <p className="text-sm text-neutral-600">{selectedTheme?.userFacingText}</p>
           </div>
 
-          <button
-            onClick={() => {
-              setActivationChoice(mapGuidedActivationToStoredPath(activationPath));
-              router.push(isOwnProject ? "/proyectos/sembrar" : "/plaza");
-            }}
-            className="px-6 py-3 bg-black text-white rounded-lg text-sm font-medium hover:bg-neutral-800 transition-colors"
-          >
-            {isOwnProject ? "Empezar mi proyecto" : "Entrar al barrio"}
-          </button>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => {
+                setActivationChoice(mapGuidedActivationToStoredPath(activationPath));
+                router.push(isOwnProject ? "/proyectos/sembrar" : "/plaza");
+              }}
+              className="px-6 py-3 bg-black text-white rounded-lg text-sm font-medium hover:bg-neutral-800 transition-colors"
+            >
+              {isOwnProject ? "Empezar mi proyecto" : "Entrar al barrio"}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/actividad")}
+              className="px-6 py-3 rounded-lg border border-neutral-200 text-sm font-medium text-neutral-700"
+            >
+              Ver mi actividad
+            </button>
+          </div>
         </div>
       </main>
     );

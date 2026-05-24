@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { CirculosLeftNav } from "@/components/circulos/CirculosLeftNav";
+import { CommunityMicroAction } from "@/components/community/CommunityMicroAction";
 import { EventoOpportunityCard } from "@/components/eventos/EventoOpportunityCard";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
 import { EVENTOS_CATALOG } from "@/lib/content/eventosCatalog";
@@ -63,11 +64,35 @@ export function FormacionView() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {routes.map((event) => (
-                <EventoOpportunityCard key={event.id} event={event} />
-              ))}
-            </div>
+            {routes.length === 0 ? (
+              <div className="rounded-2xl border border-[#E8EEF3] bg-white p-6 text-center">
+                <p className="text-sm text-[#6B7A8C]">
+                  Todavía no hay rutas publicadas. Podés explorar eventos del barrio o registrar
+                  interés cuando aparezca algo parecido.
+                </p>
+                <Link
+                  href="/eventos"
+                  className="vu-focus mt-4 inline-block text-sm font-semibold text-[#1A9BB0] underline"
+                >
+                  Ver eventos del barrio
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {routes.map((event) => (
+                  <div key={event.id} className="space-y-2">
+                    <EventoOpportunityCard event={event} />
+                    <CommunityMicroAction
+                      kind="formation_or_event"
+                      targetId={event.id}
+                      targetTitle={event.title}
+                      targetKind="formation"
+                      notifySimilar
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </main>
 
