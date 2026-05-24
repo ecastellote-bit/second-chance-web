@@ -4,6 +4,7 @@ import { VuWarmImage } from "@/components/ui/VuWarmImage";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
+import { PlazaLivingPanel } from "@/components/plaza/PlazaLivingPanel";
 import { DeepReadingPlazaLink } from "@/components/neighborhood/DeepReadingCTA";
 import {
   PLAZA_HEADER,
@@ -210,6 +211,10 @@ export function PlazaInicialView({ showEntradaLink, onOpenEntrada }: PlazaInicia
         {PLAZA_PATHS.map((path) => (
           <PlazaPathNode key={path.id} path={path} onNavigate={(route) => router.push(route)} />
         ))}
+
+        <div className="absolute bottom-24 left-0 right-0 z-30 max-h-[38vh] overflow-y-auto px-4 pb-2">
+          <PlazaLivingPanel />
+        </div>
       </div>
 
       <VuBottomNav active="plaza" />

@@ -8,7 +8,7 @@ type CircleProps = {
   kind: "circle";
   circleId: string;
   circleTitle: string;
-  mode: "saved" | "interested";
+  mode: "saved" | "interested" | "notify";
   label?: string;
   registeredLabel?: string;
 };
@@ -28,6 +28,7 @@ type EventProps = {
   targetTitle: string;
   targetKind: "formation" | "event";
   notifySimilar?: boolean;
+  savedRoute?: boolean;
   label?: string;
   registeredLabel?: string;
 };
@@ -51,9 +52,16 @@ function storageKey(props: Props): string {
 
 function defaultLabels(props: Props): { label: string; registered: string } {
   if (props.kind === "circle") {
-    return props.mode === "saved"
-      ? { label: "Guardar círculo", registered: "Guardado" }
-      : { label: "Me interesa este espacio", registered: "Interés registrado" };
+    if (props.mode === "saved") {
+      return { label: "Guardar círculo", registered: "Guardado" };
+    }
+    if (props.mode === "notify") {
+      return {
+        label: "Avisarme cuando se mueva",
+        registered: "Aviso registrado",
+      };
+    }
+    return { label: "Me interesa este espacio", registered: "Interés registrado" };
   }
   if (props.kind === "project") {
     const map = {
@@ -63,12 +71,16 @@ function defaultLabels(props: Props): { label: string; registered: string } {
     };
     return map[props.mode];
   }
-  return props.notifySimilar
-    ? {
-        label: "Avisarme si aparece algo parecido",
-        registered: "Aviso registrado",
-      }
-    : { label: "Me interesa", registered: "Interés registrado" };
+  if (props.savedRoute) {
+    return { label: "Guardar ruta", registered: "Ruta guardada" };
+  }
+  if (props.notifySimilar) {
+    return {
+      label: "Avisarme si aparece algo parecido",
+      registered: "Aviso registrado",
+    };
+  }
+  return { label: "Me interesa", registered: "Interés registrado" };
 }
 
 export function CommunityMicroAction(props: Props) {
@@ -117,6 +129,7 @@ export function CommunityMicroAction(props: Props) {
           targetTitle: props.targetTitle,
           targetKind: props.targetKind,
           notifySimilar: props.notifySimilar,
+          savedRoute: props.savedRoute,
         });
         ok = res.ok;
       }

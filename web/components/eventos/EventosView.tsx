@@ -50,6 +50,10 @@ export function EventosView() {
               <p className="mt-2 text-[15px] leading-relaxed text-[#6B7A8C]">
                 {EVENTOS_HEADER.subtitle}
               </p>
+              <p className="mt-3 rounded-xl border border-[#E8EEF3] bg-white px-4 py-3 text-[13px] leading-relaxed text-[#6B7A8C]">
+                Convocatorias semilla para orientarte. Marcá interés o pedí aviso — no prometemos
+                cupos ni beneficios que todavía no existen.
+              </p>
             </div>
 
             <div

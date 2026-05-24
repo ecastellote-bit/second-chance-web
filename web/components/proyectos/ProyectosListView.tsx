@@ -10,6 +10,7 @@ import { isFounderCommunityPreviewActive } from "@/lib/founder/communityPreviewB
 import { ensureFoundingMemberAccess } from "@/lib/learning/ensureFoundingMemberAccess";
 import { isFoundingMemberQualified } from "@/lib/learning/foundationalMember";
 import { FounderSeedsSection } from "@/components/proyectos/FounderSeedsSection";
+import { MyFounderSeedBanner } from "@/components/proyectos/MyFounderSeedBanner";
 import { PROYECTOS_CATALOG, PROYECTOS_HEADER } from "@/lib/content/proyectosCatalog";
 
 export function ProyectosListView() {
@@ -70,6 +71,8 @@ export function ProyectosListView() {
             </div>
 
             <FoundingMemberBadge />
+
+            <MyFounderSeedBanner />
 
             <FounderSeedsSection />
 

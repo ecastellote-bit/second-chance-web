@@ -123,7 +123,7 @@ export async function postCommunityEvent(
         event: "circle_interest";
         circleId: string;
         circleTitle: string;
-        mode: "saved" | "interested";
+        mode: "saved" | "interested" | "notify";
         archiveId?: string | null;
       }
     | {
@@ -139,6 +139,7 @@ export async function postCommunityEvent(
         targetTitle: string;
         targetKind: "formation" | "event";
         notifySimilar?: boolean;
+        savedRoute?: boolean;
         archiveId?: string | null;
       },
 ): Promise<{ ok: boolean }> {

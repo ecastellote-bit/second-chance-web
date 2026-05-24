@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { VuMobileShell } from "@/components/layout/VuMobileShell";
+import { resolveActivityCta } from "@/lib/community/activityCta";
 import { fetchCommunityActivities } from "@/lib/community/communityClient";
 import type { CommunityActivityItem } from "@/lib/community/types";
 import { ACTIVIDAD_COPY } from "@/lib/content/communityInboxCopy";
 
 function ActivityCard({ item }: { item: CommunityActivityItem }) {
+  const cta = resolveActivityCta(item);
+
   return (
     <article className="rounded-2xl border border-[#E8EEF3] bg-white p-4 shadow-[0_4px_16px_rgba(15,42,70,0.06)]">
       <p className="text-[10px] font-bold uppercase tracking-wide text-[#1A9BB0]">
@@ -18,12 +21,12 @@ function ActivityCard({ item }: { item: CommunityActivityItem }) {
       </p>
       <h2 className="mt-1 text-[15px] font-bold text-[#0B2E59]">{item.title}</h2>
       <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">{item.body}</p>
-      {item.ctaLabel && item.ctaHref ? (
+      {cta ? (
         <Link
-          href={item.ctaHref}
+          href={cta.href}
           className="vu-focus mt-3 inline-flex min-h-[40px] items-center text-sm font-semibold text-[#1A9BB0] underline"
         >
-          {item.ctaLabel}
+          {cta.label}
         </Link>
       ) : null}
     </article>

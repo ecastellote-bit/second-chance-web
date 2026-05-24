@@ -47,7 +47,12 @@ export async function POST(req: Request) {
         const circleId = typeof body.circleId === "string" ? body.circleId : "";
         const circleTitle =
           typeof body.circleTitle === "string" ? body.circleTitle : circleId;
-        const mode = body.mode === "saved" ? "saved" : "interested";
+        const mode =
+          body.mode === "saved"
+            ? "saved"
+            : body.mode === "notify"
+              ? "notify"
+              : "interested";
         if (!circleId) {
           return NextResponse.json({ ok: false, error: "circle_id_required" }, { status: 400 });
         }
@@ -81,6 +86,7 @@ export async function POST(req: Request) {
           typeof body.targetTitle === "string" ? body.targetTitle : targetId;
         const targetKind = body.targetKind === "formation" ? "formation" : "event";
         const notifySimilar = body.notifySimilar === true;
+        const savedRoute = body.savedRoute === true;
         if (!targetId) {
           return NextResponse.json(
             { ok: false, error: "target_id_required" },
@@ -94,6 +100,7 @@ export async function POST(req: Request) {
           targetTitle,
           targetKind,
           notifySimilar,
+          savedRoute,
         });
         break;
       }

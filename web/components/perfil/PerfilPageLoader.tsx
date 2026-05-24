@@ -57,7 +57,10 @@ export function PerfilPageLoader() {
           Editar perfil
         </Link>
       </div>
-      <PerfilUsuarioView profile={userProfileToPerfilView(profile)} />
+      <PerfilUsuarioView
+        profile={userProfileToPerfilView(profile)}
+        profileRecord={profile}
+      />
     </>
   );
 }

@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { VuMobileShell } from "@/components/layout/VuMobileShell";
+import { resolveMessageCta } from "@/lib/community/activityCta";
 import { fetchCommunityMessages } from "@/lib/community/communityClient";
 import type { CommunityMessage } from "@/lib/community/types";
 import { MENSAJES_COPY } from "@/lib/content/communityInboxCopy";
 
 function MessageCard({ item }: { item: CommunityMessage }) {
+  const cta = resolveMessageCta(item);
+
   return (
     <article
       className={[
@@ -29,12 +32,12 @@ function MessageCard({ item }: { item: CommunityMessage }) {
       </div>
       <h2 className="mt-1 text-[15px] font-bold text-[#0B2E59]">{item.subject}</h2>
       <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">{item.body}</p>
-      {item.ctaLabel && item.ctaHref ? (
+      {cta ? (
         <Link
-          href={item.ctaHref}
+          href={cta.href}
           className="vu-focus mt-3 inline-flex min-h-[40px] items-center text-sm font-semibold text-[#1A9BB0] underline"
         >
-          {item.ctaLabel}
+          {cta.label}
         </Link>
       ) : null}
     </article>

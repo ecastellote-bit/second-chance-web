@@ -4,10 +4,18 @@ import Link from "next/link";
 import { CirculosLeftNav } from "@/components/circulos/CirculosLeftNav";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
 import { PerfilIdentityHeader } from "@/components/perfil/PerfilIdentityHeader";
+import { PerfilBarrioSection } from "@/components/perfil/PerfilBarrioSection";
 import { CaminoProgress, PerfilChips, PerfilSection } from "@/components/perfil/PerfilSection";
 import type { PerfilUsuario } from "@/lib/content/perfilCatalog";
+import type { VuUserProfileRecord } from "@/lib/users/userProfileTypes";
 
-export function PerfilUsuarioView({ profile }: { profile: PerfilUsuario }) {
+export function PerfilUsuarioView({
+  profile,
+  profileRecord,
+}: {
+  profile: PerfilUsuario;
+  profileRecord: VuUserProfileRecord;
+}) {
   return (
     <div className="flex min-h-[100dvh] flex-col font-[family-name:var(--font-inter)] bg-[#F8FAFC] text-[#243647] lg:flex-row">
       <CirculosLeftNav />
@@ -17,6 +25,8 @@ export function PerfilUsuarioView({ profile }: { profile: PerfilUsuario }) {
 
         <main className="relative z-[1] mt-2 flex-1 overflow-y-auto rounded-t-[28px] bg-[#F8FAFC] shadow-[0_2px_12px_rgba(11,46,89,0.06)]">
           <div className="mx-auto max-w-lg space-y-4 px-4 pt-7 pb-8">
+            <PerfilBarrioSection profile={profileRecord} />
+
             <PerfilSection title="Mi momento actual">
               <p className="text-[15px] leading-relaxed text-[#6B7A8C]">{profile.momentoActual}</p>
               <div className="mt-4 border-t border-[#E8EEF3] pt-4">

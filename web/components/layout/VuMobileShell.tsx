@@ -140,9 +140,10 @@ export function VuBottomNav({ active = "plaza" }: { active?: NavId }) {
         })}
 
         <Link
-          href="/onboarding"
+          href="/activacion"
           className="vu-focus -mt-5 flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-[0_4px_16px_rgba(15,42,70,0.12)] ring-2 ring-[#E8EEF3]"
-          aria-label="Inicio VocationUp"
+          aria-label="Elegir cómo empezar en el barrio"
+          title="Activación"
         >
           <VuLogoMark size={44} />
         </Link>

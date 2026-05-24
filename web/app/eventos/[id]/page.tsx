@@ -52,6 +52,13 @@ export default function EventoDetailPage() {
             targetKind="event"
             notifySimilar
           />
+          <CommunityMicroAction
+            kind="formation_or_event"
+            targetId={event.id}
+            targetTitle={event.title}
+            targetKind="event"
+            savedRoute
+          />
           <Link
             href="/eventos"
             className="vu-focus inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-[#0B2E59] px-6 text-sm font-semibold text-white"

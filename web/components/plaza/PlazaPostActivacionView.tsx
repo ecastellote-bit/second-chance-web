@@ -10,6 +10,7 @@ import {
   type OfficialActivationPathIcon,
   type OfficialActivationPathId,
 } from "@/lib/content/officialActivationPaths";
+import { PlazaLivingPanel } from "@/components/plaza/PlazaLivingPanel";
 import { CompromisoBarrioSection } from "@/components/plaza/CompromisoBarrioSection";
 import { MvpPioneerBanner } from "@/components/mvp/MvpPioneerBanner";
 import { PLAZA_IMAGE } from "@/lib/content/plazaPaths";
@@ -140,6 +141,7 @@ export function PlazaPostActivacionView({
 
       <div className="relative z-10 -mt-8 flex flex-1 flex-col px-4 pb-28">
         <MvpPioneerBanner />
+        <PlazaLivingPanel />
         {/* Cartel elegido */}
         <section className="rounded-[22px] border-2 border-[#C6D92D]/50 bg-white p-4 shadow-[0_8px_28px_rgba(15,42,70,0.1)]">
           <div className="flex items-start gap-3">

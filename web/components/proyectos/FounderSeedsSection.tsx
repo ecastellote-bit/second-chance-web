@@ -27,7 +27,8 @@ export function FounderSeedsSection() {
           Proyectos fundadores
         </p>
         <p className="text-[13px] text-[#6B7A8C]">
-          Semillas con visibilidad prioritaria en la ola fundacional
+          Proyectos reales sembrados por la ola fundadora (revisión prioritaria, no publicación
+          automática inmediata)
         </p>
       </div>
       <ul className="space-y-3">

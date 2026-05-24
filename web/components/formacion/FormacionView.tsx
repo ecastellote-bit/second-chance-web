@@ -53,6 +53,10 @@ export function FormacionView() {
               <p className="mt-2 text-[15px] leading-relaxed text-[#6B7A8C]">
                 {MICROCOPY.formacion}
               </p>
+              <p className="mt-3 rounded-xl border border-[#E8EEF3] bg-white px-4 py-3 text-[13px] leading-relaxed text-[#6B7A8C]">
+                Estamos sembrando las primeras rutas. Podés marcar interés para que sepamos qué
+                acercarte primero — sin prometer convenios ni descuentos que todavía no existen.
+              </p>
             </div>
 
             <div className="mb-4 flex flex-wrap gap-2">
@@ -87,7 +91,20 @@ export function FormacionView() {
                       targetId={event.id}
                       targetTitle={event.title}
                       targetKind="formation"
+                    />
+                    <CommunityMicroAction
+                      kind="formation_or_event"
+                      targetId={event.id}
+                      targetTitle={event.title}
+                      targetKind="formation"
                       notifySimilar
+                    />
+                    <CommunityMicroAction
+                      kind="formation_or_event"
+                      targetId={event.id}
+                      targetTitle={event.title}
+                      targetKind="formation"
+                      savedRoute
                     />
                   </div>
                 ))}

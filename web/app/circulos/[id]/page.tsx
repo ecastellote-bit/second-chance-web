@@ -51,6 +51,12 @@ export default function CirculoDetailPage() {
             circleTitle={circle.title}
             mode="saved"
           />
+          <CommunityMicroAction
+            kind="circle"
+            circleId={circle.id}
+            circleTitle={circle.title}
+            mode="notify"
+          />
           <Link
             href="/plaza"
             className="vu-focus inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-[#0B2E59] px-6 text-sm font-semibold text-white"
