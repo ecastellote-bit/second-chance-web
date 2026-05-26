@@ -3,6 +3,7 @@
 import { backupHumanCaseToBrowser } from "./clientCaseBackup";
 import { buildFoundationalClientMeta } from "./foundationalCohort";
 import {
+  activateFullFlowPreservation,
   getDiagnosticCaseSource,
   isFullFlowPreservationActive,
   postFounderCaseDraftToServer,
@@ -255,6 +256,8 @@ async function syncToServer(input: {
   learningDisposition?: LearningDisposition;
   required: boolean;
 }): Promise<{ ok: boolean; error?: string }> {
+  activateFullFlowPreservation();
+
   if (!isFullFlowPreservationActive()) {
     return { ok: false, error: "preservation_not_active" };
   }

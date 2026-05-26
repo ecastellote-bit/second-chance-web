@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
+export const maxDuration = 120;
 import { runAnalysisPipeline } from "@/lib/engines/analysisPipeline";
 import { extractSemanticSignals } from "@/lib/engines/semanticExtractor";
 import { findSemanticallySimilarCases } from "@/lib/engines/semanticSimilarityEngine";

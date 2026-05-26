@@ -1,5 +1,6 @@
 "use client";
 
+import { fetchWithTimeout } from "@/lib/utils/fetchWithTimeout";
 import type {
   DiagnosticCaseSource,
   FounderCaseDraftErrorSummary,
@@ -79,6 +80,7 @@ function readClientMeta(): FounderCaseDraftRecord["clientMeta"] {
 export function summarizeAnalysisResult(result: unknown): Record<string, unknown> | null {
   if (!result || typeof result !== "object") return null;
   const r = result as Record<string, unknown>;
+  const guidedThemes = Array.isArray(r._guidedThemes) ? r._guidedThemes : [];
   return {
     resultType: r.resultType ?? null,
     corePattern: r.corePattern ?? null,
@@ -87,6 +89,10 @@ export function summarizeAnalysisResult(result: unknown): Record<string, unknown
     hasPersonalizedPresentation: Boolean(r.personalizedPresentation),
     summaryForUser:
       typeof r.summaryForUser === "string" ? r.summaryForUser.slice(0, 500) : null,
+    _guidedThemes: guidedThemes.slice(0, 12),
+    personalizedPresentation: r.personalizedPresentation
+      ? { present: true }
+      : null,
   };
 }
 
@@ -110,7 +116,14 @@ export async function postFounderCaseDraftToServer(input: {
   createdAt?: string;
 }): Promise<FounderDraftSyncResult> {
   try {
-    const res = await fetch("/api/founder-case-drafts", {
+    const isHeavyStatus =
+      input.status === "analysis_succeeded_pending_archive" ||
+      input.status === "archived" ||
+      input.status === "archived_minimal";
+
+    const res = await fetchWithTimeout(
+      "/api/founder-case-drafts",
+      {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -125,7 +138,7 @@ export async function postFounderCaseDraftToServer(input: {
         builtUserIntake: input.builtUserIntake,
         submittedAt: input.submittedAt,
         archiveId: input.archiveId,
-        analysisResultFull: input.analysisResultFull,
+        analysisResultFull: isHeavyStatus ? undefined : input.analysisResultFull,
         analysisResultSummary: input.analysisResultSummary,
         errorSummary: input.errorSummary ?? null,
         shouldBecomeLearnedCase: false,
@@ -141,7 +154,9 @@ export async function postFounderCaseDraftToServer(input: {
         clientMeta: readClientMeta(),
         createdAt: input.createdAt,
       } satisfies Partial<FounderCaseDraftRecord>),
-    });
+      },
+      isHeavyStatus ? 45_000 : 30_000,
+    );
 
     const json = (await res.json()) as {
       ok: boolean;

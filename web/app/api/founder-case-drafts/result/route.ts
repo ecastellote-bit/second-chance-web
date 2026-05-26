@@ -18,11 +18,17 @@ export async function GET(req: Request) {
 
   const draft = await getFounderCaseDraft(caseId, diagnosticRunId);
 
-  if (!draft?.analysisResultFull) {
+  if (!draft) {
     return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
   }
 
-  const full = draft.analysisResultFull as Record<string, unknown>;
+  const full =
+    (draft.analysisResultFull as Record<string, unknown> | undefined) ??
+    (draft.analysisResultSummary as Record<string, unknown> | undefined);
+
+  if (!full) {
+    return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
+  }
 
   return NextResponse.json({
     ok: true,

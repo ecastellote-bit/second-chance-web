@@ -188,6 +188,8 @@ export const FULL_FLOW_COPY = {
       title: "Ordenando señales y restricciones",
       description:
         "Estamos generando una lectura inicial a partir de tu historia y tu situación actual.",
+      waitNotice:
+        "Este procedimiento puede demorar hasta 2 minutos. No cierres la sesión.",
       progressItems: [
         "normalizando contexto actual",
         "leyendo señales autobiográficas",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   activateFounderWaveSession,
@@ -23,7 +23,7 @@ export function FullCasePreservationBootstrap() {
   const [syncWarning, setSyncWarning] = useState<string | null>(null);
   const draftStarted = useRef(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     activateFullFlowPreservation();
     if (searchParams.get("founder") === "1") {
       activateFounderWaveSession();
