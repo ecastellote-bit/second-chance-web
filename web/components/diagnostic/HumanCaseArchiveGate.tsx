@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { setActiveHumanArchiveId } from "@/lib/learning/activeHumanArchive";
 import { grantFoundingMember } from "@/lib/learning/foundationalMember";
+import { syncFounderCaseArchivedServer } from "@/lib/learning/founderCasePreservation";
 import {
   downloadHumanCaseBackup,
   persistHumanCaseFromBrowserWithRetry,
@@ -37,6 +38,7 @@ export function HumanCaseArchiveGate({
       if (result.persisted) {
         setActiveHumanArchiveId(result.archiveId);
         grantFoundingMember(result.archiveId);
+        void syncFounderCaseArchivedServer(result.archiveId);
         setState("confirmed");
       } else {
         setState("failed");

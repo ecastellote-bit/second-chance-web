@@ -10,6 +10,12 @@ import { HumanCaseArchiveGate } from "@/components/diagnostic/HumanCaseArchiveGa
 import { RequestHumanReviewButton } from "@/components/diagnostic/RequestHumanReviewButton";
 import { buildFoundationalClientMeta } from "@/lib/learning/foundationalCohort";
 import {
+  FOUNDER_WAVE_SOURCE,
+  QUESTIONNAIRE_VERSION_INTEGRATED,
+  getActiveFounderCaseRecord,
+  getOrCreateFounderCaseIdentity,
+} from "@/lib/learning/founderCasePreservation";
+import {
   PersonalizedDiagnosticDeliverable,
   type PresentationForView,
 } from "@/components/diagnostic/PersonalizedDiagnosticDeliverable";
@@ -1145,12 +1151,17 @@ function ResultPageInner() {
     ? "También aparece como línea posible, aunque con menos fuerza que la frontera principal."
     : "También aparece como línea posible, aunque con menos fuerza que la dirección principal.";
 
+  const founderRecord = getActiveFounderCaseRecord();
+  const founderIdentity = getOrCreateFounderCaseIdentity(founderRecord?.identity);
+
   const autoArchivePayload = {
     archiveVersion: "human_case_depot_v1",
     createdAt: new Date().toISOString(),
     source: "browser_human_case_v1",
     sourceInput: {
       fullAnswersContext: buildSourceInputSnapshot(fullAnswersContext),
+      founderCaseIdentity: founderIdentity,
+      founderCaseStatus: founderRecord?.status ?? "analysis_succeeded_pending_archive",
     },
     currentResult: {
       resultType: rawResult.resultType,
@@ -1185,6 +1196,14 @@ function ResultPageInner() {
     },
     clientMeta: buildFoundationalClientMeta({
       phase: "diagnostic_result_archived",
+      source: FOUNDER_WAVE_SOURCE,
+      caseId: founderIdentity.caseId,
+      diagnosticRunId: founderIdentity.diagnosticRunId,
+      runNumber: founderIdentity.runNumber,
+      questionnaireVersion: QUESTIONNAIRE_VERSION_INTEGRATED,
+      learningDisposition:
+        founderRecord?.learningDisposition ?? "do_not_influence_yet",
+      route: "/full",
     }),
   };
 

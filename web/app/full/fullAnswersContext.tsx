@@ -19,6 +19,7 @@ import type {
 import type { FinalReading } from "@/lib/types/result";
 import type { FollowupOrchestratorResult } from "@/lib/engines/followupOrchestrator";
 import type { AmbiguityType, FollowupRound } from "@/lib/types/followup";
+import { saveFounderDraft } from "@/lib/learning/founderCasePreservation";
 
 type ProfileState = {
   age: string;
@@ -264,6 +265,7 @@ export function FullAnswersProvider({ children }: { children: ReactNode }) {
     };
 
     window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    saveFounderDraft(payload);
   }, [state, analysis, followup, isHydrated]);
 
   const updateProfile: FullAnswersContextValue["updateProfile"] = (

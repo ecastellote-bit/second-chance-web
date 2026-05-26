@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
+import { activateFounderWaveSession } from "@/lib/learning/founderCaseDraftClient";
 import { VuAtmosphereBand } from "@/components/ui/VuAtmosphereBand";
 import { FULL_FLOW_COPY } from "@/lib/content/fullFlowCopy";
 import { FOUNDER_FLOW_COPY } from "@/lib/content/founderFlowCopy";
@@ -11,6 +12,10 @@ function FullFlowIntroContent() {
   const searchParams = useSearchParams();
   const isFounder = searchParams.get("founder") === "1";
   const copy = isFounder ? FOUNDER_FLOW_COPY.fullIntro : FULL_FLOW_COPY.intro;
+
+  useEffect(() => {
+    if (isFounder) activateFounderWaveSession();
+  }, [isFounder]);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#F8FAFC] text-[#243647] px-6 py-10 font-[family-name:var(--font-inter)]">
@@ -35,7 +40,7 @@ function FullFlowIntroContent() {
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <Link
-            href="/full/step-1"
+            href={isFounder ? "/full/step-1?founder=1" : "/full/step-1"}
             className="inline-flex justify-center rounded-xl bg-[#0B2E59] px-5 py-3 text-sm font-semibold text-white"
           >
             {copy.primaryCta}
