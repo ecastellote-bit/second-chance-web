@@ -3,31 +3,52 @@
 import { useEffect, useState } from "react";
 import { setActiveHumanArchiveId } from "@/lib/learning/activeHumanArchive";
 import { grantFoundingMember } from "@/lib/learning/foundationalMember";
-import { syncFounderCaseArchivedServer } from "@/lib/learning/founderCasePreservation";
+import {
+  getPreservationIdentity,
+  syncFounderCaseArchivedServer,
+} from "@/lib/learning/founderCasePreservation";
+import type { PreservationLevel } from "@/lib/learning/founderCasePreservation";
 import {
   downloadHumanCaseBackup,
   persistHumanCaseFromBrowserWithRetry,
 } from "@/lib/learning/persistHumanCaseFromBrowser";
 
-type GateState = "archiving" | "confirmed" | "failed";
+type GateState = "archiving" | "confirmed" | "draft_only" | "failed";
+
+export type ArchiveGateContext = {
+  archiveId: string;
+  serverPersisted: boolean;
+  preservationLevel: PreservationLevel;
+  caseId: string;
+  diagnosticRunId: string;
+  canProceedToThemes: boolean;
+};
 
 export function HumanCaseArchiveGate({
   archivePayload,
   children,
 }: {
   archivePayload: unknown;
-  children: (ctx: { archiveId: string; serverPersisted: boolean }) => React.ReactNode;
+  children: (ctx: ArchiveGateContext) => React.ReactNode;
 }) {
   const [state, setState] = useState<GateState>("archiving");
   const [archiveId, setArchiveId] = useState<string | null>(null);
   const [attempts, setAttempts] = useState(0);
   const [showReading, setShowReading] = useState(false);
+  const [preservationLevel, setPreservationLevel] =
+    useState<PreservationLevel>("local_only");
+  const [caseId, setCaseId] = useState("");
+  const [diagnosticRunId, setDiagnosticRunId] = useState("");
 
   useEffect(() => {
     let cancelled = false;
 
     const run = async () => {
       setState("archiving");
+      const identity = getPreservationIdentity();
+      setCaseId(identity.caseId);
+      setDiagnosticRunId(identity.diagnosticRunId);
+
       const result = await persistHumanCaseFromBrowserWithRetry(archivePayload);
 
       if (cancelled) return;
@@ -35,14 +56,37 @@ export function HumanCaseArchiveGate({
       setAttempts(result.attempts);
       setArchiveId(result.archiveId);
 
-      if (result.persisted) {
+      if (result.persisted && result.archiveLevel === "full") {
+        setPreservationLevel("full");
         setActiveHumanArchiveId(result.archiveId);
         grantFoundingMember(result.archiveId);
         void syncFounderCaseArchivedServer(result.archiveId);
         setState("confirmed");
-      } else {
-        setState("failed");
+        return;
       }
+
+      if (
+        result.archiveLevel === "minimal" &&
+        result.persisted &&
+        result.draftServerConfirmed
+      ) {
+        setPreservationLevel("draft");
+        setActiveHumanArchiveId(result.archiveId);
+        grantFoundingMember(result.archiveId);
+        void syncFounderCaseArchivedServer(result.archiveId);
+        setState("draft_only");
+        return;
+      }
+
+      if (result.draftServerConfirmed) {
+        setPreservationLevel("draft");
+        setArchiveId(identity.caseId);
+        setState("draft_only");
+        return;
+      }
+
+      setPreservationLevel("local_only");
+      setState("failed");
     };
 
     run();
@@ -54,8 +98,10 @@ export function HumanCaseArchiveGate({
 
   function openReadingDespiteFailure() {
     if (!archiveId) return;
-    setActiveHumanArchiveId(archiveId);
-    grantFoundingMember(archiveId);
+    if (preservationLevel === "full" || preservationLevel === "draft") {
+      setActiveHumanArchiveId(archiveId);
+      grantFoundingMember(archiveId);
+    }
     setShowReading(true);
   }
 
@@ -76,30 +122,28 @@ export function HumanCaseArchiveGate({
     );
   }
 
-  if ((state === "failed" || !archiveId) && !showReading) {
+  if (state === "failed" && !showReading) {
     return (
       <main className="min-h-[100dvh] flex flex-col items-center justify-center bg-[#F8FAFC] px-6">
         <div className="max-w-md space-y-4 rounded-2xl border border-amber-300 bg-amber-50 p-6">
           <h1 className="text-lg font-bold text-[#0B2E59]">
-            No pudimos confirmar el guardado en el servidor
+            No pudimos confirmar el guardado seguro
           </h1>
           <p className="text-sm leading-relaxed text-[#243647]">
-            Tu lectura está lista en este dispositivo, pero el registro en el servidor
-            falló tras {attempts} intentos. Podés ver tu devolución igual; también descargá
-            la copia de respaldo. ID:{" "}
-            <code className="text-xs">{archiveId}</code>
+            Antes de avanzar, reintentá guardar o descargá tu respaldo. Todavía no
+            confirmamos que tu caso quedó preservado en el servidor.
           </p>
           <button
             type="button"
-            onClick={openReadingDespiteFailure}
+            onClick={() => window.location.reload()}
             className="w-full rounded-xl bg-[#0B2E59] px-4 py-3 text-sm font-semibold text-white"
           >
-            Ver mi lectura igual
+            Reintentar guardado
           </button>
           <button
             type="button"
             onClick={() =>
-              downloadHumanCaseBackup(archivePayload, archiveId ?? "sin_id")
+              downloadHumanCaseBackup(archivePayload, caseId || "respaldo")
             }
             className="w-full rounded-xl border border-[#0B2E59]/30 px-4 py-3 text-sm font-semibold text-[#0B2E59]"
           >
@@ -107,10 +151,10 @@ export function HumanCaseArchiveGate({
           </button>
           <button
             type="button"
-            onClick={() => window.location.reload()}
+            onClick={() => window.history.back()}
             className="w-full rounded-xl border border-[#0B2E59]/20 px-4 py-3 text-sm font-semibold text-[#6B7A8C]"
           >
-            Reintentar guardado
+            Volver al cuestionario
           </button>
         </div>
       </main>
@@ -118,9 +162,14 @@ export function HumanCaseArchiveGate({
   }
 
   const serverPersisted = state === "confirmed";
-  const themesHref = archiveId
-    ? `/full/themes?archiveId=${encodeURIComponent(archiveId)}`
-    : "/full/themes";
+  const canProceedToThemes =
+    preservationLevel === "full" || preservationLevel === "draft";
+
+  const themesHref =
+    preservationLevel === "full" && archiveId
+      ? `/full/themes?archiveId=${encodeURIComponent(archiveId)}`
+      : `/full/themes?caseId=${encodeURIComponent(caseId)}&diagnosticRunId=${encodeURIComponent(diagnosticRunId)}`;
+
   const perfilHref = `/perfil/crear?redirect=${encodeURIComponent(themesHref)}`;
 
   return (
@@ -131,13 +180,9 @@ export function HumanCaseArchiveGate({
           role="status"
         >
           <p className="text-[11px] font-bold uppercase tracking-wide text-[#0B2E59]">
-            Caso registrado para el equipo
+            Tu caso quedó registrado para revisión interna
           </p>
           <p className="mt-1 text-sm text-[#243647]">
-            Tu aporte quedó guardado. ID:{" "}
-            <span className="font-mono font-semibold text-[#0B2E59]">{archiveId}</span>
-          </p>
-          <p className="mt-1 text-[12px] text-[#6B7A8C]">
             Gracias por entrenar el sistema. Revisaremos tu caso antes de usarlo como
             aprendizaje validado.
           </p>
@@ -148,6 +193,26 @@ export function HumanCaseArchiveGate({
             Crear tu perfil en VocationUp (obligatorio para el barrio) →
           </a>
         </div>
+      ) : state === "draft_only" ? (
+        <div
+          className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3"
+          role="status"
+        >
+          <p className="text-[11px] font-bold uppercase tracking-wide text-amber-900">
+            Lectura preservada · archivo final pendiente
+          </p>
+          <p className="mt-1 text-sm text-[#243647]">
+            Tu lectura quedó preservada. Todavía no pudimos completar el archivo final,
+            pero el equipo puede ubicar tu caso.
+          </p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-3 text-[13px] font-semibold text-[#0B2E59] underline"
+          >
+            Reintentar archivo final
+          </button>
+        </div>
       ) : (
         <div
           className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3"
@@ -157,12 +222,18 @@ export function HumanCaseArchiveGate({
             Lectura disponible · guardado pendiente
           </p>
           <p className="mt-1 text-sm text-[#243647]">
-            Mostramos tu devolución. El equipo aún no recibió el caso en el servidor —
-            descargá la copia JSON o reintentá más tarde.
+            Mostramos tu devolución. Descargá la copia JSON o reintentá el guardado.
           </p>
         </div>
       )}
-      {children({ archiveId: archiveId!, serverPersisted })}
+      {children({
+        archiveId: archiveId!,
+        serverPersisted,
+        preservationLevel,
+        caseId,
+        diagnosticRunId,
+        canProceedToThemes,
+      })}
     </div>
   );
 }

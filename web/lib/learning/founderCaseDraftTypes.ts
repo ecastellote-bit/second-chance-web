@@ -1,6 +1,10 @@
-export const FOUNDER_CASE_DRAFT_SOURCE = "founder_wave" as const;
 export const FOUNDER_CASE_DRAFT_ROUTE = "/full" as const;
 export const FOUNDER_CASE_QUESTIONNAIRE_VERSION = "full_copy_v2_integrated" as const;
+
+export type DiagnosticCaseSource =
+  | "founder_wave"
+  | "direct_full_diagnostic"
+  | "recovered_case";
 
 export type FounderCaseDraftStatus =
   | "draft_started"
@@ -9,7 +13,8 @@ export type FounderCaseDraftStatus =
   | "analysis_started"
   | "analysis_failed"
   | "analysis_succeeded_pending_archive"
-  | "archived";
+  | "archived"
+  | "archived_minimal";
 
 export type FounderCaseDraftLearningDisposition =
   | "raw_human_case"
@@ -29,7 +34,7 @@ export type FounderCaseDraftRecord = {
   diagnosticRunId: string;
   runNumber?: number;
 
-  source: typeof FOUNDER_CASE_DRAFT_SOURCE;
+  source: DiagnosticCaseSource;
   route: typeof FOUNDER_CASE_DRAFT_ROUTE;
   questionnaireVersion: typeof FOUNDER_CASE_QUESTIONNAIRE_VERSION;
 
@@ -53,6 +58,10 @@ export type FounderCaseDraftRecord = {
 
   learningDisposition: FounderCaseDraftLearningDisposition;
 
+  humanReviewRequested?: boolean;
+  humanReviewRequestedAt?: string | null;
+  humanReviewStatus?: "pending" | "none";
+
   privacy: {
     containsPersonalNarrative: true;
     storage: "private_blob";
@@ -64,6 +73,8 @@ export type FounderCaseDraftRecord = {
     timezone?: string;
     language?: string;
     referrer?: string;
+    reviewNote?: string;
+    reviewReason?: string;
   };
 };
 
@@ -75,7 +86,9 @@ export type FounderCaseDraftStatusPublic = {
   updatedAt: string | null;
   submittedAt: string | null;
   archiveId: string | null;
-  source: typeof FOUNDER_CASE_DRAFT_SOURCE | null;
+  source: DiagnosticCaseSource | null;
   questionnaireVersion: string | null;
   runNumber: number | null;
+  humanReviewRequested: boolean;
+  serverPreservationConfirmed: boolean;
 };

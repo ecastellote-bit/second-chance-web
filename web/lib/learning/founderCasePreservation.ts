@@ -3,19 +3,26 @@
 import { backupHumanCaseToBrowser } from "./clientCaseBackup";
 import { buildFoundationalClientMeta } from "./foundationalCohort";
 import {
-  isFounderWaveSession,
+  getDiagnosticCaseSource,
+  isFullFlowPreservationActive,
   postFounderCaseDraftToServer,
   setFounderSyncWarning,
   summarizeAnalysisResult,
 } from "./founderCaseDraftClient";
+import type { DiagnosticCaseSource } from "./founderCaseDraftTypes";
 import type {
   FounderCaseDraftErrorSummary,
   FounderCaseDraftStatus,
 } from "./founderCaseDraftTypes";
 import { downloadHumanCaseBackup } from "./persistHumanCaseFromBrowser";
 
-export const FOUNDER_WAVE_SOURCE = "founder_wave";
+export const FOUNDER_WAVE_SOURCE = "founder_wave" as const;
 export const QUESTIONNAIRE_VERSION_INTEGRATED = "full_copy_v2_integrated";
+
+export type PreservationLevel = "full" | "draft" | "local_only";
+
+export const POST_ANALYSIS_SAVE_REQUIRED_MESSAGE =
+  "No pudimos confirmar que tu lectura quedó preservada con seguridad. Reintentá el guardado o descargá tu respaldo antes de continuar.";
 
 export type FounderCaseStatus =
   | "draft"
@@ -40,7 +47,7 @@ export type FounderCaseIdentity = {
 export type FounderCaseRecord = {
   identity: FounderCaseIdentity;
   status: FounderCaseStatus;
-  source: typeof FOUNDER_WAVE_SOURCE;
+  source: DiagnosticCaseSource;
   questionnaireVersion: string;
   route: "/full";
   createdAt: string;
@@ -106,6 +113,7 @@ function mapServerDisposition(
     case "analysis_succeeded_pending_archive":
       return "learning_candidate";
     case "archived":
+    case "archived_minimal":
       return "calibration_only";
     default:
       return "do_not_influence_yet";
@@ -151,7 +159,7 @@ function writeFounderCaseRecord(record: FounderCaseRecord): void {
 
   const depotPayload = buildDepotPayloadFromRecord(record);
   backupHumanCaseToBrowser(record.identity.caseId, depotPayload, {
-    source: FOUNDER_WAVE_SOURCE,
+    source: getDiagnosticCaseSource(),
     serverSynced: Boolean(record.serverSyncedAt),
     serverArchiveId: record.archiveId,
   });
@@ -209,7 +217,7 @@ function upsertRecord(
   const record: FounderCaseRecord = {
     identity,
     status: patch.status,
-    source: FOUNDER_WAVE_SOURCE,
+    source: getDiagnosticCaseSource(),
     questionnaireVersion:
       patch.questionnaireVersion ??
       prev?.questionnaireVersion ??
@@ -247,8 +255,8 @@ async function syncToServer(input: {
   learningDisposition?: LearningDisposition;
   required: boolean;
 }): Promise<{ ok: boolean; error?: string }> {
-  if (!isFounderWaveSession()) {
-    return { ok: true };
+  if (!isFullFlowPreservationActive()) {
+    return { ok: false, error: "preservation_not_active" };
   }
 
   const record = getActiveFounderCaseRecord();
@@ -258,6 +266,7 @@ async function syncToServer(input: {
     caseId: identity.caseId,
     diagnosticRunId: identity.diagnosticRunId,
     runNumber: identity.runNumber,
+    source: getDiagnosticCaseSource(),
     status: input.serverStatus,
     rawAnswers: input.rawAnswers,
     builtUserIntake: input.builtUserIntake,
@@ -277,7 +286,7 @@ async function syncToServer(input: {
     setFounderSyncWarning(null);
 
     const localStatus: FounderCaseStatus =
-      input.serverStatus === "archived"
+      input.serverStatus === "archived" || input.serverStatus === "archived_minimal"
         ? "archived"
         : input.serverStatus === "submitted_before_analysis"
           ? "submitted_before_analysis"
@@ -451,9 +460,25 @@ export async function syncAnalysisSucceededServer(input: {
     rawAnswers: input.rawAnswers,
     builtUserIntake: input.builtUserIntake,
     analysisResult: input.analysisResult,
-    learningDisposition: "learning_candidate",
-    required: false,
+    learningDisposition: "do_not_influence_yet",
+    required: true,
   });
+}
+
+export function getPreservationIdentity(): FounderCaseIdentity {
+  return getOrCreateFounderCaseIdentity(getActiveFounderCaseRecord()?.identity);
+}
+
+export function isDraftServerConfirmed(record?: FounderCaseRecord | null): boolean {
+  const status = record?.lastServerStatus ?? record?.status;
+  if (!status) return false;
+  return [
+    "submitted_before_analysis",
+    "analysis_started",
+    "analysis_succeeded_pending_archive",
+    "archived",
+    "archived_minimal",
+  ].includes(status as string);
 }
 
 export function markFounderCaseArchived(archiveId: string): FounderCaseRecord {

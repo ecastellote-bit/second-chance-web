@@ -8,6 +8,7 @@ import {
   downloadFounderCaseBackup,
   humanizeAnalysisError,
   PRESERVATION_SAVE_BLOCKED_MESSAGE,
+  POST_ANALYSIS_SAVE_REQUIRED_MESSAGE,
   saveSubmittedBeforeAnalysis,
   syncAnalysisFailedServer,
   syncAnalysisStarted,
@@ -133,7 +134,7 @@ export default function FullProcessingPage() {
 
       if (!postPreserve.ok) {
         setFailureMode("preservation_post");
-        setErrorMessage(copy.preservationPostAnalyze.hint);
+        setErrorMessage(POST_ANALYSIS_SAVE_REQUIRED_MESSAGE);
         setIsRunning(false);
         return;
       }

@@ -9,8 +9,8 @@ import type {
 } from "./founderCaseDraftTypes";
 import {
   FOUNDER_CASE_DRAFT_ROUTE,
-  FOUNDER_CASE_DRAFT_SOURCE,
   FOUNDER_CASE_QUESTIONNAIRE_VERSION,
+  type DiagnosticCaseSource,
 } from "./founderCaseDraftTypes";
 
 const BLOB_PREFIX = "founder-case-drafts";
@@ -184,7 +184,7 @@ export async function upsertFounderCaseDraft(
     caseId: input.caseId,
     diagnosticRunId: input.diagnosticRunId,
     runNumber: input.runNumber ?? existing?.runNumber ?? 1,
-    source: FOUNDER_CASE_DRAFT_SOURCE,
+    source: input.source ?? existing?.source ?? ("direct_full_diagnostic" as DiagnosticCaseSource),
     route: FOUNDER_CASE_DRAFT_ROUTE,
     questionnaireVersion: FOUNDER_CASE_QUESTIONNAIRE_VERSION,
     status: input.status,
@@ -207,6 +207,14 @@ export async function upsertFounderCaseDraft(
       input.learningDisposition ??
       existing?.learningDisposition ??
       "raw_human_case",
+    humanReviewRequested:
+      input.humanReviewRequested ?? existing?.humanReviewRequested ?? false,
+    humanReviewRequestedAt:
+      input.humanReviewRequestedAt !== undefined
+        ? input.humanReviewRequestedAt
+        : (existing?.humanReviewRequestedAt ?? null),
+    humanReviewStatus:
+      input.humanReviewStatus ?? existing?.humanReviewStatus ?? "none",
     privacy: {
       containsPersonalNarrative: true,
       storage: "private_blob",
@@ -249,6 +257,8 @@ export async function getFounderCaseDraftPublicStatus(params: {
     source: null,
     questionnaireVersion: null,
     runNumber: null,
+    humanReviewRequested: false,
+    serverPreservationConfirmed: false,
   };
 
   const record = params.diagnosticRunId
@@ -268,5 +278,13 @@ export async function getFounderCaseDraftPublicStatus(params: {
     source: record.source,
     questionnaireVersion: record.questionnaireVersion,
     runNumber: record.runNumber ?? null,
+    humanReviewRequested: record.humanReviewRequested ?? false,
+    serverPreservationConfirmed: [
+      "submitted_before_analysis",
+      "analysis_started",
+      "analysis_succeeded_pending_archive",
+      "archived",
+      "archived_minimal",
+    ].includes(record.status),
   };
 }

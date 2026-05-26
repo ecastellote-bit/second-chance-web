@@ -45,6 +45,8 @@ function ThemesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const archiveId = searchParams.get("archiveId")?.trim() ?? "";
+  const caseId = searchParams.get("caseId")?.trim() ?? "";
+  const diagnosticRunId = searchParams.get("diagnosticRunId")?.trim() ?? "";
   const { analysis, setAnalysis, isHydrated } = useFullAnswers();
 
   const [themes, setThemes] = useState<GuidedThemeOption[]>([]);
@@ -53,7 +55,7 @@ function ThemesPageContent() {
   const [selectedActivation, setSelectedActivation] = useState<ActivationOption | null>(null);
   const [step, setStep] = useState<"themes" | "activation" | "confirmed">("themes");
   const [loading, setLoading] = useState(false);
-  const [hydrating, setHydrating] = useState(Boolean(archiveId));
+  const [hydrating, setHydrating] = useState(Boolean(archiveId || (caseId && diagnosticRunId)));
   const [themesRecovery, setThemesRecovery] = useState<"idle" | "missing" | "regenerated">(
     "idle",
   );
@@ -69,6 +71,28 @@ function ThemesPageContent() {
     async function ensureResult() {
       if (analysis.result) {
         setHydrating(false);
+        return;
+      }
+
+      if (caseId && diagnosticRunId) {
+        setHydrating(true);
+        try {
+          const params = new URLSearchParams({ caseId, diagnosticRunId });
+          const res = await fetch(`/api/founder-case-drafts/result?${params.toString()}`);
+          const data = (await res.json()) as {
+            ok?: boolean;
+            currentResult?: Record<string, unknown>;
+          };
+          if (!res.ok || !data.ok || !data.currentResult) {
+            router.replace("/full/result/recuperar");
+            return;
+          }
+          setAnalysis(archivedCurrentResultToFinalReading(data.currentResult));
+        } catch {
+          router.replace("/full/result/recuperar");
+        } finally {
+          setHydrating(false);
+        }
         return;
       }
 
@@ -98,7 +122,7 @@ function ThemesPageContent() {
     }
 
     void ensureResult();
-  }, [analysis.result, archiveId, isHydrated, router, setAnalysis]);
+  }, [analysis.result, archiveId, caseId, diagnosticRunId, isHydrated, router, setAnalysis]);
 
   useEffect(() => {
     if (!analysis.result) return;

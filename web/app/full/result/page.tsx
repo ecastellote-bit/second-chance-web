@@ -1209,10 +1209,21 @@ function ResultPageInner() {
 
   return (
     <HumanCaseArchiveGate archivePayload={autoArchivePayload}>
-      {({ archiveId }) => {
-        const themesHref = `/full/themes?archiveId=${encodeURIComponent(archiveId)}`;
+      {({
+        archiveId,
+        preservationLevel,
+        caseId,
+        diagnosticRunId,
+        canProceedToThemes,
+      }) => {
+        const themesHref = canProceedToThemes
+          ? preservationLevel === "full" && archiveId && !archiveId.startsWith("case_")
+            ? `/full/themes?archiveId=${encodeURIComponent(archiveId)}`
+            : `/full/themes?caseId=${encodeURIComponent(caseId)}&diagnosticRunId=${encodeURIComponent(diagnosticRunId)}`
+          : "/full/result";
         const plazaHref = "/plaza";
         const perfilHref = `/perfil/crear?redirect=${encodeURIComponent(themesHref)}`;
+        const draftServerConfirmed = preservationLevel !== "local_only";
 
         return (
     <main className="min-h-[100dvh] bg-white text-black px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-14 pb-24">
@@ -2443,7 +2454,13 @@ function ResultPageInner() {
 
         {hasPersonalizedPresentation && (
           <div className="rounded-2xl border border-[#E8EEF3] bg-[#F8FAFC] px-4 py-8 sm:px-8 space-y-6 text-center">
-            <RequestHumanReviewButton archiveId={archiveId} className="flex flex-col items-center" />
+            <RequestHumanReviewButton
+              archiveId={archiveId}
+              caseId={caseId}
+              diagnosticRunId={diagnosticRunId}
+              draftServerConfirmed={draftServerConfirmed}
+              className="flex flex-col items-center"
+            />
             <p className="text-xs text-[#6B7A8C] max-w-md mx-auto">
               Para el barrio necesitás perfil en VocationUp. Si ya lo tenés, podés ir
               directo a temáticas o a la plaza.

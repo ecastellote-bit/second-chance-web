@@ -39,6 +39,10 @@ export async function POST(req: Request) {
       analysisResultFull: body.analysisResultFull,
       errorSummary: body.errorSummary ?? null,
       learningDisposition: body.learningDisposition ?? "raw_human_case",
+      humanReviewRequested: body.humanReviewRequested,
+      humanReviewRequestedAt: body.humanReviewRequestedAt,
+      humanReviewStatus: body.humanReviewStatus,
+      source: body.source,
       clientMeta: body.clientMeta,
       createdAt: body.createdAt,
     });

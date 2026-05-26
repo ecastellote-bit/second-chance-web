@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
-import { activateFounderWaveSession } from "@/lib/learning/founderCaseDraftClient";
+import {
+  activateFounderWaveSession,
+  activateFullFlowPreservation,
+} from "@/lib/learning/founderCaseDraftClient";
 import { VuAtmosphereBand } from "@/components/ui/VuAtmosphereBand";
 import { FULL_FLOW_COPY } from "@/lib/content/fullFlowCopy";
 import { FOUNDER_FLOW_COPY } from "@/lib/content/founderFlowCopy";
@@ -14,6 +17,7 @@ function FullFlowIntroContent() {
   const copy = isFounder ? FOUNDER_FLOW_COPY.fullIntro : FULL_FLOW_COPY.intro;
 
   useEffect(() => {
+    activateFullFlowPreservation();
     if (isFounder) activateFounderWaveSession();
   }, [isFounder]);
 
