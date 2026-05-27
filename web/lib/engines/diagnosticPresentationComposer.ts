@@ -20,6 +20,7 @@ import type {
   PersonalizedDiagnosticPresentation,
   ReferenciaQueResuena,
 } from "../types/diagnosticPresentation";
+import { sanitizePublicDiagnosticCopy } from "@/lib/public/sanitizePublicDiagnosticCopy";
 
 type GuidedThemeTeaser = { shortLabel: string };
 
@@ -57,7 +58,7 @@ const RISK_FLAG_COPY: Record<
     titulo: "La historia pide otra lectura",
     cuerpo:
       flag.description.trim() ||
-      "Lo que contaste no encaja del todo con un cierre automático del sistema. Conviene leer esto como frontera, no como sentencia.",
+      "Lo que contaste no encaja del todo con un cierre automático. Conviene leer esto como frontera, no como sentencia.",
     severidad: flag.severity === "high" ? "alta" : "media",
   }),
   compressed_life_undetected: (flag) => ({
@@ -172,9 +173,15 @@ function humanizeToSecondPerson(text: string): string {
     .replace(/\bsu\b/gi, "tu")
     .replace(/\bsus\b/gi, "tus")
     .replace(/\bhay un anhelo\b/gi, "llevás un anhelo")
-    .replace(/\blo que sugiere\b/gi, "lo que eso abre para vos");
+    .replace(/\blo que sugiere\b/gi, "lo que eso abre para vos")
+    .replace(/\bvos\s+ha\s+vivido\b/gi, "viviste")
+    .replace(/\bvos\s+ha\s+/gi, "vos ")
+    .replace(/\bvos\s+tiene\b/gi, "tenés")
+    .replace(/\bvos\s+fue\b/gi, "fuiste");
 
-  return out.replace(/\s{2,}/g, " ").replace(/\s+([,.])/g, "$1").trim();
+  return sanitizePublicDiagnosticCopy(
+    out.replace(/\s{2,}/g, " ").replace(/\s+([,.])/g, "$1").trim(),
+  );
 }
 
 function excerptAtSentence(text: string, maxLen = 300): string {
@@ -823,7 +830,7 @@ export function composePersonalizedDiagnosticPresentation(
     lectura: lecturaCentral,
   });
 
-  return {
+  const presentation: PersonalizedDiagnosticPresentation = {
     lecturaCentral,
     enTusPalabras,
     alertasLectura,
@@ -838,6 +845,68 @@ export function composePersonalizedDiagnosticPresentation(
       narrativeVerdict: narrative?.verdict,
       evidenceCount: fragments.length,
       citasCount: enTusPalabras.length,
+    },
+  };
+
+  return sanitizePresentationRecord(presentation);
+}
+
+function sanitizePresentationRecord(
+  presentation: PersonalizedDiagnosticPresentation,
+): PersonalizedDiagnosticPresentation {
+  return {
+    ...presentation,
+    lecturaCentral: {
+      sentenciaRevelacion: sanitizePublicDiagnosticCopy(
+        presentation.lecturaCentral.sentenciaRevelacion,
+      ),
+      resumen: sanitizePublicDiagnosticCopy(presentation.lecturaCentral.resumen),
+      tensionViva: sanitizePublicDiagnosticCopy(
+        presentation.lecturaCentral.tensionViva,
+      ),
+      porQue: sanitizePublicDiagnosticCopy(presentation.lecturaCentral.porQue),
+    },
+    enTusPalabras: presentation.enTusPalabras.map((c) => ({
+      ...c,
+      texto: sanitizePublicDiagnosticCopy(c.texto),
+      fundamento: sanitizePublicDiagnosticCopy(c.fundamento),
+      momento: c.momento ? sanitizePublicDiagnosticCopy(c.momento) : c.momento,
+    })),
+    alertasLectura: presentation.alertasLectura.map((a) => ({
+      ...a,
+      titulo: sanitizePublicDiagnosticCopy(a.titulo),
+      cuerpo: sanitizePublicDiagnosticCopy(a.cuerpo),
+    })),
+    momentoVital: sanitizePublicDiagnosticCopy(presentation.momentoVital),
+    referenciasQueResuenan: presentation.referenciasQueResuenan.map((r) => ({
+      ...r,
+      referenceTitle: sanitizePublicDiagnosticCopy(r.referenceTitle),
+      referenceBody: sanitizePublicDiagnosticCopy(r.referenceBody),
+      puenteNarrativo: sanitizePublicDiagnosticCopy(r.puenteNarrativo),
+    })),
+    comoArmamosTuLectura: sanitizePublicDiagnosticCopy(
+      presentation.comoArmamosTuLectura,
+    ),
+    loQueNoCerramos: sanitizePublicDiagnosticCopy(presentation.loQueNoCerramos),
+    siguientePaso: {
+      ...presentation.siguientePaso,
+      invitation: sanitizePublicDiagnosticCopy(
+        presentation.siguientePaso.invitation,
+      ),
+      themeTeaser: presentation.siguientePaso.themeTeaser.map((t) =>
+        sanitizePublicDiagnosticCopy(t),
+      ),
+      activacionSugerida: presentation.siguientePaso.activacionSugerida
+        ? {
+            ...presentation.siguientePaso.activacionSugerida,
+            label: sanitizePublicDiagnosticCopy(
+              presentation.siguientePaso.activacionSugerida.label,
+            ),
+            plazaWelcomeLine: sanitizePublicDiagnosticCopy(
+              presentation.siguientePaso.activacionSugerida.plazaWelcomeLine,
+            ),
+          }
+        : undefined,
     },
   };
 }

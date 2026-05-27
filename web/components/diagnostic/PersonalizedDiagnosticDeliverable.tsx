@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { sanitizePresentationForView } from "@/lib/public/sanitizePublicDiagnosticCopy";
 
 export type DeliverableNavigation = {
   themesHref: string;
@@ -93,7 +94,8 @@ export function PersonalizedDiagnosticDeliverable({
   presentation: PresentationForView;
   navigation?: DeliverableNavigation;
 }) {
-  const lc = presentation.lecturaCentral;
+  const view = sanitizePresentationForView(presentation);
+  const lc = view.lecturaCentral;
   if (!lc?.sentenciaRevelacion && !lc?.resumen) return null;
 
   return (
@@ -156,7 +158,7 @@ export function PersonalizedDiagnosticDeliverable({
       )}
 
       {/* 4 — En tus palabras */}
-      {safeArray(presentation.enTusPalabras).length > 0 && (
+      {safeArray(view.enTusPalabras).length > 0 && (
         <section>
           <SectionLabel
             step="04 · En tus palabras"
@@ -164,7 +166,7 @@ export function PersonalizedDiagnosticDeliverable({
             fundamento="Fragmentos de tu relato que sostienen esta lectura; cada uno con su fundamento."
           />
           <div className="grid gap-6 md:grid-cols-2">
-            {safeArray(presentation.enTusPalabras).map((cita, index) => (
+            {safeArray(view.enTusPalabras).map((cita, index) => (
               <article
                 key={`cita-${index}`}
                 className="rounded-xl border border-neutral-200 bg-white p-6 md:p-8 space-y-4 shadow-sm"
@@ -193,7 +195,7 @@ export function PersonalizedDiagnosticDeliverable({
       )}
 
       {/* Alertas */}
-      {safeArray(presentation.alertasLectura).length > 0 && (
+      {safeArray(view.alertasLectura).length > 0 && (
         <section>
           <SectionLabel
             step="05 · Alertas de lectura"
@@ -201,7 +203,7 @@ export function PersonalizedDiagnosticDeliverable({
             fundamento="Señales del momento vital: honestidad antes que cierre."
           />
           <div className="space-y-4">
-            {safeArray(presentation.alertasLectura).map((alerta, index) => (
+            {safeArray(view.alertasLectura).map((alerta, index) => (
               <div
                 key={`alerta-${index}`}
                 className={`rounded-xl p-6 md:p-8 border ${
@@ -221,21 +223,21 @@ export function PersonalizedDiagnosticDeliverable({
       )}
 
       {/* Momento vital */}
-      {presentation.momentoVital && (
+      {view.momentoVital && (
         <section>
           <SectionLabel
             step="06 · Momento vital"
-            title="Dónde estás parada hoy"
+            title="Tu punto de partida hoy"
             fundamento="Fuerzas del presente que condicionan cómo se despliega lo anterior."
           />
           <p className="text-base md:text-lg text-neutral-800 leading-relaxed max-w-4xl">
-            {presentation.momentoVital}
+            {view.momentoVital}
           </p>
         </section>
       )}
 
       {/* Referencias */}
-      {safeArray(presentation.referenciasQueResuenan).length > 0 && (
+      {safeArray(view.referenciasQueResuenan).length > 0 && (
         <section>
           <SectionLabel
             step="07 · Referencias"
@@ -243,7 +245,7 @@ export function PersonalizedDiagnosticDeliverable({
             fundamento="Referencias en español (sin etiquetas en inglés), subordinadas a la lectura central."
           />
           <div className="space-y-6">
-            {safeArray(presentation.referenciasQueResuenan).map((ref, index) => (
+            {safeArray(view.referenciasQueResuenan).map((ref, index) => (
               <article
                 key={`ref-${ref.familyId ?? index}`}
                 className="rounded-xl border border-neutral-200 p-6 md:p-8 space-y-3"
@@ -273,7 +275,7 @@ export function PersonalizedDiagnosticDeliverable({
       )}
 
       {/* Cómo armamos */}
-      {presentation.comoArmamosTuLectura && (
+      {view.comoArmamosTuLectura && (
         <section className="rounded-xl bg-neutral-50 border border-neutral-200 px-8 py-8">
           <SectionLabel
             step="08 · Transparencia"
@@ -281,13 +283,13 @@ export function PersonalizedDiagnosticDeliverable({
             fundamento="Cadena de capas que intervinieron; sin lista técnica suelta."
           />
           <p className="text-sm md:text-base text-neutral-700 leading-relaxed max-w-4xl">
-            {presentation.comoArmamosTuLectura}
+            {view.comoArmamosTuLectura}
           </p>
         </section>
       )}
 
       {/* Lo que no cerramos */}
-      {presentation.loQueNoCerramos && (
+      {view.loQueNoCerramos && (
         <section>
           <SectionLabel
             step="09 · Frontera"
@@ -295,13 +297,13 @@ export function PersonalizedDiagnosticDeliverable({
             fundamento="Frontera abierta, compresión o revisión humana si aplica."
           />
           <p className="text-base md:text-lg text-neutral-800 leading-relaxed max-w-4xl">
-            {presentation.loQueNoCerramos}
+            {view.loQueNoCerramos}
           </p>
         </section>
       )}
 
       {/* Siguiente paso */}
-      {presentation.siguientePaso && (
+      {view.siguientePaso && (
         <section className="rounded-2xl border-2 border-black px-8 py-10 md:px-12 text-center space-y-6">
           <SectionLabel
             step="10 · Siguiente paso"
@@ -309,11 +311,11 @@ export function PersonalizedDiagnosticDeliverable({
             fundamento="Puente hacia temáticas, activación y plaza — consecuencia de lo revelado."
           />
           <p className="text-base md:text-lg text-neutral-800 leading-relaxed max-w-3xl mx-auto">
-            {presentation.siguientePaso.invitation}
+            {view.siguientePaso.invitation}
           </p>
-          {safeArray(presentation.siguientePaso.themeTeaser).length > 0 && (
+          {safeArray(view.siguientePaso.themeTeaser).length > 0 && (
             <ul className="flex flex-wrap justify-center gap-3">
-              {safeArray(presentation.siguientePaso?.themeTeaser).map((theme, i) => (
+              {safeArray(view.siguientePaso?.themeTeaser).map((theme, i) => (
                 <li key={`theme-${i}`}>
                   {navigation?.themesHref ? (
                     <Link
@@ -331,12 +333,12 @@ export function PersonalizedDiagnosticDeliverable({
               ))}
             </ul>
           )}
-          {presentation.siguientePaso.activacionSugerida?.label && (
+          {view.siguientePaso.activacionSugerida?.label && (
             <p className="text-sm text-neutral-600 max-w-2xl mx-auto">
               Puerta sugerida al barrio:{" "}
-              <strong>{presentation.siguientePaso.activacionSugerida.label}</strong>
-              {presentation.siguientePaso.activacionSugerida.plazaWelcomeLine && (
-                <> — {presentation.siguientePaso.activacionSugerida.plazaWelcomeLine}</>
+              <strong>{view.siguientePaso.activacionSugerida.label}</strong>
+              {view.siguientePaso.activacionSugerida.plazaWelcomeLine && (
+                <> — {view.siguientePaso.activacionSugerida.plazaWelcomeLine}</>
               )}
             </p>
           )}

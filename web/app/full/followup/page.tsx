@@ -4,6 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useFullAnswers } from "../fullAnswersContext";
+import {
+  describeFollowupRivalry,
+  FOLLOWUP_UI,
+  humanizeFollowupPack,
+  humanizeFollowupReason,
+  placeholderForQuestion,
+  publicRoundHeading,
+} from "@/lib/content/followupPublicCopy";
 
 type FollowupOption = {
   id: string;
@@ -83,18 +91,16 @@ function hasMeaningfulAnswer(value: FollowupAnswerValue | undefined): boolean {
   return typeof value === "string" && value.trim().length > 0;
 }
 
-function renderRoundLabel(round: 2 | 3): string {
-  return round === 2 ? "Ronda 2" : "Ronda 3";
-}
-
 function QuestionCard({
   question,
   value,
   onChange,
+  questionIndex,
 }: {
   question: FollowupQuestion;
   value: FollowupAnswerValue | undefined;
   onChange: (value: string) => void;
+  questionIndex: number;
 }) {
   const normalized = normalizeAnswer(value);
 
@@ -102,7 +108,7 @@ function QuestionCard({
     <div className="rounded-2xl border border-neutral-200 p-5 space-y-4">
       <div className="space-y-2">
         <p className="text-xs uppercase tracking-wide text-neutral-500">
-          {renderRoundLabel(question.round)}
+          {publicRoundHeading(question.round)}
         </p>
         <h2 className="text-base font-medium">{question.prompt}</h2>
         {question.helpText ? (
@@ -116,11 +122,7 @@ function QuestionCard({
           onChange={(event) => onChange(event.target.value)}
           rows={question.kind === "micro_narrative" ? 5 : 4}
           className="w-full rounded-xl border border-neutral-300 px-4 py-3 text-sm outline-none focus:border-black"
-          placeholder={
-            question.kind === "micro_narrative"
-              ? "Contalo con una escena real, no en abstracto."
-              : "Escribí tu respuesta con la mayor claridad posible."
-          }
+          placeholder={placeholderForQuestion(question.kind, questionIndex)}
         />
       ) : (
         <div className="space-y-3">
@@ -165,7 +167,19 @@ export default function FullFollowupPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentFollowup = followup.current as FollowupOrchestratorResult | null;
-  const pack = currentFollowup?.pack ?? null;
+  const rawPack = currentFollowup?.pack ?? null;
+  const pack = useMemo(
+    () => (rawPack ? humanizeFollowupPack(rawPack) : null),
+    [rawPack],
+  );
+  const rivalryLine = useMemo(
+    () =>
+      describeFollowupRivalry({
+        ambiguityType: currentFollowup?.ambiguityType,
+        candidateProfiles: currentFollowup?.assessment?.candidateProfiles,
+      }),
+    [currentFollowup?.ambiguityType, currentFollowup?.assessment?.candidateProfiles],
+  );
 
   useEffect(() => {
     if (!isHydrated || isSubmitting) return;
@@ -192,9 +206,7 @@ export default function FullFollowupPage() {
     if (!pack || isSubmitting) return;
 
     if (unansweredQuestions.length > 0) {
-      setErrorMessage(
-        "Todavía faltan respuestas. Completá esta ronda para que el sistema pueda decantar mejor.",
-      );
+      setErrorMessage(FOLLOWUP_UI.errorIncomplete);
       return;
     }
 
@@ -228,32 +240,29 @@ export default function FullFollowupPage() {
       <div className="max-w-3xl mx-auto space-y-8">
         <div className="space-y-3">
           <p className="text-sm uppercase tracking-wide text-neutral-500">
-            {renderRoundLabel(pack.round)} · Clarificación
+            {publicRoundHeading(pack.round)} · Clarificación
           </p>
           <h1 className="text-3xl font-semibold">{pack.title}</h1>
           <p className="text-sm text-neutral-700">{pack.objective}</p>
         </div>
 
         <div className="rounded-2xl border border-neutral-200 p-5 space-y-3">
-          <p className="text-sm font-medium">Por qué te estamos preguntando esto</p>
-          <p className="text-sm text-neutral-700">{currentFollowup?.reason}</p>
+          <p className="text-sm font-medium">{FOLLOWUP_UI.whyAsking}</p>
+          <p className="text-sm text-neutral-700">
+            {humanizeFollowupReason(currentFollowup?.reason ?? "")}
+          </p>
 
-          {currentFollowup?.assessment?.candidateProfiles?.length ? (
-            <p className="text-sm text-neutral-700">
-              Hoy el sistema está dudando principalmente entre:{" "}
-              <strong>
-                {currentFollowup.assessment.candidateProfiles.join(" y ")}
-              </strong>
-              .
-            </p>
+          {rivalryLine ? (
+            <p className="text-sm text-neutral-700">{rivalryLine}</p>
           ) : null}
         </div>
 
         <div className="space-y-5">
-          {pack.questions.map((question) => (
+          {pack.questions.map((question, index) => (
             <QuestionCard
               key={question.id}
               question={question}
+              questionIndex={index}
               value={followup.answers[question.id]}
               onChange={(value) => updateFollowupAnswer(question.id, value)}
             />
@@ -275,7 +284,7 @@ export default function FullFollowupPage() {
             disabled={isSubmitting}
             className="px-4 py-2 rounded-md border border-neutral-300 text-sm disabled:opacity-50"
           >
-            Volver a revisión
+            {FOLLOWUP_UI.back}
           </button>
 
           <button
@@ -283,7 +292,7 @@ export default function FullFollowupPage() {
             disabled={isSubmitting}
             className="px-4 py-2 rounded-md border border-black text-sm disabled:opacity-50"
           >
-            {isSubmitting ? "Procesando..." : "Continuar con la nueva lectura"}
+            {isSubmitting ? FOLLOWUP_UI.continueLoading : FOLLOWUP_UI.continue}
           </button>
         </div>
       </div>
