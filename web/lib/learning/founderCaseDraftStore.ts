@@ -4,7 +4,9 @@ import { get, list, put } from "@vercel/blob";
 import { isVercelBlobConfigured } from "@/lib/storage/vercelBlobEnv";
 import { getDurableStoreStatus } from "./humanCaseDurableStore";
 import type {
+  FounderCaseDraftListItem,
   FounderCaseDraftRecord,
+  FounderCaseDraftStatus,
   FounderCaseDraftStatusPublic,
 } from "./founderCaseDraftTypes";
 import {
@@ -287,4 +289,76 @@ export async function getFounderCaseDraftPublicStatus(params: {
       "archived_minimal",
     ].includes(record.status),
   };
+}
+
+function summarizeDraftForList(record: FounderCaseDraftRecord): FounderCaseDraftListItem {
+  const summary = record.analysisResultSummary as Record<string, unknown> | undefined;
+  const full = record.analysisResultFull as Record<string, unknown> | undefined;
+  const resultType =
+    (typeof summary?.resultType === "string" ? summary.resultType : null) ??
+    (typeof full?.resultType === "string" ? full.resultType : null);
+  const corePattern =
+    (typeof summary?.corePattern === "string" ? summary.corePattern : null) ??
+    (typeof full?.corePattern === "string" ? full.corePattern : null);
+
+  return {
+    caseId: record.caseId,
+    diagnosticRunId: record.diagnosticRunId,
+    status: record.status,
+    source: record.source,
+    questionnaireVersion: record.questionnaireVersion,
+    updatedAt: record.updatedAt,
+    submittedAt: record.submittedAt ?? null,
+    archiveId: record.archiveId ?? null,
+    humanReviewRequested: record.humanReviewRequested ?? false,
+    humanReviewStatus: record.humanReviewStatus ?? "none",
+    resultType,
+    corePattern,
+    learningDisposition: record.learningDisposition,
+    pathname: draftBlobPath(record.caseId, record.diagnosticRunId),
+  };
+}
+
+export async function listFounderCaseDraftSummaries(options?: {
+  limit?: number;
+  status?: FounderCaseDraftStatus;
+  humanReviewRequested?: boolean;
+}): Promise<FounderCaseDraftListItem[]> {
+  const limit = Math.min(options?.limit ?? 80, 200);
+  let items: FounderCaseDraftListItem[] = [];
+
+  if (isVercelBlobConfigured()) {
+    const { blobs } = await list({
+      prefix: `${BLOB_PREFIX}/`,
+      limit: Math.min(limit * 3, 500),
+    });
+
+    for (const blob of blobs) {
+      const match = blob.pathname.match(
+        /founder-case-drafts\/([^/]+)\/([^/]+)\.json$/,
+      );
+      if (!match) continue;
+
+      const record = await readDraftFromBlob(match[1]!, match[2]!);
+      if (!record) continue;
+      items.push(summarizeDraftForList(record));
+    }
+  } else {
+    const map = await readAllDraftsFromJsonl();
+    items = [...map.values()].map(summarizeDraftForList);
+  }
+
+  if (options?.status) {
+    items = items.filter((item) => item.status === options.status);
+  }
+
+  if (options?.humanReviewRequested === true) {
+    items = items.filter((item) => item.humanReviewRequested);
+  } else if (options?.humanReviewRequested === false) {
+    items = items.filter((item) => !item.humanReviewRequested);
+  }
+
+  return items
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    .slice(0, limit);
 }

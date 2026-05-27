@@ -76,9 +76,17 @@ export default function CasosHumanosAdminPage() {
               banner verde con ID en resultado, el caso no está aquí.
             </p>
           </div>
-          <Link href="/" className="text-sm font-semibold text-[#1A9BB0] underline">
-            ← Inicio
-          </Link>
+          <div className="flex flex-col gap-1 text-sm">
+            <Link
+              href="/admin/founder-case-drafts"
+              className="font-semibold text-[#1A9BB0] underline"
+            >
+              Borradores preservados →
+            </Link>
+            <Link href="/" className="text-[#6B7A8C] underline">
+              ← Inicio
+            </Link>
+          </div>
         </div>
 
         <div

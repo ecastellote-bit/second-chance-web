@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getFounderCaseDraft } from "@/lib/learning/founderCaseDraftStore";
+import { HumanCaseDurableStoreError } from "@/lib/learning/humanCaseDurableStore";
 import { persistMinimalHumanCaseArchive } from "@/lib/learning/humanCaseMinimalArchive";
 import type { DiagnosticCaseSource } from "@/lib/learning/founderCaseDraftTypes";
 
@@ -58,13 +59,27 @@ export async function POST(req: Request) {
       archiveId: result.archiveId,
       persisted: result.persisted,
       archiveLevel: "minimal",
+      durable: {
+        stored: true,
+        verified: result.verified,
+        verificationStatus: result.verificationStatus,
+        storage: "vercel_blob",
+      },
     });
   } catch (error) {
+    if (error instanceof HumanCaseDurableStoreError) {
+      const code = error.code;
+      return NextResponse.json(
+        { ok: false, error: code ?? "write_failed", message: error.message },
+        { status: code === "not_configured" ? 503 : 500 },
+      );
+    }
     console.error("human-cases/minimal POST failed:", error);
     return NextResponse.json(
       {
         ok: false,
-        error: error instanceof Error ? error.message : "minimal_archive_failed",
+        error: "write_failed",
+        message: error instanceof Error ? error.message : "minimal_archive_failed",
       },
       { status: 500 },
     );

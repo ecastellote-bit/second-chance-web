@@ -460,8 +460,10 @@ export type PersistHumanCaseResult = {
   durable: {
     stored: boolean;
     verified: boolean;
+    verificationStatus?: "verified" | "pending";
     storage: "vercel_blob" | "filesystem_mirror";
     pathname?: string;
+    url?: string;
   };
   complete: { appended: boolean; reason?: string };
   extract: { appended: boolean; reason?: string };
@@ -510,8 +512,10 @@ export async function persistHumanCaseDepot(
     durable = {
       stored: true,
       verified: blobResult.verified,
+      verificationStatus: blobResult.verificationStatus,
       storage: "vercel_blob",
       pathname: blobResult.pathname,
+      url: blobResult.url,
     };
   } else if (storeStatus.required) {
     throw new Error(
@@ -542,9 +546,15 @@ export async function persistHumanCaseDepot(
       extractRecord.extractId,
       extractRecord,
     );
-  } else if (durable.stored && durable.verified) {
-    complete = { appended: true, reason: "vercel_blob_primary" };
-    extract = { appended: true, reason: "vercel_blob_primary" };
+  } else if (durable.stored) {
+    complete = {
+      appended: true,
+      reason: durable.verified ? "vercel_blob_primary" : "vercel_blob_pending_verify",
+    };
+    extract = {
+      appended: true,
+      reason: durable.verified ? "vercel_blob_primary" : "vercel_blob_pending_verify",
+    };
   } else {
     complete = { appended: false, reason: "filesystem_disabled" };
     extract = { appended: false, reason: "filesystem_disabled" };

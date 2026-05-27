@@ -9,6 +9,8 @@ import {
   QUESTIONNAIRE_VERSION_INTEGRATED,
 } from "./founderCasePreservation";
 
+export type ArchiveVerificationStatus = "verified" | "pending" | "none";
+
 export type PersistHumanCaseResponse = {
   ok: boolean;
   archiveId?: string;
@@ -16,6 +18,7 @@ export type PersistHumanCaseResponse = {
   durable?: {
     stored: boolean;
     verified: boolean;
+    verificationStatus?: ArchiveVerificationStatus;
     storage: string;
     pathname?: string;
   };
@@ -26,6 +29,7 @@ export type PersistHumanCaseResponse = {
 export type PersistHumanCaseOutcome = {
   archiveId: string;
   persisted: boolean;
+  verificationStatus: ArchiveVerificationStatus;
   durable: PersistHumanCaseResponse["durable"];
   attempts: number;
   archiveLevel: "full" | "minimal" | "none";
@@ -35,6 +39,16 @@ export type PersistHumanCaseOutcome = {
 };
 
 const MAX_ATTEMPTS = 3;
+
+function resolveVerificationStatus(
+  durable?: PersistHumanCaseResponse["durable"],
+): ArchiveVerificationStatus {
+  if (!durable?.stored) return "none";
+  if (durable.verificationStatus === "pending" || durable.verified === false) {
+    return "pending";
+  }
+  return "verified";
+}
 
 function buildLeanArchivePayload(payload: unknown): unknown {
   if (!payload || typeof payload !== "object") return payload;
@@ -86,6 +100,7 @@ async function postMinimalArchive(summary: Record<string, unknown>): Promise<{
   ok: boolean;
   archiveId?: string;
   persisted?: boolean;
+  durable?: PersistHumanCaseResponse["durable"];
 }> {
   const identity = getOrCreateFounderCaseIdentity(
     getActiveFounderCaseRecord()?.identity,
@@ -103,11 +118,8 @@ async function postMinimalArchive(summary: Record<string, unknown>): Promise<{
     }),
   });
 
-  const data = (await res.json()) as {
-    ok: boolean;
-    archiveId?: string;
-    persisted?: boolean;
-    error?: string;
+  const data = (await res.json()) as PersistHumanCaseResponse & {
+    archiveLevel?: string;
   };
 
   if (!res.ok || !data.ok || !data.archiveId) {
@@ -118,11 +130,13 @@ async function postMinimalArchive(summary: Record<string, unknown>): Promise<{
     ok: true,
     archiveId: data.archiveId,
     persisted: data.persisted ?? true,
+    durable: data.durable,
   };
 }
 
 /**
- * Guarda caso humano: bundle completo (lean) → minimal → backup local sin local_* como ID final si hay draft.
+ * Guarda caso humano: bundle completo (lean) → minimal → backup local.
+ * persisted = write aceptado en Blob; verificationStatus indica lectura confirmada.
  */
 export async function persistHumanCaseFromBrowserWithRetry(
   payload: unknown,
@@ -147,6 +161,7 @@ export async function persistHumanCaseFromBrowserWithRetry(
       const data = await postOnce(leanPayload);
 
       if (data.ok && data.archiveId && data.persisted) {
+        const verificationStatus = resolveVerificationStatus(data.durable);
         backupHumanCaseToBrowser(data.archiveId, leanPayload, {
           serverSynced: true,
           serverArchiveId: data.archiveId,
@@ -154,6 +169,7 @@ export async function persistHumanCaseFromBrowserWithRetry(
         return {
           archiveId: data.archiveId,
           persisted: true,
+          verificationStatus,
           durable: data.durable,
           attempts: attempt,
           archiveLevel: "full",
@@ -164,7 +180,7 @@ export async function persistHumanCaseFromBrowserWithRetry(
       }
 
       if (data.ok && data.archiveId && !data.persisted) {
-        lastError = "Servidor respondió sin persistencia durable verificada.";
+        lastError = "Servidor respondió sin persistencia durable.";
       } else {
         lastError = data.error ?? "Error al guardar";
       }
@@ -184,15 +200,17 @@ export async function persistHumanCaseFromBrowserWithRetry(
         hasAnalysisResultFullInDraft: true,
       });
 
-      if (minimal.ok && minimal.archiveId) {
+      if (minimal.ok && minimal.archiveId && minimal.persisted) {
+        const verificationStatus = resolveVerificationStatus(minimal.durable);
         backupHumanCaseToBrowser(minimal.archiveId, leanPayload, {
           serverSynced: true,
           serverArchiveId: minimal.archiveId,
         });
         return {
           archiveId: minimal.archiveId,
-          persisted: Boolean(minimal.persisted),
-          durable: { stored: true, verified: true, storage: "vercel_blob" },
+          persisted: true,
+          verificationStatus,
+          durable: minimal.durable,
           attempts: MAX_ATTEMPTS,
           archiveLevel: "minimal",
           draftServerConfirmed: true,
@@ -201,16 +219,17 @@ export async function persistHumanCaseFromBrowserWithRetry(
         };
       }
     } catch {
-      // fall through to local-only
+      // fall through
     }
   }
 
   return {
     archiveId: identity.caseId,
     persisted: false,
+    verificationStatus: "none",
     durable: undefined,
     attempts: MAX_ATTEMPTS,
-    archiveLevel: draftServerConfirmed ? "none" : "none",
+    archiveLevel: "none",
     draftServerConfirmed,
     caseId: identity.caseId,
     diagnosticRunId: identity.diagnosticRunId,

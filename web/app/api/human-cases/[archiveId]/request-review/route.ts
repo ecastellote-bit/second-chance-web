@@ -10,7 +10,10 @@ export async function POST(req: Request, { params }: RouteParams) {
     const existing = await findHumanCompleteCaseById(archiveId);
 
     if (!existing) {
-      return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
+      return NextResponse.json(
+        { ok: false, error: "archive_not_found" },
+        { status: 404 },
+      );
     }
 
     const body = (await req.json().catch(() => ({}))) as { note?: string };
@@ -18,7 +21,7 @@ export async function POST(req: Request, { params }: RouteParams) {
 
     if (!updated) {
       return NextResponse.json(
-        { ok: false, error: "review_request_failed" },
+        { ok: false, error: "write_failed" },
         { status: 500 },
       );
     }

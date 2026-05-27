@@ -78,6 +78,23 @@ export type FounderCaseDraftRecord = {
   };
 };
 
+export type FounderCaseDraftListItem = {
+  caseId: string;
+  diagnosticRunId: string;
+  status: FounderCaseDraftStatus;
+  source: DiagnosticCaseSource;
+  questionnaireVersion: string;
+  updatedAt: string;
+  submittedAt: string | null;
+  archiveId: string | null;
+  humanReviewRequested: boolean;
+  humanReviewStatus: "pending" | "none";
+  resultType: string | null;
+  corePattern: string | null;
+  learningDisposition: FounderCaseDraftLearningDisposition;
+  pathname: string;
+};
+
 export type FounderCaseDraftStatusPublic = {
   exists: boolean;
   caseId: string;

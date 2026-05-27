@@ -101,8 +101,9 @@ export async function POST(req: Request) {
         { status: error.code === "not_configured" ? 503 : 500 },
       );
     }
+    console.error("founder-case-drafts request-review failed:", error);
     return NextResponse.json(
-      { ok: false, error: "review_request_failed" },
+      { ok: false, error: "write_failed", message: "No se pudo actualizar el draft." },
       { status: 500 },
     );
   }

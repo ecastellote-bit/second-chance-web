@@ -11,7 +11,10 @@ import {
   persistHumanCaseDepot,
   type HumanCasePayload,
 } from "@/lib/learning/humanCaseDepot";
-import { getDurableStoreStatus } from "@/lib/learning/humanCaseDurableStore";
+import {
+  getDurableStoreStatus,
+  HumanCaseDurableStoreError,
+} from "@/lib/learning/humanCaseDurableStore";
 import { getCohortBatchFromPayload } from "@/lib/learning/foundationalCohort";
 import { isHumanCasePersistedAcknowledged } from "@/lib/learning/humanCasePersistence";
 import { appendObservatoryEvent, buildObservatoryEvent } from "@/lib/observatory/store";
@@ -171,11 +174,19 @@ export async function POST(req: Request) {
       reviewStatus: result.completeRecord.storagePolicy.reviewStatus,
     });
   } catch (error) {
+    if (error instanceof HumanCaseDurableStoreError) {
+      const code = error.code;
+      return NextResponse.json(
+        { ok: false, error: code ?? "write_failed", message: error.message },
+        { status: code === "not_configured" ? 503 : 500 },
+      );
+    }
     console.error("human-cases POST failed:", error);
     return NextResponse.json(
       {
         ok: false,
-        error: error instanceof Error ? error.message : "persist_failed",
+        error: "write_failed",
+        message: error instanceof Error ? error.message : "persist_failed",
       },
       { status: 500 },
     );

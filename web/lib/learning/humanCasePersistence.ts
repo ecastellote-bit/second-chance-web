@@ -1,11 +1,11 @@
 import { getDurableStoreStatus } from "./humanCaseDurableStore";
 import type { PersistHumanCaseResult } from "./humanCaseDepot";
 
-/** Caso listo para revisión humana: Blob verificado o espejo JSONL en entornos sin Blob obligatorio. */
+/** Caso persistido en almacén durable: write aceptado por Blob (verified indica confirmación de lectura). */
 export function isHumanCasePersistedAcknowledged(
   result: Pick<PersistHumanCaseResult, "durable" | "complete" | "extract">,
 ): boolean {
-  if (result.durable.stored && result.durable.verified) return true;
+  if (result.durable.stored) return true;
 
   const status = getDurableStoreStatus();
   if (status.required) return false;

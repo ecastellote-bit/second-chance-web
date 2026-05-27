@@ -28,7 +28,12 @@ export function buildMinimalArchiveId(caseId: string): string {
 
 export async function persistMinimalHumanCaseArchive(
   input: MinimalArchiveInput,
-): Promise<{ archiveId: string; persisted: boolean }> {
+): Promise<{
+  archiveId: string;
+  persisted: boolean;
+  verified: boolean;
+  verificationStatus: "verified" | "pending";
+}> {
   const archiveId = buildMinimalArchiveId(input.caseId);
   const createdAt = new Date().toISOString();
 
@@ -98,6 +103,8 @@ export async function persistMinimalHumanCaseArchive(
 
   return {
     archiveId: result.archiveId,
-    persisted: result.verified,
+    persisted: true,
+    verified: result.verified,
+    verificationStatus: result.verificationStatus,
   };
 }

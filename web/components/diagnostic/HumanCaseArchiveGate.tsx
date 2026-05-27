@@ -8,12 +8,19 @@ import {
   syncFounderCaseArchivedServer,
 } from "@/lib/learning/founderCasePreservation";
 import type { PreservationLevel } from "@/lib/learning/founderCasePreservation";
+import type { ArchiveVerificationStatus } from "@/lib/learning/persistHumanCaseFromBrowser";
 import {
   downloadHumanCaseBackup,
   persistHumanCaseFromBrowserWithRetry,
 } from "@/lib/learning/persistHumanCaseFromBrowser";
 
-type GateState = "archiving" | "confirmed" | "draft_only" | "failed";
+type GateState =
+  | "archiving"
+  | "confirmed"
+  | "pending_verification"
+  | "minimal_received"
+  | "draft_only"
+  | "failed";
 
 export type ArchiveGateContext = {
   archiveId: string;
@@ -22,6 +29,7 @@ export type ArchiveGateContext = {
   caseId: string;
   diagnosticRunId: string;
   canProceedToThemes: boolean;
+  verificationStatus: ArchiveVerificationStatus;
 };
 
 export function HumanCaseArchiveGate({
@@ -33,7 +41,8 @@ export function HumanCaseArchiveGate({
 }) {
   const [state, setState] = useState<GateState>("archiving");
   const [archiveId, setArchiveId] = useState<string | null>(null);
-  const [attempts, setAttempts] = useState(0);
+  const [verificationStatus, setVerificationStatus] =
+    useState<ArchiveVerificationStatus>("none");
   const [showReading, setShowReading] = useState(false);
   const [preservationLevel, setPreservationLevel] =
     useState<PreservationLevel>("local_only");
@@ -53,15 +62,20 @@ export function HumanCaseArchiveGate({
 
       if (cancelled) return;
 
-      setAttempts(result.attempts);
       setArchiveId(result.archiveId);
+      setVerificationStatus(result.verificationStatus);
 
       if (result.persisted && result.archiveLevel === "full") {
         setPreservationLevel("full");
         setActiveHumanArchiveId(result.archiveId);
         grantFoundingMember(result.archiveId);
         void syncFounderCaseArchivedServer(result.archiveId);
-        setState("confirmed");
+
+        if (result.verificationStatus === "verified") {
+          setState("confirmed");
+        } else {
+          setState("pending_verification");
+        }
         return;
       }
 
@@ -74,7 +88,7 @@ export function HumanCaseArchiveGate({
         setActiveHumanArchiveId(result.archiveId);
         grantFoundingMember(result.archiveId);
         void syncFounderCaseArchivedServer(result.archiveId);
-        setState("draft_only");
+        setState("minimal_received");
         return;
       }
 
@@ -95,15 +109,6 @@ export function HumanCaseArchiveGate({
       cancelled = true;
     };
   }, [archivePayload]);
-
-  function openReadingDespiteFailure() {
-    if (!archiveId) return;
-    if (preservationLevel === "full" || preservationLevel === "draft") {
-      setActiveHumanArchiveId(archiveId);
-      grantFoundingMember(archiveId);
-    }
-    setShowReading(true);
-  }
 
   if (state === "archiving") {
     return (
@@ -130,8 +135,7 @@ export function HumanCaseArchiveGate({
             No pudimos confirmar el guardado seguro
           </h1>
           <p className="text-sm leading-relaxed text-[#243647]">
-            Antes de avanzar, reintentá guardar o descargá tu respaldo. Todavía no
-            confirmamos que tu caso quedó preservado en el servidor.
+            No pudimos confirmar el guardado seguro. Reintentá o descargá el respaldo.
           </p>
           <button
             type="button"
@@ -161,12 +165,18 @@ export function HumanCaseArchiveGate({
     );
   }
 
-  const serverPersisted = state === "confirmed";
+  const serverPersisted =
+    state === "confirmed" ||
+    state === "pending_verification" ||
+    state === "minimal_received";
+
   const canProceedToThemes =
     preservationLevel === "full" || preservationLevel === "draft";
 
   const themesHref =
-    preservationLevel === "full" && archiveId
+    preservationLevel === "full" &&
+    archiveId &&
+    !archiveId.startsWith("case_")
       ? `/full/themes?archiveId=${encodeURIComponent(archiveId)}`
       : `/full/themes?caseId=${encodeURIComponent(caseId)}&diagnosticRunId=${encodeURIComponent(diagnosticRunId)}`;
 
@@ -174,13 +184,13 @@ export function HumanCaseArchiveGate({
 
   return (
     <div className="space-y-6">
-      {serverPersisted ? (
+      {state === "confirmed" ? (
         <div
           className="rounded-2xl border border-[#C6D92D]/50 bg-[#F4F9E0] px-4 py-3"
           role="status"
         >
           <p className="text-[11px] font-bold uppercase tracking-wide text-[#0B2E59]">
-            Tu caso quedó registrado para revisión interna
+            Tu caso quedó registrado
           </p>
           <p className="mt-1 text-sm text-[#243647]">
             Gracias por entrenar el sistema. Revisaremos tu caso antes de usarlo como
@@ -193,7 +203,23 @@ export function HumanCaseArchiveGate({
             Crear tu perfil en VocationUp (obligatorio para el barrio) →
           </a>
         </div>
-      ) : state === "draft_only" ? (
+      ) : state === "pending_verification" ? (
+        <div
+          className="rounded-2xl border border-[#C6D92D]/40 bg-[#F4F9E0] px-4 py-3"
+          role="status"
+        >
+          <p className="text-[11px] font-bold uppercase tracking-wide text-[#0B2E59]">
+            Caso recibido · verificación en curso
+          </p>
+          <p className="mt-1 text-sm text-[#243647]">
+            Tu caso fue recibido. La verificación final puede demorar unos instantes,
+            pero el equipo ya puede ubicarlo.
+          </p>
+          {archiveId && !archiveId.startsWith("case_") ? (
+            <p className="mt-2 font-mono text-[11px] text-[#6B7A8C]">{archiveId}</p>
+          ) : null}
+        </div>
+      ) : state === "minimal_received" ? (
         <div
           className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3"
           role="status"
@@ -202,8 +228,34 @@ export function HumanCaseArchiveGate({
             Lectura preservada · archivo final pendiente
           </p>
           <p className="mt-1 text-sm text-[#243647]">
-            Tu lectura quedó preservada. Todavía no pudimos completar el archivo final,
+            Tu lectura quedó preservada. Todavía estamos completando el archivo final,
             pero el equipo puede ubicar tu caso.
+          </p>
+          {archiveId ? (
+            <p className="mt-2 font-mono text-[11px] text-[#6B7A8C]">{archiveId}</p>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-3 text-[13px] font-semibold text-[#0B2E59] underline"
+          >
+            Reintentar archivo final
+          </button>
+        </div>
+      ) : state === "draft_only" ? (
+        <div
+          className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3"
+          role="status"
+        >
+          <p className="text-[11px] font-bold uppercase tracking-wide text-amber-900">
+            Lectura preservada como borrador seguro
+          </p>
+          <p className="mt-1 text-sm text-[#243647]">
+            Tu lectura quedó preservada como borrador seguro. Todavía no pudimos
+            completar el archivo final.
+          </p>
+          <p className="mt-2 font-mono text-[11px] text-[#6B7A8C]">
+            {caseId} · {diagnosticRunId}
           </p>
           <button
             type="button"
@@ -233,6 +285,7 @@ export function HumanCaseArchiveGate({
         caseId,
         diagnosticRunId,
         canProceedToThemes,
+        verificationStatus,
       })}
     </div>
   );

@@ -7,6 +7,8 @@ import type {
 export const HUMAN_CASE_BLOB_VERSION = 1;
 const BLOB_PREFIX = "human-cases";
 
+const VERIFY_DELAYS_MS = [0, 300, 1000, 2500];
+
 export type HumanCaseBlobBundle = {
   version: typeof HUMAN_CASE_BLOB_VERSION;
   archiveId: string;
@@ -19,6 +21,16 @@ export type DurableStoreStatus = {
   configured: boolean;
   required: boolean;
   storage: "vercel_blob" | "unavailable";
+};
+
+export type VerificationStatus = "verified" | "pending";
+
+export type PutHumanCaseBundleResult = {
+  archiveId: string;
+  pathname: string;
+  url: string;
+  verified: boolean;
+  verificationStatus: VerificationStatus;
 };
 
 export function getDurableStoreStatus(): DurableStoreStatus {
@@ -37,8 +49,27 @@ function blobPath(archiveId: string): string {
   return `${BLOB_PREFIX}/${archiveId}.json`;
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function verifyBlobReadable(pathname: string): Promise<boolean> {
+  for (const delayMs of VERIFY_DELAYS_MS) {
+    if (delayMs > 0) await sleep(delayMs);
+    try {
+      const result = await get(pathname, { access: "private" });
+      if (result && result.statusCode === 200 && result.blob.size > 0) {
+        return true;
+      }
+    } catch {
+      // retry
+    }
+  }
+  return false;
+}
+
 export class HumanCaseDurableStoreError extends Error {
-  code: "not_configured" | "write_failed" | "verify_failed" | "read_failed";
+  code: "not_configured" | "write_failed" | "read_failed";
 
   constructor(
     code: HumanCaseDurableStoreError["code"],
@@ -54,12 +85,7 @@ export class HumanCaseDurableStoreError extends Error {
 export async function putHumanCaseBundle(params: {
   complete: HumanCompleteCaseRecord;
   extract: HumanLearningExtractRecord;
-}): Promise<{
-  archiveId: string;
-  pathname: string;
-  url: string;
-  verified: boolean;
-}> {
+}): Promise<PutHumanCaseBundleResult> {
   const status = getDurableStoreStatus();
 
   if (!status.configured) {
@@ -101,26 +127,14 @@ export async function putHumanCaseBundle(params: {
     );
   }
 
-  let verified = false;
-  try {
-    const result = await get(pathname, { access: "private" });
-    verified = Boolean(result && result.statusCode === 200 && result.blob.size > 0);
-  } catch {
-    verified = Boolean(written.url);
-  }
-
-  if (!verified) {
-    throw new HumanCaseDurableStoreError(
-      "verify_failed",
-      "El caso se envió a Blob pero no se pudo verificar la lectura.",
-    );
-  }
+  const verified = await verifyBlobReadable(pathname);
 
   return {
     archiveId,
     pathname,
     url: written.url,
     verified,
+    verificationStatus: verified ? "verified" : "pending",
   };
 }
 
