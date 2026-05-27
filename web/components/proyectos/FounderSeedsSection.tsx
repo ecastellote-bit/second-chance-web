@@ -10,7 +10,9 @@ export function FounderSeedsSection() {
 
   useEffect(() => {
     const cohort = getFoundationalCohortBatch();
-    fetch(`/api/founder-projects?cohortBatch=${encodeURIComponent(cohort)}`)
+    fetch(
+      `/api/founder-projects?cohortBatch=${encodeURIComponent(cohort)}&visibility=public`,
+    )
       .then((r) => r.json())
       .then((data: { seeds?: FounderProjectSeed[] }) => {
         setSeeds(data.seeds ?? []);
@@ -24,11 +26,11 @@ export function FounderSeedsSection() {
     <section className="mb-6 space-y-3">
       <div>
         <p className="text-[10px] font-bold uppercase tracking-wider text-[#C6D92D]">
-          Proyectos fundadores
+          Proyectos visibles en el barrio
         </p>
         <p className="text-[13px] text-[#6B7A8C]">
-          Proyectos reales sembrados por la ola fundadora (revisión prioritaria, no publicación
-          automática inmediata)
+          Proyectos fundadores revisados y publicados por el equipo. Las semillas nuevas no aparecen
+          acá hasta pasar revisión.
         </p>
       </div>
       <ul className="space-y-3">
@@ -39,7 +41,7 @@ export function FounderSeedsSection() {
               className="vu-focus block rounded-[20px] border-2 border-[#C6D92D]/60 bg-[#F4F9E0] p-4 shadow-sm"
             >
               <span className="text-[10px] font-bold uppercase text-[#0B2E59]">
-                Fundador · 6 meses destacado
+                Fundador · visible en el barrio
               </span>
               <h2 className="mt-1 text-base font-bold text-[#0B2E59]">{seed.title}</h2>
               <p className="mt-1 text-xs leading-relaxed text-[#243647] line-clamp-2">

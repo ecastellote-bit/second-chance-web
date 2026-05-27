@@ -22,7 +22,7 @@ export function PlazaLivingPanel() {
       const [acts, seedsRes] = await Promise.all([
         fetchCommunityActivities(),
         fetch(
-          `/api/founder-projects?cohortBatch=${encodeURIComponent(getFoundationalCohortBatch())}`,
+          `/api/founder-projects?cohortBatch=${encodeURIComponent(getFoundationalCohortBatch())}&userId=${encodeURIComponent(userId)}`,
         )
           .then((r) => r.json())
           .catch(() => ({ seeds: [] as FounderProjectSeed[] })),

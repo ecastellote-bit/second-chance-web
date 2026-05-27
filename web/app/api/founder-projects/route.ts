@@ -1,15 +1,55 @@
 import { NextResponse } from "next/server";
 import { recordProjectSeeded } from "@/lib/community/communityRecords";
-import { appendFounderProjectSeed, listFounderProjectSeeds } from "@/lib/learning/founderProjectSeeds";
+import {
+  appendFounderProjectSeed,
+  listFounderProjectSeeds,
+  type FounderProjectSeedStatus,
+} from "@/lib/learning/founderProjectSeeds";
 import { appendObservatoryEvent, buildObservatoryEvent } from "@/lib/observatory/store";
+
+const VALID_STATUSES = new Set<FounderProjectSeedStatus>([
+  "pending_review",
+  "published",
+  "hidden",
+]);
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const cohortBatch = url.searchParams.get("cohortBatch")?.trim();
-  let seeds = await listFounderProjectSeeds(300);
+  const userId = url.searchParams.get("userId")?.trim();
+  const scope = url.searchParams.get("scope")?.trim();
+  const visibility = url.searchParams.get("visibility")?.trim();
+  const statusParam = url.searchParams.get("status")?.trim();
+  const limit = Math.min(Number(url.searchParams.get("limit") ?? 300), 500);
 
-  if (cohortBatch) {
-    seeds = seeds.filter((s) => s.cohortBatch === cohortBatch);
+  const status =
+    statusParam && VALID_STATUSES.has(statusParam as FounderProjectSeedStatus)
+      ? (statusParam as FounderProjectSeedStatus)
+      : undefined;
+
+  let seeds;
+
+  if (scope === "admin") {
+    seeds = await listFounderProjectSeeds({
+      limit,
+      cohortBatch: cohortBatch || undefined,
+      userId: userId || undefined,
+      status,
+    });
+  } else if (userId) {
+    seeds = await listFounderProjectSeeds({
+      limit,
+      cohortBatch: cohortBatch || undefined,
+      userId,
+      status,
+    });
+  } else {
+    seeds = await listFounderProjectSeeds({
+      limit,
+      cohortBatch: cohortBatch || undefined,
+      visibility: visibility === "all" ? undefined : "public",
+      status,
+    });
   }
 
   return NextResponse.json({ ok: true, total: seeds.length, seeds });

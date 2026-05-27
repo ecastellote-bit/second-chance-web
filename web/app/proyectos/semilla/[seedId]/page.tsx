@@ -1,28 +1,49 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FounderPreviewBanner } from "@/components/founder/FounderPreviewBanner";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
-import { founderSeedStatusLabel } from "@/lib/public/founderSeedStatusLabel";
+import {
+  founderSeedStatusHint,
+  founderSeedStatusLabel,
+} from "@/lib/public/founderSeedStatusLabel";
 import type { FounderProjectSeed } from "@/lib/learning/founderProjectSeeds";
+import { getOrCreateUserId } from "@/lib/users/activeUserSession";
 
 export default function FounderSeedPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const seedId = typeof params.seedId === "string" ? params.seedId : "";
   const [seed, setSeed] = useState<FounderProjectSeed | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notVisible, setNotVisible] = useState(false);
 
   useEffect(() => {
-    fetch("/api/founder-projects?limit=200")
-      .then((r) => r.json())
-      .then((data: { seeds?: FounderProjectSeed[] }) => {
-        const found = data.seeds?.find((s) => s.seedId === seedId) ?? null;
-        setSeed(found);
+    const queryUserId = searchParams.get("userId")?.trim();
+    const userId = queryUserId || getOrCreateUserId();
+    const qs = userId ? `?userId=${encodeURIComponent(userId)}` : "";
+    setLoading(true);
+    setNotVisible(false);
+
+    fetch(`/api/founder-projects/${encodeURIComponent(seedId)}${qs}`)
+      .then(async (r) => {
+        const data = (await r.json()) as {
+          ok?: boolean;
+          seed?: FounderProjectSeed;
+          error?: string;
+        };
+        if (!r.ok || !data.ok || !data.seed) {
+          if (data.error === "seed_not_visible") setNotVisible(true);
+          setSeed(null);
+          return;
+        }
+        setSeed(data.seed);
       })
+      .catch(() => setSeed(null))
       .finally(() => setLoading(false));
-  }, [seedId]);
+  }, [seedId, searchParams]);
 
   if (loading) {
     return (
@@ -35,7 +56,16 @@ export default function FounderSeedPage() {
   if (!seed) {
     return (
       <main className="flex min-h-[100dvh] flex-col items-center justify-center gap-4 bg-[#F8FAFC] px-6">
-        <p className="font-semibold text-[#0B2E59]">Semilla no encontrada</p>
+        <p className="font-semibold text-[#0B2E59]">
+          {notVisible
+            ? "Este proyecto todavía no está visible en el barrio"
+            : "Semilla no encontrada"}
+        </p>
+        <p className="max-w-sm text-center text-sm leading-relaxed text-[#6B7A8C]">
+          {notVisible
+            ? "Solo el equipo fundador y quien sembró el proyecto pueden verlo mientras está en revisión u oculto."
+            : "Revisá el enlace o volvé al listado de proyectos."}
+        </p>
         <Link href="/proyectos" className="text-[#1A9BB0] underline">
           Volver a proyectos
         </Link>
@@ -44,6 +74,8 @@ export default function FounderSeedPage() {
   }
 
   const statusLabel = founderSeedStatusLabel(seed.status);
+  const statusHint = founderSeedStatusHint(seed.status);
+  const isPublished = seed.status === "published";
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#F8FAFC] font-[family-name:var(--font-inter)]">
@@ -53,7 +85,7 @@ export default function FounderSeedPage() {
           ← Proyectos
         </Link>
         <p className="mt-6 text-[10px] font-bold uppercase tracking-wider text-[#C6D92D]">
-          Tu proyecto · ola fundadora
+          {isPublished ? "Proyecto fundador · barrio" : "Tu proyecto · ola fundadora"}
         </p>
         <h1 className="mt-2 text-2xl font-bold text-[#0B2E59]">{seed.title}</h1>
         <p className="mt-3 inline-flex rounded-full bg-[#E6F6FA] px-3 py-1 text-[12px] font-semibold text-[#0B2E59]">
@@ -63,8 +95,7 @@ export default function FounderSeedPage() {
           {seed.summary}
         </p>
         <p className="mt-6 rounded-2xl border border-[#E8EEF3] bg-white px-4 py-3 text-[13px] leading-relaxed text-[#6B7A8C]">
-          Esta semilla quedó guardada para la ola fundadora. En esta etapa cuidamos la
-          visibilidad de los proyectos para que el barrio crezca con sentido.
+          {statusHint}
         </p>
 
         <div className="mt-8 flex flex-col gap-2">

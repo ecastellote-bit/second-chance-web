@@ -84,6 +84,12 @@ export default function FounderCaseDraftsAdminPage() {
             <Link href="/admin/casos-humanos" className="font-semibold text-[#1A9BB0] underline">
               Depósito humano →
             </Link>
+            <Link
+              href="/admin/founder-project-seeds"
+              className="font-semibold text-[#1A9BB0] underline"
+            >
+              Semillas de proyectos →
+            </Link>
             <Link href="/" className="text-[#6B7A8C] underline">
               ← Inicio
             </Link>

@@ -22,6 +22,7 @@ type FounderSeed = {
   seedId: string;
   archiveId: string | null;
   title: string;
+  status: string;
   createdAt: string;
 };
 
@@ -40,7 +41,7 @@ export default function FoundationalCohortLabPage() {
       const [statusRes, casesRes, seedsRes] = await Promise.all([
         fetch("/api/human-cases/status"),
         fetch(`/api/human-cases?cohortBatch=${encodeURIComponent(cohort)}&limit=100`),
-        fetch(`/api/founder-projects?cohortBatch=${encodeURIComponent(cohort)}`),
+        fetch(`/api/founder-projects?scope=admin&cohortBatch=${encodeURIComponent(cohort)}`),
       ]);
 
       const statusData = await statusRes.json();
@@ -178,7 +179,7 @@ export default function FoundationalCohortLabPage() {
               >
                 <p className="font-semibold text-[#0B2E59]">{s.title}</p>
                 <p className="text-[11px] text-[#6B7A8C]">
-                  {s.seedId} · {s.archiveId ?? "sin archiveId"}
+                  {s.seedId} · {s.status} · {s.archiveId ?? "sin archiveId"}
                 </p>
               </li>
             ))}
