@@ -1,7 +1,11 @@
 import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { get, list, put } from "@vercel/blob";
-import { isVercelBlobConfigured } from "@/lib/storage/vercelBlobEnv";
+import {
+  assertVercelBlobForProduction,
+  isVercelBlobConfigured,
+  requiresVercelBlob,
+} from "@/lib/storage/vercelBlobEnv";
 import { getFoundationalCohortBatch } from "./foundationalCohort";
 
 export type FounderProjectSeedStatus = "pending_review" | "published" | "hidden";
@@ -43,12 +47,50 @@ type FounderProjectSeedManifest = {
   updatedAt: string;
 };
 
-export type FounderProjectSeedStoreStatus = {
+export type FounderProjectSeedStoreMeta = {
   backend: "blob" | "local_jsonl";
-  configured: boolean;
+  /** True when writes are expected to survive cross-device (Blob prod or local dev). */
+  durable: boolean;
+  requiresBlob: boolean;
+  blobConfigured: boolean;
+};
+
+export type FounderProjectSeedStoreStatus = FounderProjectSeedStoreMeta & {
   manifestSeedCount: number;
   blobListCount: number;
 };
+
+export class FounderProjectSeedStoreError extends Error {
+  readonly code: "blob_not_configured" | "store_unavailable";
+
+  constructor(code: FounderProjectSeedStoreError["code"], message?: string) {
+    super(message ?? code);
+    this.name = "FounderProjectSeedStoreError";
+    this.code = code;
+  }
+}
+
+export function getFounderProjectSeedStoreMeta(): FounderProjectSeedStoreMeta {
+  const blobConfigured = isVercelBlobConfigured();
+  const needsBlob = requiresVercelBlob();
+  return {
+    backend: blobConfigured ? "blob" : "local_jsonl",
+    durable: blobConfigured || !needsBlob,
+    requiresBlob: needsBlob,
+    blobConfigured,
+  };
+}
+
+function assertFounderProjectSeedDurableStore(operation: string): void {
+  try {
+    assertVercelBlobForProduction(`founder_project_seeds:${operation}`);
+  } catch {
+    throw new FounderProjectSeedStoreError(
+      "blob_not_configured",
+      `blob_not_configured:founder_project_seeds:${operation}`,
+    );
+  }
+}
 
 function seedsPath(): string {
   return path.join(process.cwd(), "data", "founder-project-seeds.jsonl");
@@ -201,11 +243,19 @@ async function listSeedsFromBlob(): Promise<FounderProjectSeed[]> {
 }
 
 export async function getFounderProjectSeedStoreStatus(): Promise<FounderProjectSeedStoreStatus> {
-  if (!isVercelBlobConfigured()) {
+  const meta = getFounderProjectSeedStoreMeta();
+
+  if (!meta.blobConfigured) {
+    if (meta.requiresBlob) {
+      return {
+        ...meta,
+        manifestSeedCount: 0,
+        blobListCount: 0,
+      };
+    }
     const local = await readAllSeedsFromLocal();
     return {
-      backend: "local_jsonl",
-      configured: true,
+      ...meta,
       manifestSeedCount: local.length,
       blobListCount: 0,
     };
@@ -215,8 +265,7 @@ export async function getFounderProjectSeedStoreStatus(): Promise<FounderProject
   const scannedIds = await listSeedIdsFromBlobScan();
 
   return {
-    backend: "blob",
-    configured: true,
+    ...meta,
     manifestSeedCount: manifestIds.length,
     blobListCount: scannedIds.length,
   };
@@ -303,6 +352,8 @@ export async function readFounderProjectSeed(
   const trimmed = seedId.trim();
   if (!trimmed) return null;
 
+  assertFounderProjectSeedDurableStore("read");
+
   if (isVercelBlobConfigured()) {
     return readSeedFromBlob(trimmed);
   }
@@ -327,6 +378,8 @@ export async function appendFounderProjectSeed(
     userId?: string | null;
   },
 ): Promise<FounderProjectSeed> {
+  assertFounderProjectSeedDurableStore("create");
+
   const now = new Date().toISOString();
   const record: FounderProjectSeed = {
     recordType: "founder_project_seed",
@@ -357,6 +410,8 @@ export async function updateFounderProjectSeedStatus(
   seedId: string,
   status: FounderProjectSeedStatus,
 ): Promise<FounderProjectSeed | null> {
+  assertFounderProjectSeedDurableStore("update");
+
   const existing = await readFounderProjectSeed(seedId);
   if (!existing) return null;
 
@@ -386,6 +441,8 @@ export async function updateFounderProjectSeedStatus(
 export async function listFounderProjectSeeds(
   options: ListFounderProjectSeedsOptions = {},
 ): Promise<FounderProjectSeed[]> {
+  assertFounderProjectSeedDurableStore("list");
+
   const limit = Math.min(options.limit ?? 200, 1000);
 
   if (isVercelBlobConfigured()) {

@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
+import { founderProjectSeedErrorResponse } from "@/lib/learning/founderProjectSeedApiErrors";
 import {
+  getFounderProjectSeedStoreMeta,
   readFounderProjectSeed,
   updateFounderProjectSeedStatus,
   type FounderProjectSeedStatus,
 } from "@/lib/learning/founderProjectSeeds";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const VALID_STATUSES = new Set<FounderProjectSeedStatus>([
   "pending_review",
@@ -42,14 +45,12 @@ export async function PATCH(req: Request, context: RouteContext) {
       return NextResponse.json({ ok: false, error: "update_failed" }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true, seed });
+    return NextResponse.json({
+      ok: true,
+      seed,
+      store: getFounderProjectSeedStoreMeta(),
+    });
   } catch (error) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: error instanceof Error ? error.message : "update_failed",
-      },
-      { status: 500 },
-    );
+    return founderProjectSeedErrorResponse(error, "update_failed");
   }
 }

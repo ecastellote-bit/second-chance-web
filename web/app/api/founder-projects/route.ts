@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { recordProjectSeeded } from "@/lib/community/communityRecords";
+import { founderProjectSeedErrorResponse } from "@/lib/learning/founderProjectSeedApiErrors";
 import {
   appendFounderProjectSeed,
+  getFounderProjectSeedStoreMeta,
   listFounderProjectSeeds,
   type FounderProjectSeedStatus,
 } from "@/lib/learning/founderProjectSeeds";
 import { appendObservatoryEvent, buildObservatoryEvent } from "@/lib/observatory/store";
+
+export const dynamic = "force-dynamic";
 
 const VALID_STATUSES = new Set<FounderProjectSeedStatus>([
   "pending_review",
@@ -14,6 +18,7 @@ const VALID_STATUSES = new Set<FounderProjectSeedStatus>([
 ]);
 
 export async function GET(req: Request) {
+  try {
   const url = new URL(req.url);
   const cohortBatch = url.searchParams.get("cohortBatch")?.trim();
   const userId = url.searchParams.get("userId")?.trim();
@@ -52,7 +57,15 @@ export async function GET(req: Request) {
     });
   }
 
-  return NextResponse.json({ ok: true, total: seeds.length, seeds });
+  return NextResponse.json({
+    ok: true,
+    total: seeds.length,
+    seeds,
+    store: getFounderProjectSeedStoreMeta(),
+  });
+  } catch (error) {
+    return founderProjectSeedErrorResponse(error, "list_failed");
+  }
 }
 
 export async function POST(req: Request) {
@@ -106,14 +119,13 @@ export async function POST(req: Request) {
       }),
     ).catch(() => {});
 
-    return NextResponse.json({ ok: true, seed: record });
+    return NextResponse.json({
+      ok: true,
+      seed: record,
+      seedId: record.seedId,
+      store: getFounderProjectSeedStoreMeta(),
+    });
   } catch (error) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: error instanceof Error ? error.message : "seed_failed",
-      },
-      { status: 500 },
-    );
+    return founderProjectSeedErrorResponse(error, "seed_failed");
   }
 }

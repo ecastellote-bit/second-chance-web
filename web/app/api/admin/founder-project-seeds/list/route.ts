@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
+import { founderProjectSeedErrorResponse } from "@/lib/learning/founderProjectSeedApiErrors";
 import {
+  getFounderProjectSeedStoreMeta,
   getFounderProjectSeedStoreStatus,
   listFounderProjectSeeds,
   type FounderProjectSeedStatus,
 } from "@/lib/learning/founderProjectSeeds";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const VALID_STATUSES = new Set<FounderProjectSeedStatus>([
   "pending_review",
@@ -38,14 +41,9 @@ export async function GET(req: Request) {
       total: seeds.length,
       seeds,
       store,
+      meta: getFounderProjectSeedStoreMeta(),
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: error instanceof Error ? error.message : "list_failed",
-      },
-      { status: 500 },
-    );
+    return founderProjectSeedErrorResponse(error, "list_failed");
   }
 }

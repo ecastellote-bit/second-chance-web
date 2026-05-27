@@ -19,10 +19,21 @@ type SeedRow = {
 
 type StoreStatus = {
   backend: "blob" | "local_jsonl";
-  configured: boolean;
+  durable: boolean;
+  requiresBlob: boolean;
+  blobConfigured: boolean;
   manifestSeedCount: number;
   blobListCount: number;
 };
+
+function isLocalDevHost(host: string): boolean {
+  return (
+    host === "localhost" ||
+    host.startsWith("127.0.0.1:") ||
+    host.startsWith("localhost:") ||
+    host === "127.0.0.1"
+  );
+}
 
 const STATUS_FILTERS: { id: "" | FounderProjectSeedStatus; label: string }[] = [
   { id: "", label: "Todos" },
@@ -38,6 +49,8 @@ export default function FounderProjectSeedsAdminPage() {
   const [statusFilter, setStatusFilter] = useState<"" | FounderProjectSeedStatus>("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [store, setStore] = useState<StoreStatus | null>(null);
+  const [total, setTotal] = useState(0);
+  const [origin, setOrigin] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -51,15 +64,26 @@ export default function FounderProjectSeedsAdminPage() {
         ok: boolean;
         seeds?: SeedRow[];
         store?: StoreStatus;
+        total?: number;
         error?: string;
+        message?: string;
       };
 
       if (!res.ok || !data.ok) {
-        throw new Error(data.error ?? "Error al cargar semillas");
+        if (data.error === "blob_not_configured") {
+          throw new Error(
+            "Blob no configurado en este entorno (BLOB_READ_WRITE_TOKEN). Las semillas de usuarios no pueden persistirse ni listarse aquí.",
+          );
+        }
+        throw new Error(data.message ?? data.error ?? "Error al cargar semillas");
       }
 
       setSeeds(data.seeds ?? []);
       setStore(data.store ?? null);
+      setTotal(data.total ?? data.seeds?.length ?? 0);
+      if (typeof window !== "undefined") {
+        setOrigin(window.location.origin);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error");
     } finally {
@@ -91,6 +115,10 @@ export default function FounderProjectSeedsAdminPage() {
       setUpdatingId(null);
     }
   }
+
+  const localDev = origin ? isLocalDevHost(new URL(origin).host) : false;
+  const nonDurableStore = store ? !store.durable : false;
+  const showEnvironmentAlert = localDev || nonDurableStore;
 
   return (
     <main className="min-h-screen bg-[#F8FAFC] px-4 py-8 font-[family-name:var(--font-inter)]">
@@ -151,17 +179,46 @@ export default function FounderProjectSeedsAdminPage() {
           </p>
         ) : null}
 
+        {showEnvironmentAlert ? (
+          <div className="mb-4 rounded-xl border-2 border-red-300 bg-red-50 px-4 py-4 text-[13px] leading-relaxed text-red-950">
+            <p className="font-bold">Depósito local o no durable</p>
+            <p className="mt-2">
+              Este admin está leyendo un depósito que{" "}
+              <strong>no es la cola global de producción</strong>. Para revisar proyectos reales
+              sembrados por usuarios, abrí el admin en la{" "}
+              <strong>misma URL de producción</strong> donde se sembraron (no localhost ni preview
+              sin Blob).
+            </p>
+            {localDev ? (
+              <p className="mt-2">
+                Estás en <span className="font-mono">{origin || "localhost"}</span> — el JSONL local
+                de desarrollo no contiene las semillas del celular en producción.
+              </p>
+            ) : null}
+            {nonDurableStore && store?.requiresBlob ? (
+              <p className="mt-2">
+                Falta <span className="font-mono">BLOB_READ_WRITE_TOKEN</span> en este deploy. Sin
+                Blob, Vercel no puede persistir semillas entre dispositivos.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
         {store ? (
           <p className="mb-4 rounded-xl border border-[#E8EEF3] bg-white px-4 py-3 text-[12px] leading-relaxed text-[#6B7A8C]">
-            Depósito: <strong className="text-[#243647]">{store.backend}</strong>
-            {" · "}índice: {store.manifestSeedCount}
-            {" · "}blobs escaneados: {store.blobListCount}
-            {typeof window !== "undefined" ? (
-              <>
-                {" · "}
-                <span className="font-mono text-[11px]">{window.location.host}</span>
-              </>
-            ) : null}
+            <span className="font-semibold text-[#243647]">Operación</span>
+            {" · "}
+            origin: <span className="font-mono text-[11px]">{origin || "—"}</span>
+            {" · "}
+            backend: <strong>{store.backend}</strong>
+            {" · "}
+            durable: <strong>{store.durable ? "sí" : "no"}</strong>
+            {" · "}
+            total listado: <strong>{total}</strong>
+            {" · "}
+            índice manifest: {store.manifestSeedCount}
+            {" · "}
+            blobs escaneados: {store.blobListCount}
           </p>
         ) : null}
 
@@ -169,18 +226,22 @@ export default function FounderProjectSeedsAdminPage() {
           <p className="text-sm text-[#6B7A8C]">Cargando semillas…</p>
         ) : seeds.length === 0 ? (
           <div className="space-y-3 text-sm text-[#6B7A8C]">
-            <p>No hay semillas con este filtro en este entorno.</p>
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] leading-relaxed text-amber-950">
-              <p className="font-semibold">Si en el celular ya ves «Tu semilla recibida»</p>
-              <p className="mt-1">
-                Abrí este admin en la <strong>misma URL de producción</strong> donde sembraste (no en
-                localhost). Cada entorno tiene su propio depósito.
+            <p className="font-semibold text-[#0B2E59]">
+              No hay semillas en este depósito{statusFilter ? " con este filtro" : ""}.
+            </p>
+            {showEnvironmentAlert ? (
+              <p>
+                Esto puede ser correcto para localhost. Si usuarios ya sembraron en producción, el
+                problema es de <strong>entorno</strong>, no de que falten proyectos en el mundo real.
               </p>
-              <p className="mt-2">
-                Tras el próximo deploy, el índice de semillas se reconstruye solo. Tocá{" "}
-                <strong>Actualizar</strong> una vez desplegado.
+            ) : store && store.durable && store.blobListCount === 0 ? (
+              <p>
+                El depósito Blob está activo pero no hay semillas todavía. Cuando alguien siembre en
+                esta misma URL, deberían aparecer acá tras Actualizar.
               </p>
-            </div>
+            ) : (
+              <p>Probá Actualizar o quitá filtros. Si acabás de sembrar, esperá unos segundos.</p>
+            )}
           </div>
         ) : (
           <ul className="space-y-3">
