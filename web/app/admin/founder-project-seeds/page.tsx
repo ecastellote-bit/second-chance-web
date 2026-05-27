@@ -17,6 +17,13 @@ type SeedRow = {
   statusUpdatedAt?: string | null;
 };
 
+type StoreStatus = {
+  backend: "blob" | "local_jsonl";
+  configured: boolean;
+  manifestSeedCount: number;
+  blobListCount: number;
+};
+
 const STATUS_FILTERS: { id: "" | FounderProjectSeedStatus; label: string }[] = [
   { id: "", label: "Todos" },
   { id: "pending_review", label: "En revisión" },
@@ -30,6 +37,7 @@ export default function FounderProjectSeedsAdminPage() {
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState<"" | FounderProjectSeedStatus>("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [store, setStore] = useState<StoreStatus | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -42,6 +50,7 @@ export default function FounderProjectSeedsAdminPage() {
       const data = (await res.json()) as {
         ok: boolean;
         seeds?: SeedRow[];
+        store?: StoreStatus;
         error?: string;
       };
 
@@ -50,6 +59,7 @@ export default function FounderProjectSeedsAdminPage() {
       }
 
       setSeeds(data.seeds ?? []);
+      setStore(data.store ?? null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error");
     } finally {
@@ -141,10 +151,37 @@ export default function FounderProjectSeedsAdminPage() {
           </p>
         ) : null}
 
+        {store ? (
+          <p className="mb-4 rounded-xl border border-[#E8EEF3] bg-white px-4 py-3 text-[12px] leading-relaxed text-[#6B7A8C]">
+            Depósito: <strong className="text-[#243647]">{store.backend}</strong>
+            {" · "}índice: {store.manifestSeedCount}
+            {" · "}blobs escaneados: {store.blobListCount}
+            {typeof window !== "undefined" ? (
+              <>
+                {" · "}
+                <span className="font-mono text-[11px]">{window.location.host}</span>
+              </>
+            ) : null}
+          </p>
+        ) : null}
+
         {loading ? (
           <p className="text-sm text-[#6B7A8C]">Cargando semillas…</p>
         ) : seeds.length === 0 ? (
-          <p className="text-sm text-[#6B7A8C]">No hay semillas con este filtro.</p>
+          <div className="space-y-3 text-sm text-[#6B7A8C]">
+            <p>No hay semillas con este filtro en este entorno.</p>
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] leading-relaxed text-amber-950">
+              <p className="font-semibold">Si en el celular ya ves «Tu semilla recibida»</p>
+              <p className="mt-1">
+                Abrí este admin en la <strong>misma URL de producción</strong> donde sembraste (no en
+                localhost). Cada entorno tiene su propio depósito.
+              </p>
+              <p className="mt-2">
+                Tras el próximo deploy, el índice de semillas se reconstruye solo. Tocá{" "}
+                <strong>Actualizar</strong> una vez desplegado.
+              </p>
+            </div>
+          </div>
         ) : (
           <ul className="space-y-3">
             {seeds.map((seed) => (

@@ -33,8 +33,22 @@ export type ListFounderProjectSeedsOptions = {
 };
 
 const BLOB_PREFIX = "founder-project-seeds";
+const MANIFEST_BLOB_PATH = `${BLOB_PREFIX}/_manifest.json`;
 
 const PUBLIC_STATUSES: FounderProjectSeedStatus[] = ["published"];
+
+type FounderProjectSeedManifest = {
+  recordType: "founder_project_seed_manifest";
+  seedIds: string[];
+  updatedAt: string;
+};
+
+export type FounderProjectSeedStoreStatus = {
+  backend: "blob" | "local_jsonl";
+  configured: boolean;
+  manifestSeedCount: number;
+  blobListCount: number;
+};
 
 function seedsPath(): string {
   return path.join(process.cwd(), "data", "founder-project-seeds.jsonl");
@@ -58,34 +72,154 @@ function normalizeSeed(raw: FounderProjectSeed): FounderProjectSeed {
   };
 }
 
-async function readSeedFromBlob(seedId: string): Promise<FounderProjectSeed | null> {
+function parseSeedPayload(raw: string): FounderProjectSeed | null {
   try {
-    const result = await get(seedBlobPath(seedId), { access: "private" });
-    if (!result || result.statusCode !== 200 || !result.stream) return null;
-    const raw = await new Response(result.stream).text();
     const parsed = JSON.parse(raw) as FounderProjectSeed;
-    if (parsed.recordType !== "founder_project_seed") return null;
+    if (!parsed?.seedId || typeof parsed.title !== "string") return null;
+    if (
+      parsed.recordType &&
+      parsed.recordType !== "founder_project_seed"
+    ) {
+      return null;
+    }
     return normalizeSeed(parsed);
   } catch {
     return null;
   }
 }
 
-async function listSeedsFromBlob(limit: number): Promise<FounderProjectSeed[]> {
-  const { blobs } = await list({
-    prefix: `${BLOB_PREFIX}/`,
-    limit: Math.min(limit, 1000),
+async function readSeedFromBlobPath(pathname: string): Promise<FounderProjectSeed | null> {
+  try {
+    const result = await get(pathname, { access: "private" });
+    if (!result || result.statusCode !== 200 || !result.stream) return null;
+    const raw = await new Response(result.stream).text();
+    return parseSeedPayload(raw);
+  } catch {
+    return null;
+  }
+}
+
+async function readSeedFromBlob(seedId: string): Promise<FounderProjectSeed | null> {
+  return readSeedFromBlobPath(seedBlobPath(seedId));
+}
+
+async function readManifestFromBlob(): Promise<string[]> {
+  try {
+    const result = await get(MANIFEST_BLOB_PATH, { access: "private" });
+    if (!result || result.statusCode !== 200 || !result.stream) return [];
+    const raw = await new Response(result.stream).text();
+    const parsed = JSON.parse(raw) as FounderProjectSeedManifest;
+    if (parsed.recordType !== "founder_project_seed_manifest") return [];
+    return Array.isArray(parsed.seedIds)
+      ? parsed.seedIds.filter((id) => typeof id === "string" && id.trim())
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+async function writeManifestToBlob(seedIds: string[]): Promise<void> {
+  const unique = [...new Set(seedIds.filter(Boolean))];
+  const manifest: FounderProjectSeedManifest = {
+    recordType: "founder_project_seed_manifest",
+    seedIds: unique,
+    updatedAt: new Date().toISOString(),
+  };
+  await put(MANIFEST_BLOB_PATH, JSON.stringify(manifest), {
+    access: "private",
+    contentType: "application/json",
+    addRandomSuffix: false,
+    allowOverwrite: true,
   });
+}
+
+async function registerSeedInManifest(seedId: string): Promise<void> {
+  const existing = await readManifestFromBlob();
+  if (existing.includes(seedId)) return;
+  await writeManifestToBlob([...existing, seedId]);
+}
+
+function extractSeedIdFromBlobPath(pathname: string): string | null {
+  const match = pathname.match(/founder-project-seeds\/(.+)\.json$/);
+  if (!match?.[1] || match[1] === "_manifest") return null;
+  return match[1];
+}
+
+async function listSeedIdsFromBlobScan(): Promise<string[]> {
+  const ids = new Set<string>();
+  let cursor: string | undefined;
+
+  do {
+    const page = await list({
+      prefix: `${BLOB_PREFIX}/`,
+      limit: 1000,
+      cursor,
+    });
+
+    for (const blob of page.blobs) {
+      const seedId = extractSeedIdFromBlobPath(blob.pathname);
+      if (seedId) ids.add(seedId);
+    }
+
+    cursor = page.hasMore ? page.cursor : undefined;
+  } while (cursor);
+
+  return [...ids];
+}
+
+async function listSeedsFromBlob(): Promise<FounderProjectSeed[]> {
+  let manifestIds = await readManifestFromBlob();
+
+  if (manifestIds.length === 0) {
+    manifestIds = await listSeedIdsFromBlobScan();
+    if (manifestIds.length > 0) {
+      await writeManifestToBlob(manifestIds).catch(() => {});
+    }
+  }
 
   const seeds: FounderProjectSeed[] = [];
-  for (const blob of blobs) {
-    const match = blob.pathname.match(/founder-project-seeds\/(.+)\.json$/);
-    if (!match) continue;
-    const seed = await readSeedFromBlob(match[1]!);
+  for (const seedId of manifestIds) {
+    const seed = await readSeedFromBlob(seedId);
     if (seed) seeds.push(seed);
   }
 
+  if (seeds.length > 0) {
+    return seeds.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }
+
+  const scannedIds = await listSeedIdsFromBlobScan();
+  for (const seedId of scannedIds) {
+    const seed = await readSeedFromBlob(seedId);
+    if (seed) seeds.push(seed);
+  }
+
+  if (scannedIds.length > 0) {
+    await writeManifestToBlob(scannedIds).catch(() => {});
+  }
+
   return seeds.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export async function getFounderProjectSeedStoreStatus(): Promise<FounderProjectSeedStoreStatus> {
+  if (!isVercelBlobConfigured()) {
+    const local = await readAllSeedsFromLocal();
+    return {
+      backend: "local_jsonl",
+      configured: true,
+      manifestSeedCount: local.length,
+      blobListCount: 0,
+    };
+  }
+
+  const manifestIds = await readManifestFromBlob();
+  const scannedIds = await listSeedIdsFromBlobScan();
+
+  return {
+    backend: "blob",
+    configured: true,
+    manifestSeedCount: manifestIds.length,
+    blobListCount: scannedIds.length,
+  };
 }
 
 async function writeSeedToBlob(record: FounderProjectSeed): Promise<void> {
@@ -211,6 +345,7 @@ export async function appendFounderProjectSeed(
 
   if (isVercelBlobConfigured()) {
     await writeSeedToBlob(record);
+    await registerSeedInManifest(record.seedId).catch(() => {});
     return record;
   }
 
@@ -240,6 +375,7 @@ export async function updateFounderProjectSeedStatus(
 
   if (isVercelBlobConfigured()) {
     await writeSeedToBlob(updated);
+    await registerSeedInManifest(updated.seedId).catch(() => {});
     return updated;
   }
 
@@ -253,7 +389,7 @@ export async function listFounderProjectSeeds(
   const limit = Math.min(options.limit ?? 200, 1000);
 
   if (isVercelBlobConfigured()) {
-    const seeds = await listSeedsFromBlob(limit);
+    const seeds = await listSeedsFromBlob();
     return filterSeeds(seeds, { ...options, limit });
   }
 

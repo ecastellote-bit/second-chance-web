@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  getFounderProjectSeedStoreStatus,
   listFounderProjectSeeds,
   type FounderProjectSeedStatus,
 } from "@/lib/learning/founderProjectSeeds";
@@ -30,10 +31,13 @@ export async function GET(req: Request) {
       status,
     });
 
+    const store = await getFounderProjectSeedStoreStatus();
+
     return NextResponse.json({
       ok: true,
       total: seeds.length,
       seeds,
+      store,
     });
   } catch (error) {
     return NextResponse.json(
