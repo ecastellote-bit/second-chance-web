@@ -4,6 +4,7 @@ export type CommunityActivityType =
   | "activation_selected"
   | "project_seeded"
   | "project_interest"
+  | "project_signal"
   | "circle_saved"
   | "formation_interest"
   | "event_interest"
@@ -39,6 +40,7 @@ export type CommunityMessageKind =
   | "project_received"
   | "next_step"
   | "interest_confirmation"
+  | "project_signal_confirmation"
   | "review_pending"
   | "community_seed";
 

@@ -57,6 +57,16 @@ export function resolveActivityCta(item: CommunityActivityItem): ResolvedCta | n
       }
       return { label: "Ver proyectos", href: "/proyectos" };
     }
+    case "project_signal": {
+      const projectId = metaStr(meta, "projectId");
+      if (projectId) {
+        return {
+          label: "Ver proyecto",
+          href: `/proyectos/semilla/${encodeURIComponent(projectId)}`,
+        };
+      }
+      return { label: "Ver proyectos", href: "/proyectos" };
+    }
     case "formation_interest": {
       const targetId = metaStr(meta, "targetId");
       if (targetId) {
@@ -155,6 +165,16 @@ export function resolveMessageCta(message: CommunityMessage): ResolvedCta | null
         return {
           label: "Ver evento",
           href: `/eventos/${encodeURIComponent(targetId)}`,
+        };
+      }
+      return { label: "Ver actividad", href: "/actividad" };
+    }
+    case "project_signal_confirmation": {
+      const projectId = metaStr(meta, "projectId");
+      if (projectId) {
+        return {
+          label: "Ver proyecto",
+          href: `/proyectos/semilla/${encodeURIComponent(projectId)}`,
         };
       }
       return { label: "Ver actividad", href: "/actividad" };

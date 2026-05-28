@@ -162,6 +162,59 @@ export async function recordProjectInterest(input: {
   });
 }
 
+export async function recordProjectSignal(input: {
+  userId: string;
+  archiveId?: string | null;
+  projectId: string;
+  projectTitle: string;
+  signalType:
+    | "project_follow_close"
+    | "project_interest"
+    | "project_possible_contribution"
+    | "project_join_exploration";
+  capabilities?: string[];
+}): Promise<void> {
+  const { userId, archiveId, projectId, projectTitle, signalType, capabilities } = input;
+  const dedupe = `project_signal:${signalType}:${projectId}`;
+  const projectHref = `/proyectos/semilla/${encodeURIComponent(projectId)}`;
+  const capabilityCount = Array.isArray(capabilities) ? capabilities.length : 0;
+
+  const titleByType: Record<typeof signalType, string> = {
+    project_follow_close: "Seguir de cerca",
+    project_interest: "Me interesa",
+    project_possible_contribution: "Tal vez podría aportar",
+    project_join_exploration: "Quiero explorar si puedo sumarme",
+  };
+
+  const bodyByType: Record<typeof signalType, string> = {
+    project_follow_close:
+      "Tu señal quedó guardada. No implica compromiso. Si este proyecto reúne condiciones para abrir nuevos pasos, podremos avisarte.",
+    project_interest:
+      "Guardamos tu interés. Esto ayuda a entender qué ideas empiezan a generar movimiento dentro del barrio.",
+    project_possible_contribution:
+      "Tu posible aporte quedó registrado. No implica compromiso. El equipo podrá revisarlo para evaluar próximos pasos.",
+    project_join_exploration:
+      "Recibimos tu señal. Esto no abre contacto directo todavía. Primero se revisa si hay condiciones para una conversación cuidada.",
+  };
+
+  await appendCommunityActivity(userId, {
+    archiveId: archiveId ?? null,
+    type: "project_signal",
+    title: `${titleByType[signalType]} — ${projectTitle}`,
+    body: bodyByType[signalType],
+    ctaLabel: "Ver proyecto",
+    ctaHref: projectHref,
+    source: "user_action",
+    status: "visible",
+    dedupeKey: dedupe,
+    meta: {
+      projectId,
+      signalType,
+      capabilitiesCount: capabilityCount > 0 ? String(capabilityCount) : null,
+    },
+  });
+}
+
 export async function recordFormationOrEventInterest(input: {
   userId: string;
   archiveId?: string | null;

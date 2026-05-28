@@ -142,6 +142,12 @@ export default function FounderProjectSeedsAdminPage() {
             <Link href="/admin/observatorio" className="font-semibold text-[#1A9BB0] underline">
               Observatorio →
             </Link>
+            <Link
+              href="/admin/founder-project-signals"
+              className="font-semibold text-[#1A9BB0] underline"
+            >
+              Señales de proyectos →
+            </Link>
             <Link href="/" className="text-[#6B7A8C] underline">
               ← Inicio
             </Link>

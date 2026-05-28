@@ -4,11 +4,20 @@ import {
   recordCircleInterest,
   recordFormationOrEventInterest,
   recordProjectInterest,
+  recordProjectSignal,
 } from "@/lib/community/communityRecords";
 import {
   getOfficialActivationPath,
   isOfficialActivationPathId,
 } from "@/lib/content/officialActivationPaths";
+import {
+  FounderProjectSeedStoreError,
+  readFounderProjectSeed,
+} from "@/lib/learning/founderProjectSeeds";
+import {
+  FounderProjectSignalStoreError,
+  upsertFounderProjectSignal,
+} from "@/lib/learning/founderProjectSignals";
 
 export async function POST(req: Request) {
   try {
@@ -104,12 +113,87 @@ export async function POST(req: Request) {
         });
         break;
       }
+      case "founder_project_signal": {
+        const projectId = typeof body.projectId === "string" ? body.projectId.trim() : "";
+        const projectTitle =
+          typeof body.projectTitle === "string" ? body.projectTitle.trim() : "";
+        const signalType =
+          body.signalType === "project_follow_close" ||
+          body.signalType === "project_interest" ||
+          body.signalType === "project_possible_contribution" ||
+          body.signalType === "project_join_exploration"
+            ? body.signalType
+            : "";
+        const source =
+          body.source === "projects_list" || body.source === "activation"
+            ? body.source
+            : "project_page";
+        const capabilities =
+          Array.isArray(body.capabilities) && signalType === "project_possible_contribution"
+            ? body.capabilities.filter((item): item is string => typeof item === "string")
+            : [];
+
+        if (!projectId || !projectTitle || !signalType) {
+          return NextResponse.json(
+            { ok: false, error: "invalid_project_signal_payload" },
+            { status: 400 },
+          );
+        }
+
+        const seed = await readFounderProjectSeed(projectId);
+        if (!seed) {
+          return NextResponse.json({ ok: false, error: "project_not_found" }, { status: 404 });
+        }
+        if (seed.status !== "published") {
+          return NextResponse.json(
+            { ok: false, error: "project_not_published" },
+            { status: 400 },
+          );
+        }
+
+        const persisted = await upsertFounderProjectSignal({
+          projectId,
+          projectTitle,
+          actorUserId: userId,
+          signalType,
+          capabilities,
+          source,
+        });
+
+        await recordProjectSignal({
+          userId,
+          archiveId,
+          projectId,
+          projectTitle,
+          signalType,
+          capabilities,
+        });
+
+        return NextResponse.json({
+          ok: true,
+          signal: persisted.signal,
+          deduped: persisted.deduped,
+          updated: persisted.updated,
+        });
+      }
       default:
         return NextResponse.json({ ok: false, error: "unknown_event" }, { status: 400 });
     }
 
     return NextResponse.json({ ok: true });
   } catch (error) {
+    if (error instanceof FounderProjectSeedStoreError) {
+      return NextResponse.json(
+        { ok: false, error: error.code, message: error.message },
+        { status: error.code === "blob_not_configured" ? 503 : 500 },
+      );
+    }
+    if (error instanceof FounderProjectSignalStoreError) {
+      return NextResponse.json(
+        { ok: false, error: error.code, message: error.message },
+        { status: error.code === "blob_not_configured" ? 503 : 500 },
+      );
+    }
     return NextResponse.json(
       {
         ok: false,

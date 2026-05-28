@@ -141,6 +141,19 @@ export async function postCommunityEvent(
         notifySimilar?: boolean;
         savedRoute?: boolean;
         archiveId?: string | null;
+      }
+    | {
+        event: "founder_project_signal";
+        projectId: string;
+        projectTitle: string;
+        signalType:
+          | "project_follow_close"
+          | "project_interest"
+          | "project_possible_contribution"
+          | "project_join_exploration";
+        capabilities?: string[];
+        source?: "project_page" | "projects_list" | "activation";
+        archiveId?: string | null;
       },
 ): Promise<{ ok: boolean }> {
   const { userId, archiveId } = resolveIds(
