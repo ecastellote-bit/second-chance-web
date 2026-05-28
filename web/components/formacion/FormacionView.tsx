@@ -1,17 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { CirculosLeftNav } from "@/components/circulos/CirculosLeftNav";
 import { CommunityMicroAction } from "@/components/community/CommunityMicroAction";
 import { EventoOpportunityCard } from "@/components/eventos/EventoOpportunityCard";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
 import { EVENTOS_CATALOG } from "@/lib/content/eventosCatalog";
 import { MICROCOPY } from "@/lib/content/neighborhoodMicrocopy";
+import { getFoundingMemberArchiveId } from "@/lib/learning/foundationalMember";
+import { getOrCreateUserId } from "@/lib/users/activeUserSession";
 
 const FORMACION_FILTER = new Set(["talleres", "charlas"]);
 
 export function FormacionView() {
+  const [suggestionText, setSuggestionText] = useState("");
+  const [sendingSuggestion, setSendingSuggestion] = useState(false);
+  const [suggestionFeedback, setSuggestionFeedback] = useState("");
   const routes = useMemo(
     () =>
       EVENTOS_CATALOG.filter((e) =>
@@ -19,6 +24,50 @@ export function FormacionView() {
       ),
     [],
   );
+
+  async function submitSuggestion(e: React.FormEvent) {
+    e.preventDefault();
+    const text = suggestionText.trim();
+    if (text.length < 10) {
+      setSuggestionFeedback("Por favor contanos un poco más (mínimo 10 caracteres).");
+      return;
+    }
+
+    setSendingSuggestion(true);
+    setSuggestionFeedback("");
+    try {
+      const res = await fetch("/api/formation-suggestions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: getOrCreateUserId(),
+          archiveId: getFoundingMemberArchiveId(),
+          source: "formation_page",
+          text,
+        }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        error?: string;
+        confirmation?: string;
+      };
+      if (!res.ok || !data.ok) {
+        setSuggestionFeedback(
+          data.error === "blob_not_configured"
+            ? "No pudimos guardar tu sugerencia en este entorno. Probá desde la URL principal de producción."
+            : "No pudimos guardar la sugerencia ahora. Probá de nuevo.",
+        );
+        return;
+      }
+      setSuggestionText("");
+      setSuggestionFeedback(
+        data.confirmation ??
+          "Tu sugerencia quedó guardada. Esto nos ayuda a buscar propuestas formativas más conectadas con lo que la comunidad necesita.",
+      );
+    } finally {
+      setSendingSuggestion(false);
+    }
+  }
 
   return (
     <div className="flex min-h-[100dvh] flex-col font-[family-name:var(--font-inter)] bg-[#F8FAFC] text-[#243647] lg:flex-row">
@@ -58,6 +107,41 @@ export function FormacionView() {
                 acercarte primero — sin prometer convenios ni descuentos que todavía no existen.
               </p>
             </div>
+
+            <section className="mb-6 rounded-2xl border border-[#E8EEF3] bg-white p-4">
+              <h2 className="text-lg font-bold text-[#0B2E59]">¿En qué te gustaría formarte?</h2>
+              <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">
+                Estamos construyendo el mapa formativo de VocationUp. Durante esta etapa fundadora
+                vamos a recibir sugerencias y solicitar nuevas modalidades formativas a
+                universidades e instituciones educativas.
+              </p>
+              <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">
+                Contanos qué te gustaría aprender, en qué formato, para qué objetivo o qué
+                institución te gustaría que participe. Te mantendremos al tanto de los avances.
+              </p>
+              <form onSubmit={submitSuggestion} className="mt-3">
+                <textarea
+                  value={suggestionText}
+                  onChange={(event) => setSuggestionText(event.target.value)}
+                  placeholder="Ejemplo: me gustaría formarme en comunicación digital, oficios, gestión de proyectos, programación, acompañamiento comunitario, administración, salud, educación, arte, o cualquier área que conecte con mi próximo movimiento."
+                  className="min-h-[130px] w-full rounded-xl border border-[#E8EEF3] px-3 py-3 text-sm leading-relaxed text-[#243647]"
+                />
+                <button
+                  type="submit"
+                  disabled={sendingSuggestion}
+                  className="vu-focus mt-3 min-h-[44px] rounded-xl bg-[#0B2E59] px-4 text-sm font-semibold text-white disabled:opacity-70"
+                >
+                  {sendingSuggestion ? "Enviando…" : "Enviar sugerencia"}
+                </button>
+              </form>
+              {suggestionFeedback ? (
+                <p className="mt-3 text-[12px] leading-relaxed text-[#6B7A8C]">{suggestionFeedback}</p>
+              ) : null}
+              <p className="mt-3 rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] px-3 py-2 text-[12px] text-[#6B7A8C]">
+                No implica inscripción ni reserva de cupo. Es una señal para construir futuras
+                alianzas formativas.
+              </p>
+            </section>
 
             <div className="mb-4 flex flex-wrap gap-2">
               <Link
