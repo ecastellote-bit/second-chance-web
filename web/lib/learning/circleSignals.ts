@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { get, list, put } from "@vercel/blob";
+import { sanitizeCommunityPlainText } from "@/lib/community/sanitizeCommunityText";
 import {
   assertVercelBlobForProduction,
   isVercelBlobConfigured,
@@ -13,13 +14,13 @@ export type CircleSignalType =
   | "circle_access_request"
   | "circle_idea";
 
-/** `approved` reserved for P1-D3+ visible guided contributions; not settable via admin yet. */
 export type CircleSignalStatus =
   | "active"
   | "reviewed"
   | "flagged"
-  | "archived"
-  | "approved";
+  | "archived";
+
+export type CircleIdeaPublicStatus = "not_public" | "visible" | "hidden";
 
 export type CircleSignal = {
   recordType: "circle_signal";
@@ -30,6 +31,10 @@ export type CircleSignal = {
   signalType: CircleSignalType;
   note?: string;
   status: CircleSignalStatus;
+  /** Curated public copy for circle_idea only — never auto-filled from raw note. */
+  publicStatus?: CircleIdeaPublicStatus;
+  publicText?: string;
+  publicApprovedAt?: string;
   createdAt: string;
   updatedAt?: string;
   dedupeKey: string;
@@ -90,10 +95,21 @@ function normalizeSignal(raw: CircleSignal): CircleSignal {
     typeof raw.note === "string" && raw.note.trim()
       ? raw.note.trim().slice(0, MAX_NOTE_LENGTH)
       : undefined;
+  const publicStatus =
+    raw.publicStatus === "visible" || raw.publicStatus === "hidden"
+      ? raw.publicStatus
+      : "not_public";
+  const publicText =
+    typeof raw.publicText === "string" && raw.publicText.trim()
+      ? sanitizeCommunityPlainText(raw.publicText, 800)
+      : undefined;
   return {
     ...raw,
     recordType: "circle_signal",
     note,
+    publicStatus: raw.signalType === "circle_idea" ? publicStatus : undefined,
+    publicText: raw.signalType === "circle_idea" ? publicText : undefined,
+    publicApprovedAt: raw.publicApprovedAt,
   };
 }
 
@@ -294,6 +310,7 @@ export async function upsertCircleSignal(input: {
     createdAt: now,
     updatedAt: now,
     dedupeKey,
+    publicStatus: input.signalType === "circle_idea" ? "not_public" : undefined,
   };
 
   if (isVercelBlobConfigured()) {
@@ -303,6 +320,74 @@ export async function upsertCircleSignal(input: {
   }
 
   return { signal: record, deduped: false, updated: false };
+}
+
+export async function listCirclePublicVisibleIdeas(options?: {
+  circleId?: string;
+  limit?: number;
+}): Promise<{ signalId: string; publicText: string }[]> {
+  const signals = await listCircleSignals({
+    circleId: options?.circleId,
+    signalType: "circle_idea",
+    limit: options?.limit ?? 30,
+  });
+  return signals
+    .filter((item) => item.publicStatus === "visible" && item.publicText)
+    .map((item) => ({
+      signalId: item.signalId,
+      publicText: item.publicText!,
+    }));
+}
+
+export async function approveCircleIdeaPublicVisibility(
+  signalId: string,
+  publicText: string,
+): Promise<CircleSignal | null> {
+  assertCircleSignalDurableStore("approve_idea_visibility");
+  const text = sanitizeCommunityPlainText(publicText, 800);
+  if (text.length < 20) throw new Error("circle_idea_public_text_invalid");
+
+  const all = await listCircleSignals({ limit: 5000 });
+  const existing = all.find((item) => item.signalId === signalId);
+  if (!existing || existing.signalType !== "circle_idea") return null;
+
+  const now = new Date().toISOString();
+  const updated: CircleSignal = {
+    ...existing,
+    publicStatus: "visible",
+    publicText: text,
+    publicApprovedAt: now,
+    updatedAt: now,
+  };
+
+  if (isVercelBlobConfigured()) {
+    await writeSignalToBlob(updated);
+  } else {
+    await writeSignalToLocal(updated);
+  }
+  return updated;
+}
+
+export async function hideCircleIdeaPublicVisibility(
+  signalId: string,
+): Promise<CircleSignal | null> {
+  assertCircleSignalDurableStore("hide_idea_visibility");
+  const all = await listCircleSignals({ limit: 5000 });
+  const existing = all.find((item) => item.signalId === signalId);
+  if (!existing || existing.signalType !== "circle_idea") return null;
+
+  const updated: CircleSignal = {
+    ...existing,
+    publicStatus: "hidden",
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (isVercelBlobConfigured()) {
+    await writeSignalToBlob(updated);
+  } else {
+    await writeSignalToLocal(updated);
+  }
+  return updated;
 }
 
 export async function updateCircleSignalStatus(

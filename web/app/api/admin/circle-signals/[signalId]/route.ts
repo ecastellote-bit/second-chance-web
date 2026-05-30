@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import {
   CircleSignalStoreError,
+  approveCircleIdeaPublicVisibility,
+  hideCircleIdeaPublicVisibility,
   type CircleSignalStatus,
   updateCircleSignalStatus,
 } from "@/lib/learning/circleSignals";
@@ -15,9 +17,30 @@ type RouteContext = { params: Promise<{ signalId: string }> };
 export async function PATCH(req: Request, context: RouteContext) {
   try {
     const { signalId } = await context.params;
-    const body = (await req.json()) as { status?: string };
-    const status = typeof body.status === "string" ? body.status.trim() : "";
+    const body = (await req.json()) as {
+      status?: string;
+      action?: string;
+      publicText?: string;
+    };
 
+    if (body.action === "approve_visibility") {
+      const publicText = typeof body.publicText === "string" ? body.publicText : "";
+      const updated = await approveCircleIdeaPublicVisibility(signalId, publicText);
+      if (!updated) {
+        return NextResponse.json({ ok: false, error: "signal_not_found" }, { status: 404 });
+      }
+      return NextResponse.json({ ok: true, signal: updated });
+    }
+
+    if (body.action === "hide_visibility") {
+      const updated = await hideCircleIdeaPublicVisibility(signalId);
+      if (!updated) {
+        return NextResponse.json({ ok: false, error: "signal_not_found" }, { status: 404 });
+      }
+      return NextResponse.json({ ok: true, signal: updated });
+    }
+
+    const status = typeof body.status === "string" ? body.status.trim() : "";
     if (!VALID_STATUSES.has(status as CircleSignalStatus)) {
       return NextResponse.json({ ok: false, error: "invalid_status" }, { status: 400 });
     }
@@ -29,6 +52,12 @@ export async function PATCH(req: Request, context: RouteContext) {
 
     return NextResponse.json({ ok: true, signal: updated });
   } catch (error) {
+    if (error instanceof Error && error.message === "circle_idea_public_text_invalid") {
+      return NextResponse.json(
+        { ok: false, error: "circle_idea_public_text_invalid" },
+        { status: 400 },
+      );
+    }
     if (error instanceof CircleSignalStoreError) {
       return NextResponse.json(
         { ok: false, error: error.code, message: error.message },

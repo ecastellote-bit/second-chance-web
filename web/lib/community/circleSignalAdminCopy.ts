@@ -12,7 +12,6 @@ export const CIRCLE_SIGNAL_STATUS_LABEL: Record<CircleSignalStatus, string> = {
   reviewed: "Vista por el equipo",
   flagged: "Con alerta",
   archived: "Cerrada",
-  approved: "Aprobada para visibilidad",
 };
 
 export const CIRCLE_SIGNAL_STATUS_FILTER: { id: "" | CircleSignalStatus; label: string }[] = [
@@ -21,7 +20,6 @@ export const CIRCLE_SIGNAL_STATUS_FILTER: { id: "" | CircleSignalStatus; label: 
   { id: "reviewed", label: "Vistas por el equipo" },
   { id: "flagged", label: "Con alerta" },
   { id: "archived", label: "Cerradas" },
-  { id: "approved", label: "Aprobadas (visibilidad)" },
 ];
 
 export const CIRCLE_SIGNAL_ADMIN_MODERATION_HELP = [
@@ -40,11 +38,8 @@ export const CIRCLE_SIGNAL_ADMIN_MODERATION_HELP = [
     meaning: "Sacar de la bandeja activa: caso resuelto, descartado o sin seguimiento por ahora.",
   },
   {
-    action: "Aprobar visibilidad",
+    action: "Aprobar visibilidad (ideas)",
     meaning:
-      "Próximamente (P1-D3): aprobar un aporte guiado para mostrarlo en el barrio tras revisión. Todavía no está activo.",
+      "Solo para ideas de círculo: publicar texto curado y anónimo. No usa la nota cruda del usuario.",
   },
 ] as const;
-
-export const CIRCLE_SIGNAL_APPROVE_DISABLED_TITLE =
-  "Próximamente (P1-D3): aprobar visibilidad en el barrio tras revisión. Hoy ninguna señal se publica automáticamente.";
