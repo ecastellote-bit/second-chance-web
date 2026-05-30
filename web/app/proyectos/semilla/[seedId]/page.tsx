@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FounderPreviewBanner } from "@/components/founder/FounderPreviewBanner";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
+import { ReportContentButton } from "@/components/community/ReportContentButton";
 import { FounderProjectGuidedContributionsPanel } from "@/components/proyectos/FounderProjectGuidedContributionsPanel";
 import { FounderProjectSignalsPanel } from "@/components/proyectos/FounderProjectSignalsPanel";
 import {
@@ -108,6 +109,11 @@ export default function FounderSeedPage() {
             <FounderProjectGuidedContributionsPanel
               projectId={seed.seedId}
               projectTitle={seed.title}
+            />
+            <ReportContentButton
+              targetType="founder_project"
+              targetId={seed.seedId}
+              className="mt-4"
             />
           </>
         ) : null}

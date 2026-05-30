@@ -146,6 +146,9 @@ export default function FounderProjectSignalsAdminPage() {
             >
               Aportes guiados →
             </Link>
+            <Link href="/admin/community-reports" className="font-semibold text-[#1A9BB0] underline">
+              Reportes →
+            </Link>
             <Link href="/admin/observatorio" className="font-semibold text-[#1A9BB0] underline">
               Observatorio →
             </Link>

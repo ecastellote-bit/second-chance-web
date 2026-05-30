@@ -7,6 +7,7 @@ import {
   GUIDED_CONTRIBUTION_VISIBLE_PREFIX,
 } from "@/lib/community/guidedContributionCopy";
 import type { FounderProjectGuidedContributionKind } from "@/lib/learning/founderProjectGuidedContributions";
+import { ReportContentButton } from "@/components/community/ReportContentButton";
 import { getOrCreateUserId } from "@/lib/users/activeUserSession";
 
 type VisibleContribution = {
@@ -170,6 +171,11 @@ export function FounderProjectGuidedContributionsPanel({ projectId, projectTitle
                   {GUIDED_CONTRIBUTION_VISIBLE_PREFIX[item.kind]}
                 </span>{" "}
                 {item.text}
+                <ReportContentButton
+                  targetType="project_guided_contribution"
+                  targetId={item.contributionId}
+                  className="mt-2"
+                />
               </li>
             ))}
           </ul>

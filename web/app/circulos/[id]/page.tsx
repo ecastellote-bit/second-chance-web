@@ -7,6 +7,7 @@ import {
   CIRCLE_STATUS_BADGE,
   NeighborhoodActivityDetail,
 } from "@/components/neighborhood/NeighborhoodActivityDetail";
+import { ReportContentButton } from "@/components/community/ReportContentButton";
 import { CircleSignalsPanel } from "@/components/circulos/CircleSignalsPanel";
 import { CIRCULOS_CATALOG } from "@/lib/content/circulosCatalog";
 import { COMMUNITY_SEED_INTERIOR_BODY } from "@/lib/content/communitySeedCopy";
@@ -56,6 +57,7 @@ export default function CirculoDetailPage() {
     >
       <p>{circle.description}</p>
       <p className="mt-4">{COMMUNITY_SEED_INTERIOR_BODY}</p>
+      <ReportContentButton targetType="circle" targetId={circle.id} className="mt-4" />
     </NeighborhoodActivityDetail>
     </UserProfileGate>
   );
