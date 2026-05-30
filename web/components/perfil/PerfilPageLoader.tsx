@@ -11,12 +11,12 @@ import {
 import { userProfileToPerfilView } from "@/lib/users/profileToPerfilView";
 import {
   isUserProfileComplete,
-  type VuUserProfileRecord,
+  type UserProfileClientView,
 } from "@/lib/users/userProfileTypes";
 
 export function PerfilPageLoader() {
   const router = useRouter();
-  const [profile, setProfile] = useState<VuUserProfileRecord | null>(null);
+  const [profile, setProfile] = useState<UserProfileClientView | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

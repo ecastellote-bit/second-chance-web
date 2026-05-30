@@ -10,11 +10,15 @@ import {
   getFoundingMemberArchiveId,
 } from "@/lib/learning/foundationalMember";
 import {
+  fetchCommunityContact,
   fetchUserProfile,
   getOrCreateUserId,
   markProfileComplete,
 } from "@/lib/users/activeUserSession";
-import { parseChipInput, type VuUserProfileRecord } from "@/lib/users/userProfileTypes";
+import {
+  parseChipInput,
+  type UserProfileClientView,
+} from "@/lib/users/userProfileTypes";
 import {
   uploadProfileMedia,
   withTimeout,
@@ -75,6 +79,9 @@ function profileSaveError(code: string | undefined): string {
   if (code === "profile_incomplete") {
     return "Completá todos los campos obligatorios del perfil.";
   }
+  if (code === "email_invalid") {
+    return "Revisá el email: tiene que tener un formato válido.";
+  }
   return code ?? "No se pudo guardar el perfil";
 }
 
@@ -97,11 +104,14 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [hasSavedEmail, setHasSavedEmail] = useState(false);
+  const [notificationConsent, setNotificationConsent] = useState(false);
   const [avatarError, setAvatarError] = useState("");
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [avatarRetryKey, setAvatarRetryKey] = useState(0);
   const [coverUploading, setCoverUploading] = useState(false);
-  const [loading, setLoading] = useState(mode === "edit");
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -172,15 +182,18 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
   }, [coverFile]);
 
   useEffect(() => {
-    if (mode !== "edit") return;
-
-    fetchUserProfile(getOrCreateUserId()).then((profile) => {
-      if (profile) hydrate(profile);
-      setLoading(false);
-    });
+    const userId = getOrCreateUserId();
+    Promise.all([fetchUserProfile(userId), fetchCommunityContact(userId)]).then(
+      ([profile, contact]) => {
+        if (profile) hydrate(profile);
+        setHasSavedEmail(contact.hasEmail);
+        setNotificationConsent(contact.notificationConsent);
+        setLoading(false);
+      },
+    );
   }, [mode]);
 
-  function hydrate(profile: VuUserProfileRecord) {
+  function hydrate(profile: UserProfileClientView) {
     setDisplayName(profile.displayName);
     setHeadline(profile.headline);
     setMomentoActual(profile.momentoActual);
@@ -261,6 +274,8 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
             coverUrl: resolvedCoverUrl,
             diagnosticArchiveId: getFoundingMemberArchiveId(),
             cohortBatch: getFoundationalCohortBatch(),
+            email: email.trim() || null,
+            notificationConsent: email.trim() ? notificationConsent : false,
           }),
         }),
         30_000,
@@ -269,7 +284,7 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
 
       const data = (await res.json()) as {
         ok?: boolean;
-        profile?: VuUserProfileRecord;
+        profile?: UserProfileClientView;
         error?: string;
       };
       if (!data.ok || !data.profile) {
@@ -369,6 +384,42 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
             placeholder={PROFILE_FLOW_COPY.hints.aportar}
           />
 
+          <div className="space-y-3 rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] p-4">
+            <div>
+              <p className="text-sm font-semibold text-[#0B2E59]">
+                {PROFILE_FLOW_COPY.emailSection.title}
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-[#6B7A8C]">
+                {PROFILE_FLOW_COPY.emailSection.body}
+              </p>
+              <p className="mt-2 text-xs leading-relaxed text-[#6B7A8C]">
+                {PROFILE_FLOW_COPY.emailSection.noVerification}
+              </p>
+            </div>
+            {hasSavedEmail && !email.trim() && (
+              <p className="text-xs font-medium text-[#1A9BB0]">
+                {PROFILE_FLOW_COPY.emailSection.savedHint}
+              </p>
+            )}
+            <Field
+              label={PROFILE_FLOW_COPY.fields.email}
+              value={email}
+              onChange={setEmail}
+              type="email"
+              placeholder={PROFILE_FLOW_COPY.hints.email}
+            />
+            <label className="flex cursor-pointer items-start gap-3 text-sm text-[#243647]">
+              <input
+                type="checkbox"
+                checked={notificationConsent}
+                disabled={!email.trim() && !hasSavedEmail}
+                onChange={(e) => setNotificationConsent(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-[#E8EEF3]"
+              />
+              <span>{PROFILE_FLOW_COPY.fields.notificationConsent}</span>
+            </label>
+          </div>
+
           {error && <p className="text-sm text-red-700">{error}</p>}
 
           <button
@@ -398,6 +449,7 @@ function Field({
   minLength,
   multiline,
   placeholder,
+  type = "text",
 }: {
   label: string;
   value: string;
@@ -406,6 +458,7 @@ function Field({
   minLength?: number;
   multiline?: boolean;
   placeholder?: string;
+  type?: string;
 }) {
   const className =
     "mt-1 w-full rounded-xl border border-[#E8EEF3] px-4 py-3 text-sm text-[#243647]";
@@ -425,6 +478,7 @@ function Field({
         />
       ) : (
         <input
+          type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           required={required}

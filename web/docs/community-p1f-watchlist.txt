@@ -1,0 +1,5 @@
+# P1-F watchlist — no bloquear implementación actual
+
+email verification / magic link / auth real
+- P1-F guarda email privado sin verificar propiedad del dominio.
+- No usar copy de "cuenta verificada" ni "email confirmado" en UI P1-F.

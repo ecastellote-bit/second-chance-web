@@ -17,6 +17,10 @@ export type VuUserProfileRecord = {
   coverUrl?: string | null;
   /** 0–100 — sube cuando hay diagnóstico archivado */
   caminoProgress: number;
+  /** Privado — nunca exponer en APIs públicas ni perfiles ajenos */
+  email?: string | null;
+  /** Opt-in para futuras notificaciones por email (P1-F no envía emails) */
+  notificationConsent?: boolean;
 };
 
 export type UserProfilePayload = {
@@ -31,7 +35,38 @@ export type UserProfilePayload = {
   coverUrl?: string | null;
   diagnosticArchiveId?: string | null;
   cohortBatch?: string | null;
+  email?: string | null;
+  notificationConsent?: boolean;
 };
+
+/** Vista segura para cliente: sin email en claro */
+export type UserProfileClientView = Omit<VuUserProfileRecord, "email"> & {
+  hasCommunityEmail: boolean;
+};
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function normalizeCommunityEmail(raw: string | null | undefined): string | null {
+  const trimmed = raw?.trim().toLowerCase() ?? "";
+  if (!trimmed) return null;
+  if (!EMAIL_RE.test(trimmed) || trimmed.length > 254) return null;
+  return trimmed;
+}
+
+export function isCommunityEmailReady(
+  profile: Pick<VuUserProfileRecord, "email"> | null | undefined,
+): boolean {
+  return Boolean(normalizeCommunityEmail(profile?.email ?? null));
+}
+
+export function toUserProfileClientView(profile: VuUserProfileRecord): UserProfileClientView {
+  const { email, ...rest } = profile;
+  return {
+    ...rest,
+    hasCommunityEmail: isCommunityEmailReady(profile),
+    notificationConsent: profile.notificationConsent === true,
+  };
+}
 
 export function isUserProfileComplete(
   profile: Pick<

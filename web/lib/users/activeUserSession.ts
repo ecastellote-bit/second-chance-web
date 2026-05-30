@@ -1,6 +1,6 @@
 "use client";
 
-import type { VuUserProfileRecord } from "./userProfileTypes";
+import type { UserProfileClientView } from "./userProfileTypes";
 import { isUserProfileComplete } from "./userProfileTypes";
 
 const USER_ID_KEY = "vu_user_id";
@@ -24,7 +24,7 @@ export function getCachedUserId(): string | null {
   return id || null;
 }
 
-export function markProfileComplete(profile: VuUserProfileRecord): void {
+export function markProfileComplete(profile: UserProfileClientView): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(PROFILE_COMPLETE_KEY, "1");
@@ -46,28 +46,33 @@ export function isProfileCompleteCached(): boolean {
   return localStorage.getItem(PROFILE_COMPLETE_KEY) === "1";
 }
 
-export function getCachedProfile(): VuUserProfileRecord | null {
+export function getCachedProfile(): UserProfileClientView | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(PROFILE_CACHE_KEY);
     if (!raw) return null;
-    const profile = JSON.parse(raw) as VuUserProfileRecord;
+    const profile = JSON.parse(raw) as UserProfileClientView;
     return isUserProfileComplete(profile) ? profile : null;
   } catch {
     return null;
   }
 }
 
+export type CommunityContactState = {
+  hasEmail: boolean;
+  notificationConsent: boolean;
+};
+
 export async function fetchUserProfile(
   userId?: string,
-): Promise<VuUserProfileRecord | null> {
+): Promise<UserProfileClientView | null> {
   const id = userId ?? getOrCreateUserId();
   if (!id) return null;
 
   const res = await fetch(`/api/user-profile?userId=${encodeURIComponent(id)}`);
   const data = (await res.json()) as {
     ok: boolean;
-    profile?: VuUserProfileRecord | null;
+    profile?: UserProfileClientView | null;
   };
 
   if (!data.ok || !data.profile) return null;
@@ -75,4 +80,22 @@ export async function fetchUserProfile(
     markProfileComplete(data.profile);
   }
   return data.profile;
+}
+
+export async function fetchCommunityContact(
+  userId?: string,
+): Promise<CommunityContactState> {
+  const id = userId ?? getOrCreateUserId();
+  if (!id) return { hasEmail: false, notificationConsent: false };
+
+  const res = await fetch(`/api/user-profile?userId=${encodeURIComponent(id)}`);
+  const data = (await res.json()) as {
+    ok: boolean;
+    communityContact?: CommunityContactState;
+  };
+
+  if (!data.ok || !data.communityContact) {
+    return { hasEmail: false, notificationConsent: false };
+  }
+  return data.communityContact;
 }

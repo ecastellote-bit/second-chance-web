@@ -6,7 +6,7 @@ import { PerfilSection } from "@/components/perfil/PerfilSection";
 import { fetchCommunityActivities } from "@/lib/community/communityClient";
 import type { CommunityActivityItem } from "@/lib/community/types";
 import { CIRCULOS_CATALOG } from "@/lib/content/circulosCatalog";
-import type { VuUserProfileRecord } from "@/lib/users/userProfileTypes";
+import type { UserProfileClientView } from "@/lib/users/userProfileTypes";
 
 function formatWhen(iso: string): string {
   try {
@@ -77,7 +77,7 @@ function buildNextStep(
 export function PerfilMovimientosSection({
   profileRecord,
 }: {
-  profileRecord: VuUserProfileRecord;
+  profileRecord: UserProfileClientView;
 }) {
   const [activities, setActivities] = useState<CommunityActivityItem[]>([]);
   const [ready, setReady] = useState(false);

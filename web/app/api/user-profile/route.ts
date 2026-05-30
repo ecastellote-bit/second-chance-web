@@ -4,7 +4,12 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 import { getFoundationalCohortBatch } from "@/lib/learning/foundationalCohort";
 import { findUserProfileById, upsertUserProfile } from "@/lib/users/userProfileStore";
-import { parseChipInput, isUserProfileComplete } from "@/lib/users/userProfileTypes";
+import {
+  isCommunityEmailReady,
+  parseChipInput,
+  isUserProfileComplete,
+  toUserProfileClientView,
+} from "@/lib/users/userProfileTypes";
 import { appendObservatoryEvent, buildObservatoryEvent } from "@/lib/observatory/store";
 
 export async function GET(req: Request) {
@@ -21,8 +26,14 @@ export async function GET(req: Request) {
   const profile = await findUserProfileById(userId);
   return NextResponse.json({
     ok: true,
-    profile,
+    profile: profile ? toUserProfileClientView(profile) : null,
     complete: Boolean(profile && isUserProfileComplete(profile)),
+    communityContact: profile
+      ? {
+          hasEmail: isCommunityEmailReady(profile),
+          notificationConsent: profile.notificationConsent === true,
+        }
+      : { hasEmail: false, notificationConsent: false },
   });
 }
 
@@ -40,6 +51,8 @@ export async function POST(req: Request) {
       cohortBatch?: string | null;
       avatarUrl?: string | null;
       coverUrl?: string | null;
+      email?: string | null;
+      notificationConsent?: boolean;
     };
 
     const buscando = Array.isArray(body.buscando)
@@ -63,6 +76,8 @@ export async function POST(req: Request) {
         cohortBatch: body.cohortBatch ?? getFoundationalCohortBatch(),
         avatarUrl: body.avatarUrl ?? null,
         coverUrl: body.coverUrl ?? null,
+        email: body.email,
+        notificationConsent: body.notificationConsent,
       },
       { forceUserId: body.userId?.trim() },
     );
@@ -81,14 +96,19 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       ok: true,
-      profile: result.profile,
+      profile: toUserProfileClientView(result.profile),
       created: result.created,
+      communityContact: {
+        hasEmail: isCommunityEmailReady(result.profile),
+        notificationConsent: result.profile.notificationConsent === true,
+      },
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "save_failed";
     const status =
       message === "profile_incomplete" ||
       message === "avatar_required" ||
+      message === "email_invalid" ||
       message.startsWith("blob_not_configured")
         ? 400
         : 500;

@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PerfilSection } from "@/components/perfil/PerfilSection";
 import { fetchCommunityActivities, fetchCommunityMessages } from "@/lib/community/communityClient";
-import type { VuUserProfileRecord } from "@/lib/users/userProfileTypes";
+import type { UserProfileClientView } from "@/lib/users/userProfileTypes";
 
-export function PerfilBarrioSection({ profile }: { profile: VuUserProfileRecord }) {
+export function PerfilBarrioSection({ profile }: { profile: UserProfileClientView }) {
   const [activityCount, setActivityCount] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const [hasSeed, setHasSeed] = useState(false);

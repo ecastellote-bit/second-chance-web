@@ -8,14 +8,14 @@ import { PerfilBarrioSection } from "@/components/perfil/PerfilBarrioSection";
 import { PerfilMovimientosSection } from "@/components/perfil/PerfilMovimientosSection";
 import { CaminoProgress, PerfilChips, PerfilSection } from "@/components/perfil/PerfilSection";
 import type { PerfilUsuario } from "@/lib/content/perfilCatalog";
-import type { VuUserProfileRecord } from "@/lib/users/userProfileTypes";
+import type { UserProfileClientView } from "@/lib/users/userProfileTypes";
 
 export function PerfilUsuarioView({
   profile,
   profileRecord,
 }: {
   profile: PerfilUsuario;
-  profileRecord: VuUserProfileRecord;
+  profileRecord: UserProfileClientView;
 }) {
   return (
     <div className="flex min-h-[100dvh] flex-col font-[family-name:var(--font-inter)] bg-[#F8FAFC] text-[#243647] lg:flex-row">

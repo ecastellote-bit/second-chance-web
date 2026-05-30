@@ -1,8 +1,8 @@
 import type { PerfilUsuario } from "@/lib/content/perfilCatalog";
-import { initialsFromName, type VuUserProfileRecord } from "./userProfileTypes";
+import { initialsFromName, type UserProfileClientView } from "./userProfileTypes";
 
 export function userProfileToPerfilView(
-  profile: VuUserProfileRecord,
+  profile: UserProfileClientView,
 ): PerfilUsuario {
   const toChips = (labels: string[]) =>
     labels.map((label, i) => ({ id: `chip-${i}`, label }));

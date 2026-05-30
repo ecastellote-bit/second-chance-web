@@ -7,6 +7,7 @@ import {
 } from "@/lib/storage/vercelBlobEnv";
 import {
   isUserProfileComplete,
+  normalizeCommunityEmail,
   type UserProfilePayload,
   type VuUserProfileRecord,
 } from "./userProfileTypes";
@@ -135,6 +136,23 @@ export async function upsertUserProfile(
     payload.diagnosticArchiveId ?? existing?.diagnosticArchiveId,
   );
 
+  let resolvedEmail = existing?.email ?? null;
+  if (payload.email !== undefined) {
+    const normalized = normalizeCommunityEmail(payload.email);
+    if (payload.email !== null && payload.email.trim() && !normalized) {
+      throw new Error("email_invalid");
+    }
+    resolvedEmail = normalized;
+  }
+
+  let notificationConsent = existing?.notificationConsent === true;
+  if (payload.notificationConsent !== undefined) {
+    notificationConsent = payload.notificationConsent === true;
+  }
+  if (!resolvedEmail) {
+    notificationConsent = false;
+  }
+
   const profile: VuUserProfileRecord = {
     recordType: "vu_user_profile",
     userId,
@@ -153,6 +171,8 @@ export async function upsertUserProfile(
       payload.avatarUrl?.trim() || existing?.avatarUrl?.trim() || null,
     coverUrl: payload.coverUrl?.trim() || existing?.coverUrl?.trim() || null,
     caminoProgress: hasDiagnostic ? 55 : existing?.caminoProgress ?? 18,
+    email: resolvedEmail,
+    notificationConsent,
   };
 
   if (!isUserProfileComplete(profile)) {
