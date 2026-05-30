@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-
-type CircleSignalType =
-  | "circle_interest"
-  | "circle_receive_updates"
-  | "circle_access_request"
-  | "circle_idea";
-
-type CircleSignalStatus = "active" | "reviewed" | "flagged" | "archived";
+import {
+  CIRCLE_SIGNAL_ADMIN_MODERATION_HELP,
+  CIRCLE_SIGNAL_APPROVE_DISABLED_TITLE,
+  CIRCLE_SIGNAL_STATUS_FILTER,
+  CIRCLE_SIGNAL_STATUS_LABEL,
+  CIRCLE_SIGNAL_TYPE_LABEL,
+} from "@/lib/community/circleSignalAdminCopy";
+import type { CircleSignalStatus, CircleSignalType } from "@/lib/learning/circleSignals";
 
 type SignalRow = {
   signalId: string;
@@ -22,21 +22,6 @@ type SignalRow = {
   createdAt: string;
   updatedAt?: string;
 };
-
-const TYPE_LABEL: Record<CircleSignalType, string> = {
-  circle_interest: "Me interesa",
-  circle_receive_updates: "Recibir movimiento",
-  circle_access_request: "Solicitar acceso",
-  circle_idea: "Idea para el círculo",
-};
-
-const STATUS_FILTERS: { id: "" | CircleSignalStatus; label: string }[] = [
-  { id: "", label: "Todas" },
-  { id: "active", label: "Activas" },
-  { id: "reviewed", label: "Revisadas" },
-  { id: "flagged", label: "Flaggeadas" },
-  { id: "archived", label: "Archivadas" },
-];
 
 export default function CircleSignalsAdminPage() {
   const [signals, setSignals] = useState<SignalRow[]>([]);
@@ -102,7 +87,8 @@ export default function CircleSignalsAdminPage() {
             </p>
             <h1 className="mt-1 text-2xl font-bold text-[#0B2E59]">Señales de círculos</h1>
             <p className="mt-2 text-sm leading-relaxed text-[#6B7A8C]">
-              Interés, movimiento, acceso e ideas — sin contacto directo automático.
+              Interés, movimiento, acceso e ideas — sin contacto directo automático. Ninguna acción
+              de esta bandeja publica contenido en el barrio por sí sola.
             </p>
           </div>
           <div className="flex flex-col gap-2 text-sm">
@@ -115,8 +101,19 @@ export default function CircleSignalsAdminPage() {
           </div>
         </div>
 
+        <section className="mb-4 rounded-xl border border-[#E8EEF3] bg-white p-4 text-sm">
+          <p className="font-bold text-[#0B2E59]">Qué hace cada acción</p>
+          <ul className="mt-2 space-y-2 text-[#6B7A8C]">
+            {CIRCLE_SIGNAL_ADMIN_MODERATION_HELP.map((item) => (
+              <li key={item.action}>
+                <span className="font-semibold text-[#243647]">{item.action}:</span> {item.meaning}
+              </li>
+            ))}
+          </ul>
+        </section>
+
         <div className="mb-4 flex flex-wrap gap-2">
-          {STATUS_FILTERS.map((item) => (
+          {CIRCLE_SIGNAL_STATUS_FILTER.map((item) => (
             <button
               key={item.id || "all"}
               type="button"
@@ -157,7 +154,8 @@ export default function CircleSignalsAdminPage() {
                   <span className="font-normal text-[#6B7A8C]">({signal.circleId})</span>
                 </p>
                 <p className="mt-1 text-[#6B7A8C]">
-                  {TYPE_LABEL[signal.signalType]} · {signal.status} ·{" "}
+                  {CIRCLE_SIGNAL_TYPE_LABEL[signal.signalType]} ·{" "}
+                  {CIRCLE_SIGNAL_STATUS_LABEL[signal.status] ?? signal.status} ·{" "}
                   {new Date(signal.createdAt).toLocaleString("es-AR")}
                 </p>
                 {signal.note ? (
@@ -168,27 +166,38 @@ export default function CircleSignalsAdminPage() {
                   <div className="mt-3 flex flex-wrap gap-2">
                     <button
                       type="button"
+                      title="Registrar que el equipo ya vio esta señal. No publica en el barrio."
                       disabled={updatingId === signal.signalId}
                       onClick={() => updateStatus(signal.signalId, "reviewed")}
                       className="rounded-lg bg-[#0B2E59] px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
                     >
-                      Marcar revisada
+                      Vista por el equipo
                     </button>
                     <button
                       type="button"
+                      title={CIRCLE_SIGNAL_APPROVE_DISABLED_TITLE}
+                      disabled
+                      className="cursor-not-allowed rounded-lg border border-dashed border-[#C6D92D] bg-[#F4F9E0]/60 px-3 py-1.5 text-xs font-semibold text-[#6B7A8C]"
+                    >
+                      Aprobar visibilidad
+                    </button>
+                    <button
+                      type="button"
+                      title="Marcar para moderación: contenido delicado o posible incumplimiento."
                       disabled={updatingId === signal.signalId}
                       onClick={() => updateStatus(signal.signalId, "flagged")}
                       className="rounded-lg border border-amber-300 px-3 py-1.5 text-xs font-semibold text-amber-900 disabled:opacity-60"
                     >
-                      Flaggear
+                      Marcar alerta
                     </button>
                     <button
                       type="button"
+                      title="Cerrar en la bandeja: sin seguimiento activo por ahora."
                       disabled={updatingId === signal.signalId}
                       onClick={() => updateStatus(signal.signalId, "archived")}
                       className="rounded-lg border border-[#E8EEF3] px-3 py-1.5 text-xs font-semibold text-[#6B7A8C] disabled:opacity-60"
                     >
-                      Archivar
+                      Cerrar
                     </button>
                   </div>
                 ) : null}

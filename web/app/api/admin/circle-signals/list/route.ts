@@ -15,6 +15,7 @@ const VALID_STATUSES = new Set<CircleSignalStatus>([
   "reviewed",
   "flagged",
   "archived",
+  "approved",
 ]);
 
 const VALID_TYPES = new Set<CircleSignalType>([

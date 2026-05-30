@@ -13,7 +13,13 @@ export type CircleSignalType =
   | "circle_access_request"
   | "circle_idea";
 
-export type CircleSignalStatus = "active" | "reviewed" | "flagged" | "archived";
+/** `approved` reserved for P1-D3+ visible guided contributions; not settable via admin yet. */
+export type CircleSignalStatus =
+  | "active"
+  | "reviewed"
+  | "flagged"
+  | "archived"
+  | "approved";
 
 export type CircleSignal = {
   recordType: "circle_signal";
