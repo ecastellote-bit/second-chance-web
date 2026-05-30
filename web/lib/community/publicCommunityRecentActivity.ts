@@ -2,6 +2,7 @@ import type { FounderProjectSignalType } from "@/lib/learning/founderProjectSign
 import { listFounderProjectSignals } from "@/lib/learning/founderProjectSignals";
 import { listFounderProjectSeeds } from "@/lib/learning/founderProjectSeeds";
 import { listFormationSuggestions } from "@/lib/learning/formationSuggestions";
+import { listFounderProjectGuidedContributions } from "@/lib/learning/founderProjectGuidedContributions";
 import { listCircleSignals } from "@/lib/learning/circleSignals";
 import {
   PUBLIC_BARRIO_ACTIVITY_EMPTY,
@@ -12,7 +13,9 @@ export type PublicCommunityActivityKind =
   | "project_published"
   | "project_signal"
   | "formation_suggestion"
-  | "circle_signal";
+  | "circle_signal"
+  | "project_guided_contribution_pending"
+  | "project_guided_contribution_visible";
 
 export type PublicCommunityActivityItem = {
   activityId: string;
@@ -98,6 +101,32 @@ async function collectFormationSuggestionEvents(): Promise<PublicCommunityActivi
     }));
 }
 
+async function collectGuidedContributionPendingEvents(): Promise<PublicCommunityActivityItem[]> {
+  const contributions = await listFounderProjectGuidedContributions({
+    status: "pending_review",
+    limit: 200,
+  });
+  return contributions.map((item) => ({
+    activityId: `guided_contribution_pending:${item.contributionId}`,
+    kind: "project_guided_contribution_pending" as const,
+    text: "Un proyecto recibió un aporte para revisión.",
+    occurredAt: item.createdAt,
+  }));
+}
+
+async function collectGuidedContributionVisibleEvents(): Promise<PublicCommunityActivityItem[]> {
+  const contributions = await listFounderProjectGuidedContributions({
+    status: "visible",
+    limit: 200,
+  });
+  return contributions.map((item) => ({
+    activityId: `guided_contribution_visible:${item.contributionId}`,
+    kind: "project_guided_contribution_visible" as const,
+    text: "Un proyecto publicó un nuevo aporte.",
+    occurredAt: item.updatedAt?.trim() || item.createdAt,
+  }));
+}
+
 async function collectCircleSignalEvents(): Promise<PublicCommunityActivityItem[]> {
   const signals = await listCircleSignals({ limit: 300, status: "active" });
   const items: PublicCommunityActivityItem[] = [];
@@ -128,6 +157,8 @@ export async function getPublicCommunityRecentActivity(options?: {
     collectProjectPublishedEvents,
     collectProjectSignalEvents,
     collectFormationSuggestionEvents,
+    collectGuidedContributionPendingEvents,
+    collectGuidedContributionVisibleEvents,
     collectCircleSignalEvents,
   ];
 

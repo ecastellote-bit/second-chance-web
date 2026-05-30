@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FounderPreviewBanner } from "@/components/founder/FounderPreviewBanner";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
+import { FounderProjectGuidedContributionsPanel } from "@/components/proyectos/FounderProjectGuidedContributionsPanel";
 import { FounderProjectSignalsPanel } from "@/components/proyectos/FounderProjectSignalsPanel";
 import {
   founderSeedStatusHint,
@@ -99,10 +100,16 @@ export default function FounderSeedPage() {
           {statusHint}
         </p>
         {isPublished ? (
-          <FounderProjectSignalsPanel
-            projectId={seed.seedId}
-            projectTitle={seed.title}
-          />
+          <>
+            <FounderProjectSignalsPanel
+              projectId={seed.seedId}
+              projectTitle={seed.title}
+            />
+            <FounderProjectGuidedContributionsPanel
+              projectId={seed.seedId}
+              projectTitle={seed.title}
+            />
+          </>
         ) : null}
 
         <div className="mt-8 flex flex-col gap-2">
