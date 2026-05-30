@@ -137,6 +137,9 @@ export default function FounderProjectSignalsAdminPage() {
             <Link href="/admin/founder-project-seeds" className="font-semibold text-[#1A9BB0] underline">
               Proyectos fundadores →
             </Link>
+            <Link href="/admin/circle-signals" className="font-semibold text-[#1A9BB0] underline">
+              Señales de círculos →
+            </Link>
             <Link href="/admin/observatorio" className="font-semibold text-[#1A9BB0] underline">
               Observatorio →
             </Link>

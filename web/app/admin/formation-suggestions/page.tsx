@@ -95,6 +95,9 @@ export default function FormationSuggestionsAdminPage() {
             <Link href="/admin/founder-project-signals" className="font-semibold text-[#1A9BB0] underline">
               Señales de proyectos →
             </Link>
+            <Link href="/admin/circle-signals" className="font-semibold text-[#1A9BB0] underline">
+              Señales de círculos →
+            </Link>
             <Link href="/formacion" className="font-semibold text-[#1A9BB0] underline">
               Ver pantalla pública →
             </Link>

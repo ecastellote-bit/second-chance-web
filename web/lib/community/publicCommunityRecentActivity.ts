@@ -2,6 +2,7 @@ import type { FounderProjectSignalType } from "@/lib/learning/founderProjectSign
 import { listFounderProjectSignals } from "@/lib/learning/founderProjectSignals";
 import { listFounderProjectSeeds } from "@/lib/learning/founderProjectSeeds";
 import { listFormationSuggestions } from "@/lib/learning/formationSuggestions";
+import { listCircleSignals } from "@/lib/learning/circleSignals";
 import {
   PUBLIC_BARRIO_ACTIVITY_EMPTY,
   PUBLIC_BARRIO_ACTIVITY_TITLE,
@@ -39,6 +40,21 @@ function projectSignalPublicText(signalType: FounderProjectSignalType): string {
       return "Un proyecto recibió una señal para explorar sumarse.";
     default:
       return "Un proyecto fundador recibió una nueva señal.";
+  }
+}
+
+function circleSignalPublicText(signalType: string): string | null {
+  switch (signalType) {
+    case "circle_interest":
+      return "Un círculo recibió interés inicial.";
+    case "circle_receive_updates":
+      return "Un círculo sumó personas que quieren recibir movimiento.";
+    case "circle_access_request":
+      return "Un círculo recibió una solicitud de acceso para revisión.";
+    case "circle_idea":
+      return "Alguien dejó una idea para un círculo, en revisión del equipo.";
+    default:
+      return null;
   }
 }
 
@@ -82,6 +98,22 @@ async function collectFormationSuggestionEvents(): Promise<PublicCommunityActivi
     }));
 }
 
+async function collectCircleSignalEvents(): Promise<PublicCommunityActivityItem[]> {
+  const signals = await listCircleSignals({ limit: 300, status: "active" });
+  const items: PublicCommunityActivityItem[] = [];
+  for (const signal of signals) {
+    const text = circleSignalPublicText(signal.signalType);
+    if (!text) continue;
+    items.push({
+      activityId: `circle_signal:${signal.signalId}`,
+      kind: "circle_signal",
+      text,
+      occurredAt: signal.updatedAt?.trim() || signal.createdAt,
+    });
+  }
+  return items;
+}
+
 /**
  * Aggregates anonymized, sober activity lines from durable community stores.
  * Never exposes names, emails, userIds, or project titles in public copy.
@@ -96,6 +128,7 @@ export async function getPublicCommunityRecentActivity(options?: {
     collectProjectPublishedEvents,
     collectProjectSignalEvents,
     collectFormationSuggestionEvents,
+    collectCircleSignalEvents,
   ];
 
   for (const collect of collectors) {
