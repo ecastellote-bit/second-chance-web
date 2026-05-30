@@ -11,6 +11,7 @@ import {
   type OfficialActivationPathId,
 } from "@/lib/content/officialActivationPaths";
 import { PlazaLivingPanel } from "@/components/plaza/PlazaLivingPanel";
+import { CommunityAdminPostsBlock } from "@/components/community/CommunityAdminPostsBlock";
 import { PublicCommunityRecentActivity } from "@/components/community/PublicCommunityRecentActivity";
 import { CommunityRulesBlock } from "@/components/community/CommunityRulesBlock";
 import { CompromisoBarrioSection } from "@/components/plaza/CompromisoBarrioSection";
@@ -144,6 +145,13 @@ export function PlazaPostActivacionView({
       <div className="relative z-10 -mt-8 flex flex-1 flex-col px-4 pb-28">
         <MvpPioneerBanner />
         <PublicCommunityRecentActivity className="mt-4" limit={6} />
+        <CommunityAdminPostsBlock
+          targetType="general_barrio"
+          targetId="barrio"
+          title="Anuncios del barrio"
+          emptyMessage="Próximamente el equipo publicará avisos generales del barrio acá."
+          className="mt-4"
+        />
         <PlazaLivingPanel />
         {/* Cartel elegido */}
         <section className="rounded-[22px] border-2 border-[#C6D92D]/50 bg-white p-4 shadow-[0_8px_28px_rgba(15,42,70,0.1)]">

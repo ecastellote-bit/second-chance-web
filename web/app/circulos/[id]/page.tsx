@@ -7,6 +7,8 @@ import {
   CIRCLE_STATUS_BADGE,
   NeighborhoodActivityDetail,
 } from "@/components/neighborhood/NeighborhoodActivityDetail";
+import { CircleVisibleIdeasBlock } from "@/components/circulos/CircleVisibleIdeasBlock";
+import { CommunityAdminPostsBlock } from "@/components/community/CommunityAdminPostsBlock";
 import { ReportContentButton } from "@/components/community/ReportContentButton";
 import { CircleSignalsPanel } from "@/components/circulos/CircleSignalsPanel";
 import { CIRCULOS_CATALOG } from "@/lib/content/circulosCatalog";
@@ -55,6 +57,14 @@ export default function CirculoDetailPage() {
         </div>
       }
     >
+      <CommunityAdminPostsBlock
+        targetType="circle"
+        targetId={circle.id}
+        title="Movimientos de este círculo"
+        emptyMessage="Este círculo está en etapa inicial. Podés dejar una señal o una idea para revisión."
+        className="mb-4"
+      />
+      <CircleVisibleIdeasBlock circleId={circle.id} className="mb-4" />
       <p>{circle.description}</p>
       <p className="mt-4">{COMMUNITY_SEED_INTERIOR_BODY}</p>
       <ReportContentButton targetType="circle" targetId={circle.id} className="mt-4" />

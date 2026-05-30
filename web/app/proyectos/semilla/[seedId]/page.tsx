@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FounderPreviewBanner } from "@/components/founder/FounderPreviewBanner";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
+import { CommunityAdminPostsBlock } from "@/components/community/CommunityAdminPostsBlock";
 import { ReportContentButton } from "@/components/community/ReportContentButton";
 import { FounderProjectGuidedContributionsPanel } from "@/components/proyectos/FounderProjectGuidedContributionsPanel";
 import { FounderProjectSignalsPanel } from "@/components/proyectos/FounderProjectSignalsPanel";
@@ -102,6 +103,13 @@ export default function FounderSeedPage() {
         </p>
         {isPublished ? (
           <>
+            <CommunityAdminPostsBlock
+              targetType="founder_project"
+              targetId={seed.seedId}
+              title="Movimientos de este proyecto"
+              emptyMessage="Este proyecto todavía no tiene movimientos publicados por el equipo. Podés dejar una señal o un aporte guiado."
+              className="mt-6"
+            />
             <FounderProjectSignalsPanel
               projectId={seed.seedId}
               projectTitle={seed.title}

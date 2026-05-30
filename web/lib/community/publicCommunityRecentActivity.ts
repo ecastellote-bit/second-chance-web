@@ -2,6 +2,7 @@ import type { FounderProjectSignalType } from "@/lib/learning/founderProjectSign
 import { listFounderProjectSignals } from "@/lib/learning/founderProjectSignals";
 import { listFounderProjectSeeds } from "@/lib/learning/founderProjectSeeds";
 import { listFormationSuggestions } from "@/lib/learning/formationSuggestions";
+import { listCommunityAdminPosts } from "@/lib/learning/communityAdminPosts";
 import { listFounderProjectGuidedContributions } from "@/lib/learning/founderProjectGuidedContributions";
 import { listCircleSignals } from "@/lib/learning/circleSignals";
 import {
@@ -15,7 +16,9 @@ export type PublicCommunityActivityKind =
   | "formation_suggestion"
   | "circle_signal"
   | "project_guided_contribution_pending"
-  | "project_guided_contribution_visible";
+  | "project_guided_contribution_visible"
+  | "community_admin_post"
+  | "circle_visible_idea";
 
 export type PublicCommunityActivityItem = {
   activityId: string;
@@ -54,8 +57,6 @@ function circleSignalPublicText(signalType: string): string | null {
       return "Un círculo sumó personas que quieren recibir movimiento.";
     case "circle_access_request":
       return "Un círculo recibió una solicitud de acceso para revisión.";
-    case "circle_idea":
-      return "Alguien dejó una idea para un círculo, en revisión del equipo.";
     default:
       return null;
   }
@@ -127,6 +128,41 @@ async function collectGuidedContributionVisibleEvents(): Promise<PublicCommunity
   }));
 }
 
+function adminPostPublicText(targetType: string): string {
+  switch (targetType) {
+    case "founder_project":
+      return "Un proyecto publicó un nuevo movimiento.";
+    case "circle":
+      return "Un círculo publicó un nuevo movimiento.";
+    case "general_barrio":
+      return "El barrio publicó un nuevo aviso.";
+    default:
+      return "El barrio publicó un nuevo movimiento.";
+  }
+}
+
+async function collectCommunityAdminPostEvents(): Promise<PublicCommunityActivityItem[]> {
+  const posts = await listCommunityAdminPosts({ status: "published", limit: 200 });
+  return posts.map((post) => ({
+    activityId: `admin_post:${post.postId}`,
+    kind: "community_admin_post" as const,
+    text: adminPostPublicText(post.targetType),
+    occurredAt: post.publishedAt?.trim() || post.updatedAt?.trim() || post.createdAt,
+  }));
+}
+
+async function collectCircleVisibleIdeaEvents(): Promise<PublicCommunityActivityItem[]> {
+  const signals = await listCircleSignals({ signalType: "circle_idea", limit: 200 });
+  return signals
+    .filter((item) => item.publicStatus === "visible" && item.publicApprovedAt)
+    .map((item) => ({
+      activityId: `circle_visible_idea:${item.signalId}`,
+      kind: "circle_visible_idea" as const,
+      text: "Un círculo publicó una nueva idea recibida.",
+      occurredAt: item.publicApprovedAt!.trim(),
+    }));
+}
+
 async function collectCircleSignalEvents(): Promise<PublicCommunityActivityItem[]> {
   const signals = await listCircleSignals({ limit: 300, status: "active" });
   const items: PublicCommunityActivityItem[] = [];
@@ -159,7 +195,9 @@ export async function getPublicCommunityRecentActivity(options?: {
     collectFormationSuggestionEvents,
     collectGuidedContributionPendingEvents,
     collectGuidedContributionVisibleEvents,
+    collectCommunityAdminPostEvents,
     collectCircleSignalEvents,
+    collectCircleVisibleIdeaEvents,
   ];
 
   for (const collect of collectors) {

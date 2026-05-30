@@ -96,7 +96,7 @@ export function FounderProjectGuidedContributionsPanel({ projectId, projectTitle
 
   return (
     <section className="mt-6 space-y-6">
-      <div className="rounded-2xl border border-[#E8EEF3] bg-white p-4">
+      <div id="guided-contributions" className="scroll-mt-4 rounded-2xl border border-[#E8EEF3] bg-white p-4">
         <h2 className="text-lg font-bold text-[#0B2E59]">
           Sumá un aporte para que este proyecto avance
         </h2>

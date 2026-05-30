@@ -96,7 +96,7 @@ export function CircleSignalsPanel({ circleId, circleTitle }: Props) {
   }
 
   return (
-    <section className="w-full max-w-md rounded-2xl border border-[#E8EEF3] bg-white p-4">
+    <section id="circle-signals" className="w-full max-w-md scroll-mt-4 rounded-2xl border border-[#E8EEF3] bg-white p-4">
       <p className="text-[13px] leading-relaxed text-[#6B7A8C]">
         Este círculo está en etapa inicial. Podés dejar una señal para que el equipo entienda qué
         ámbitos empiezan a reunir interés real.

@@ -149,6 +149,12 @@ export default function FounderProjectSignalsAdminPage() {
             <Link href="/admin/community-reports" className="font-semibold text-[#1A9BB0] underline">
               Reportes →
             </Link>
+            <Link
+              href="/admin/community-admin-posts"
+              className="font-semibold text-[#1A9BB0] underline"
+            >
+              Publicaciones admin →
+            </Link>
             <Link href="/admin/observatorio" className="font-semibold text-[#1A9BB0] underline">
               Observatorio →
             </Link>

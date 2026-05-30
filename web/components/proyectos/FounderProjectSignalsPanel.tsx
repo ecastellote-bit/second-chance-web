@@ -133,7 +133,7 @@ export function FounderProjectSignalsPanel({
   }
 
   return (
-    <section className="mt-6 rounded-2xl border border-[#E8EEF3] bg-white px-4 py-4">
+    <section id="project-signals" className="mt-6 scroll-mt-4 rounded-2xl border border-[#E8EEF3] bg-white px-4 py-4">
       <h2 className="text-base font-bold text-[#0B2E59]">Dejá una señal sobre este proyecto</h2>
       <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">
         Podés acercarte a esta idea sin asumir compromiso. Las señales ayudan al equipo a entender
