@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { CIRCULOS_CATALOG } from "@/lib/content/circulosCatalog";
 import {
   ADMIN_POST_KIND_LABEL,
   ADMIN_POST_TARGET_LABEL,
@@ -52,6 +53,65 @@ export default function CommunityAdminPostsPage() {
   const [body, setBody] = useState("");
   const [ctaSignalType, setCtaSignalType] = useState("");
   const [createStatus, setCreateStatus] = useState<CommunityAdminPostStatus>("draft");
+  const [publishedSeeds, setPublishedSeeds] = useState<
+    { seedId: string; title: string; status: string }[]
+  >([]);
+  const [targetsLoading, setTargetsLoading] = useState(true);
+
+  const sortedCircles = useMemo(
+    () => [...CIRCULOS_CATALOG].sort((a, b) => a.title.localeCompare(b.title, "es")),
+    [],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadTargets() {
+      setTargetsLoading(true);
+      try {
+        const res = await fetch(
+          "/api/admin/founder-project-seeds/list?status=published&limit=200",
+        );
+        const data = (await res.json()) as {
+          ok?: boolean;
+          seeds?: { seedId: string; title: string; status: string }[];
+        };
+        if (!cancelled && data.ok && Array.isArray(data.seeds)) {
+          setPublishedSeeds(data.seeds);
+        }
+      } finally {
+        if (!cancelled) setTargetsLoading(false);
+      }
+    }
+    loadTargets();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (targetType === "general_barrio") {
+      setTargetId("barrio");
+      return;
+    }
+    if (targetType === "circle") {
+      const stillValid = sortedCircles.some((c) => c.id === targetId);
+      if (!stillValid) setTargetId(sortedCircles[0]?.id ?? "");
+      return;
+    }
+    if (targetType === "founder_project") {
+      const stillValid = publishedSeeds.some((s) => s.seedId === targetId);
+      if (!stillValid) setTargetId(publishedSeeds[0]?.seedId ?? "");
+    }
+  }, [targetType, sortedCircles, publishedSeeds]);
+
+  const targetPreviewHref =
+    targetType === "circle" && targetId
+      ? `/circulos/${encodeURIComponent(targetId)}`
+      : targetType === "founder_project" && targetId
+        ? `/proyectos/semilla/${encodeURIComponent(targetId)}`
+        : targetType === "general_barrio"
+          ? "/plaza"
+          : null;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -101,7 +161,16 @@ export default function CommunityAdminPostsPage() {
       });
       const data = (await res.json()) as { ok?: boolean; error?: string };
       if (!res.ok || !data.ok) {
-        throw new Error(data.error ?? "No se pudo crear");
+        const code = data.error ?? "";
+        throw new Error(
+          code === "admin_post_target_invalid"
+            ? "Destino inválido: elegí un proyecto publicado o un círculo del listado."
+            : code === "admin_post_validation_failed"
+              ? "Revisá título (mín. 5) y cuerpo (mín. 20 caracteres)."
+              : code === "blob_not_configured"
+                ? "Blob no configurado en este entorno. Usá la URL principal de producción."
+                : code || "No se pudo crear",
+        );
       }
       setTitle("");
       setBody("");
@@ -167,25 +236,85 @@ export default function CommunityAdminPostsPage() {
                 onChange={(e) => {
                   setTargetType(e.target.value as CommunityAdminPostTargetType);
                   setCtaSignalType("");
+                  setTargetId("");
                 }}
                 className="mt-1 w-full rounded-lg border border-[#E8EEF3] px-2 py-2 text-sm"
               >
-                <option value="founder_project">Proyecto (seedId)</option>
-                <option value="circle">Círculo (id catálogo)</option>
-                <option value="general_barrio">Barrio general</option>
+                <option value="founder_project">Proyecto fundador publicado</option>
+                <option value="circle">Círculo del catálogo</option>
+                <option value="general_barrio">Barrio general (plaza)</option>
               </select>
             </label>
             <label className="text-xs text-[#6B7A8C]">
-              ID destino
-              <input
-                value={targetId}
-                onChange={(e) => setTargetId(e.target.value)}
-                placeholder={targetType === "general_barrio" ? "barrio" : "seed_… o id círculo"}
-                className="mt-1 w-full rounded-lg border border-[#E8EEF3] px-2 py-2 text-sm"
-                required
-              />
+              {targetType === "circle"
+                ? "Círculo"
+                : targetType === "founder_project"
+                  ? "Proyecto"
+                  : "Destino fijo"}
+              {targetType === "general_barrio" ? (
+                <p className="mt-1 rounded-lg border border-[#E8EEF3] bg-[#F8FAFC] px-3 py-2 text-sm text-[#0B2E59]">
+                  barrio — avisos en la plaza
+                </p>
+              ) : targetType === "circle" ? (
+                <select
+                  value={targetId}
+                  onChange={(e) => setTargetId(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-[#E8EEF3] px-2 py-2 text-sm"
+                  required
+                >
+                  <option value="" disabled>
+                    Elegí un círculo…
+                  </option>
+                  {sortedCircles.map((circle) => (
+                    <option key={circle.id} value={circle.id}>
+                      {circle.title} · id: {circle.id}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <select
+                  value={targetId}
+                  onChange={(e) => setTargetId(e.target.value)}
+                  disabled={targetsLoading || publishedSeeds.length === 0}
+                  className="mt-1 w-full rounded-lg border border-[#E8EEF3] px-2 py-2 text-sm disabled:opacity-60"
+                  required
+                >
+                  <option value="" disabled>
+                    {targetsLoading
+                      ? "Cargando proyectos…"
+                      : publishedSeeds.length === 0
+                        ? "No hay proyectos publicados"
+                        : "Elegí un proyecto…"}
+                  </option>
+                  {publishedSeeds.map((seed) => (
+                    <option key={seed.seedId} value={seed.seedId}>
+                      {seed.title} · {seed.seedId}
+                    </option>
+                  ))}
+                </select>
+              )}
             </label>
           </div>
+          {targetType === "founder_project" && !targetsLoading && publishedSeeds.length === 0 ? (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
+              No hay proyectos en estado <strong>published</strong>. Publicá una semilla en{" "}
+              <Link href="/admin/founder-project-seeds" className="font-semibold underline">
+                Proyectos fundadores
+              </Link>{" "}
+              antes de crear movimientos editoriales ahí.
+            </p>
+          ) : null}
+          {targetPreviewHref ? (
+            <p className="text-xs text-[#6B7A8C]">
+              Vista previa:{" "}
+              <Link href={targetPreviewHref} className="font-semibold text-[#1A9BB0] underline">
+                {targetPreviewHref}
+              </Link>
+              {targetType !== "general_barrio" ? (
+                <span className="ml-1 font-mono text-[#6B7A8C]">({targetId})</span>
+              ) : null}
+            </p>
+          ) : null}
           <label className="block text-xs text-[#6B7A8C]">
             Tipo
             <select
@@ -245,7 +374,11 @@ export default function CommunityAdminPostsPage() {
           </label>
           <button
             type="submit"
-            disabled={creating}
+            disabled={
+              creating ||
+              (targetType === "founder_project" && (!targetId || publishedSeeds.length === 0)) ||
+              (targetType === "circle" && !targetId)
+            }
             className="rounded-xl bg-[#0B2E59] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
           >
             {creating ? "Guardando…" : "Crear publicación"}
