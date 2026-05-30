@@ -7,6 +7,10 @@ import {
   type CommunityReportReason,
   type CommunityReportTargetType,
 } from "@/lib/learning/communityReports";
+import {
+  checkCommunityActionAllowed,
+  communityActionDeniedResponse,
+} from "@/lib/users/assertCommunityActionAllowed";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +51,11 @@ export async function POST(req: Request) {
       !VALID_REASONS.includes(reason)
     ) {
       return NextResponse.json({ ok: false, error: "invalid_report_payload" }, { status: 400 });
+    }
+
+    const access = await checkCommunityActionAllowed(reporterUserId);
+    if (!access.allowed) {
+      return communityActionDeniedResponse(access.error);
     }
 
     const report = await createCommunityReport({

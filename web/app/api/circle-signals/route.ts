@@ -7,6 +7,10 @@ import {
   upsertCircleSignal,
   type CircleSignalType,
 } from "@/lib/learning/circleSignals";
+import {
+  checkCommunityActionAllowed,
+  communityActionDeniedResponse,
+} from "@/lib/users/assertCommunityActionAllowed";
 
 export const dynamic = "force-dynamic";
 
@@ -82,6 +86,11 @@ export async function POST(req: Request) {
         { ok: false, error: "invalid_circle_signal_payload" },
         { status: 400 },
       );
+    }
+
+    const access = await checkCommunityActionAllowed(actorUserId);
+    if (!access.allowed) {
+      return communityActionDeniedResponse(access.error);
     }
 
     const result = await upsertCircleSignal({

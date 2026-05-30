@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { NEIGHBORHOOD_JOURNEY } from "@/lib/content/neighborhoodJourney";
 import { FoundingMemberBadge } from "@/components/founder/FoundingMemberBadge";
-import { UserProfileGate } from "@/components/perfil/UserProfileGate";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
 import { isFounderCommunityPreviewActive } from "@/lib/founder/communityPreviewBypass";
 import { isFoundingMemberQualified } from "@/lib/learning/foundationalMember";
@@ -27,7 +26,6 @@ export default function BarrioMapPage() {
   }, []);
 
   return (
-    <UserProfileGate>
     <div className="flex min-h-[100dvh] flex-col bg-[#F8FAFC] font-[family-name:var(--font-inter)] pb-24">
       <header className="px-5 pt-12 pb-4">
         <p className="text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">
@@ -88,6 +86,5 @@ export default function BarrioMapPage() {
 
       <VuBottomNav active="plaza" />
     </div>
-    </UserProfileGate>
   );
 }

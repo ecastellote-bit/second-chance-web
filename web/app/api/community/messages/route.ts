@@ -8,6 +8,10 @@ import type {
   CommunityMessageKind,
   CommunityMessageStatus,
 } from "@/lib/community/types";
+import {
+  checkCommunityActionAllowed,
+  communityActionDeniedResponse,
+} from "@/lib/users/assertCommunityActionAllowed";
 
 export async function GET(req: Request) {
   const userId = new URL(req.url).searchParams.get("userId")?.trim() ?? "";
@@ -44,6 +48,11 @@ export async function POST(req: Request) {
         { ok: false, error: "invalid_message_payload" },
         { status: 400 },
       );
+    }
+
+    const access = await checkCommunityActionAllowed(userId);
+    if (!access.allowed) {
+      return communityActionDeniedResponse(access.error);
     }
 
     const message = await appendCommunityMessage(userId, {

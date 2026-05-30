@@ -5,13 +5,10 @@ import { VuBottomNav } from "@/components/layout/VuMobileShell";
 import type { CommunityDoorId } from "@/lib/content/activacionCatalog";
 import { COMMUNITY_DOOR_HUBS } from "@/lib/content/neighborhoodJourney";
 import { FoundingMemberBadge } from "@/components/founder/FoundingMemberBadge";
-import { UserProfileGate } from "@/components/perfil/UserProfileGate";
-
 export function CommunityDoorHub({ doorId }: { doorId: CommunityDoorId }) {
   const hub = COMMUNITY_DOOR_HUBS[doorId];
 
   return (
-    <UserProfileGate>
     <div className="flex min-h-[100dvh] flex-col bg-[#F8FAFC] font-[family-name:var(--font-inter)] pb-24">
       <header className="px-5 pt-12 pb-4">
         <Link
@@ -74,6 +71,5 @@ export function CommunityDoorHub({ doorId }: { doorId: CommunityDoorId }) {
 
       <VuBottomNav active="plaza" />
     </div>
-    </UserProfileGate>
   );
 }

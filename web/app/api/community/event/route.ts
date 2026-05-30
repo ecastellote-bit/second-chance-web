@@ -18,6 +18,10 @@ import {
   FounderProjectSignalStoreError,
   upsertFounderProjectSignal,
 } from "@/lib/learning/founderProjectSignals";
+import {
+  checkCommunityActionAllowed,
+  communityActionDeniedResponse,
+} from "@/lib/users/assertCommunityActionAllowed";
 
 export async function POST(req: Request) {
   try {
@@ -32,6 +36,11 @@ export async function POST(req: Request) {
         { ok: false, error: "invalid_event_payload" },
         { status: 400 },
       );
+    }
+
+    const access = await checkCommunityActionAllowed(userId);
+    if (!access.allowed) {
+      return communityActionDeniedResponse(access.error);
     }
 
     switch (event) {

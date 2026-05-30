@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { CommunityActionGate } from "@/components/perfil/CommunityActionGate";
 import {
   GUIDED_CONTRIBUTION_CONFIRMATION,
   GUIDED_CONTRIBUTION_KIND_OPTIONS,
   GUIDED_CONTRIBUTION_VISIBLE_PREFIX,
 } from "@/lib/community/guidedContributionCopy";
+import { communityActionClientError } from "@/lib/content/communityActionGateCopy";
 import type { FounderProjectGuidedContributionKind } from "@/lib/learning/founderProjectGuidedContributions";
 import { ReportContentButton } from "@/components/community/ReportContentButton";
 import { getOrCreateUserId } from "@/lib/users/activeUserSession";
@@ -23,6 +26,9 @@ type Props = {
 };
 
 export function FounderProjectGuidedContributionsPanel({ projectId, projectTitle }: Props) {
+  const pathname = usePathname();
+  const returnTo =
+    pathname || `/proyectos/semilla/${encodeURIComponent(projectId)}`;
   const [kind, setKind] = useState<FounderProjectGuidedContributionKind>("valuable_part");
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
@@ -77,13 +83,15 @@ export function FounderProjectGuidedContributionsPanel({ projectId, projectTitle
         confirmation?: string;
       };
       if (!res.ok || !data.ok) {
+        const gateMsg = communityActionClientError(data.error);
         setFeedback(
-          data.error === "blob_not_configured"
-            ? "No pudimos guardar tu aporte en este entorno. Probá desde la URL principal de producción."
-            : data.error === "contribution_text_invalid" ||
-                data.error === "contribution_text_too_short"
-              ? "Escribí una idea concreta (mínimo 20 caracteres), sin enlaces externos."
-              : "No pudimos guardar el aporte ahora. Probá de nuevo.",
+          gateMsg ||
+            (data.error === "blob_not_configured"
+              ? "No pudimos guardar tu aporte en este entorno. Probá desde la URL principal de producción."
+              : data.error === "contribution_text_invalid" ||
+                  data.error === "contribution_text_too_short"
+                ? "Escribí una idea concreta (mínimo 20 caracteres), sin enlaces externos."
+                : "No pudimos guardar el aporte ahora. Probá de nuevo."),
         );
         return;
       }
@@ -96,6 +104,7 @@ export function FounderProjectGuidedContributionsPanel({ projectId, projectTitle
 
   return (
     <section className="mt-6 space-y-6">
+      <CommunityActionGate returnTo={returnTo}>
       <div id="guided-contributions" className="scroll-mt-4 rounded-2xl border border-[#E8EEF3] bg-white p-4">
         <h2 className="text-lg font-bold text-[#0B2E59]">
           Sumá un aporte para que este proyecto avance
@@ -151,6 +160,7 @@ export function FounderProjectGuidedContributionsPanel({ projectId, projectTitle
           barrio.
         </p>
       </div>
+      </CommunityActionGate>
 
       <div className="rounded-2xl border border-[#E8EEF3] bg-white p-4">
         <h3 className="text-[15px] font-bold text-[#0B2E59]">Algunos aportes recibidos</h3>

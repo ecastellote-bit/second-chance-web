@@ -8,6 +8,10 @@ import {
   type FounderProjectSeedStatus,
 } from "@/lib/learning/founderProjectSeeds";
 import { appendObservatoryEvent, buildObservatoryEvent } from "@/lib/observatory/store";
+import {
+  checkCommunityActionAllowed,
+  communityActionDeniedResponse,
+} from "@/lib/users/assertCommunityActionAllowed";
 
 export const dynamic = "force-dynamic";
 
@@ -88,23 +92,30 @@ export async function POST(req: Request) {
       );
     }
 
+    const userId = typeof body.userId === "string" ? body.userId.trim() : "";
+    if (!userId) {
+      return NextResponse.json({ ok: false, error: "user_id_required" }, { status: 400 });
+    }
+
+    const access = await checkCommunityActionAllowed(userId);
+    if (!access.allowed) {
+      return communityActionDeniedResponse(access.error);
+    }
+
     const record = await appendFounderProjectSeed({
       archiveId: typeof body.archiveId === "string" ? body.archiveId : null,
-      userId: typeof body.userId === "string" ? body.userId : null,
+      userId,
       title,
       summary,
       cohortBatch: body.cohortBatch,
     });
 
-    const userId = typeof body.userId === "string" ? body.userId.trim() : "";
-    if (userId) {
-      await recordProjectSeeded({
+    await recordProjectSeeded({
         userId,
         archiveId: record.archiveId,
         title: record.title,
         seedId: record.seedId,
       }).catch(() => {});
-    }
 
     await appendObservatoryEvent(
       buildObservatoryEvent({

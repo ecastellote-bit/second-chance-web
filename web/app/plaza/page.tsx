@@ -2,7 +2,6 @@
 
 import { PlazaInicialView } from "@/components/plaza/PlazaInicialView";
 import { PlazaPostActivacionView } from "@/components/plaza/PlazaPostActivacionView";
-import { UserProfileGate } from "@/components/perfil/UserProfileGate";
 import { getActivationChoice } from "@/lib/activacion/storage";
 import type { OfficialActivationPathId } from "@/lib/content/officialActivationPaths";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -55,9 +54,7 @@ export default function PlazaPage() {
         </div>
       }
     >
-      <UserProfileGate>
-        <PlazaPageContent />
-      </UserProfileGate>
+      <PlazaPageContent />
     </Suspense>
   );
 }

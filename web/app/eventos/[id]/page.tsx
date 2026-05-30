@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { UserProfileGate } from "@/components/perfil/UserProfileGate";
 import {
   EVENT_LABEL_BADGE,
   NeighborhoodActivityDetail,
@@ -28,7 +27,6 @@ export default function EventoDetailPage() {
   }
 
   return (
-    <UserProfileGate>
     <NeighborhoodActivityDetail
       backHref="/eventos"
       backLabel="Eventos"
@@ -70,6 +68,5 @@ export default function EventoDetailPage() {
     >
       <p>{COMMUNITY_SEED_INTERIOR_BODY}</p>
     </NeighborhoodActivityDetail>
-    </UserProfileGate>
   );
 }

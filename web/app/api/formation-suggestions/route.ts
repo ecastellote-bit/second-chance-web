@@ -5,6 +5,10 @@ import {
   createFormationSuggestion,
   getFormationSuggestionStoreMeta,
 } from "@/lib/learning/formationSuggestions";
+import {
+  checkCommunityActionAllowed,
+  communityActionDeniedResponse,
+} from "@/lib/users/assertCommunityActionAllowed";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +34,11 @@ export async function POST(req: Request) {
         { ok: false, error: "invalid_formation_suggestion_payload" },
         { status: 400 },
       );
+    }
+
+    const access = await checkCommunityActionAllowed(userId);
+    if (!access.allowed) {
+      return communityActionDeniedResponse(access.error);
     }
 
     const suggestion = await createFormationSuggestion({

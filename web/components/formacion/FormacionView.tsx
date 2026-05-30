@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { PublicCommunityRecentActivity } from "@/components/community/PublicCommunityRecentActivity";
+import { CommunityActionGate } from "@/components/perfil/CommunityActionGate";
+import { communityActionClientError } from "@/lib/content/communityActionGateCopy";
 import { CirculosLeftNav } from "@/components/circulos/CirculosLeftNav";
 import { CommunityMicroAction } from "@/components/community/CommunityMicroAction";
 import { EventoOpportunityCard } from "@/components/eventos/EventoOpportunityCard";
@@ -53,10 +55,12 @@ export function FormacionView() {
         confirmation?: string;
       };
       if (!res.ok || !data.ok) {
+        const gateMsg = communityActionClientError(data.error);
         setSuggestionFeedback(
-          data.error === "blob_not_configured"
-            ? "No pudimos guardar tu sugerencia en este entorno. Probá desde la URL principal de producción."
-            : "No pudimos guardar la sugerencia ahora. Probá de nuevo.",
+          gateMsg ||
+            (data.error === "blob_not_configured"
+              ? "No pudimos guardar tu sugerencia en este entorno. Probá desde la URL principal de producción."
+              : "No pudimos guardar la sugerencia ahora. Probá de nuevo."),
         );
         return;
       }
@@ -111,6 +115,7 @@ export function FormacionView() {
 
             <PublicCommunityRecentActivity className="mb-6" limit={6} />
 
+            <CommunityActionGate returnTo="/formacion">
             <section className="mb-6 rounded-2xl border border-[#E8EEF3] bg-white p-4">
               <h2 className="text-lg font-bold text-[#0B2E59]">¿En qué te gustaría formarte?</h2>
               <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">
@@ -145,6 +150,7 @@ export function FormacionView() {
                 alianzas formativas.
               </p>
             </section>
+            </CommunityActionGate>
 
             <div className="mb-4 flex flex-wrap gap-2">
               <Link

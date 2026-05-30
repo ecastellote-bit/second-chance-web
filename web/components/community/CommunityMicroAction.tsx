@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { CommunityActionGate } from "@/components/perfil/CommunityActionGate";
 import { postCommunityEvent } from "@/lib/community/communityClient";
+import { communityActionClientError } from "@/lib/content/communityActionGateCopy";
 import { INTEREST_REGISTERED_TOAST } from "@/lib/content/communityInboxCopy";
 
 type CircleProps = {
@@ -84,6 +87,7 @@ function defaultLabels(props: Props): { label: string; registered: string } {
 }
 
 export function CommunityMicroAction(props: Props) {
+  const pathname = usePathname();
   const { variant = "secondary", className = "" } = props;
   const labels = defaultLabels(props);
   const label = props.label ?? labels.label;
@@ -105,25 +109,23 @@ export function CommunityMicroAction(props: Props) {
     setFeedback("");
 
     try {
-      let ok = false;
+      let res: { ok: boolean; error?: string };
       if (props.kind === "circle") {
-        const res = await postCommunityEvent({
+        res = await postCommunityEvent({
           event: "circle_interest",
           circleId: props.circleId,
           circleTitle: props.circleTitle,
           mode: props.mode,
         });
-        ok = res.ok;
       } else if (props.kind === "project") {
-        const res = await postCommunityEvent({
+        res = await postCommunityEvent({
           event: "project_interest",
           projectId: props.projectId,
           projectTitle: props.projectTitle,
           mode: props.mode,
         });
-        ok = res.ok;
       } else {
-        const res = await postCommunityEvent({
+        res = await postCommunityEvent({
           event: "formation_or_event_interest",
           targetId: props.targetId,
           targetTitle: props.targetTitle,
@@ -131,13 +133,15 @@ export function CommunityMicroAction(props: Props) {
           notifySimilar: props.notifySimilar,
           savedRoute: props.savedRoute,
         });
-        ok = res.ok;
       }
 
-      if (ok) {
+      if (res.ok) {
         sessionStorage.setItem(key, "1");
         setRegistered(true);
         setFeedback(INTEREST_REGISTERED_TOAST);
+      } else {
+        const gateMsg = communityActionClientError(res.error);
+        if (gateMsg) setFeedback(gateMsg);
       }
     } finally {
       setLoading(false);
@@ -150,6 +154,7 @@ export function CommunityMicroAction(props: Props) {
       : "border border-[#E8EEF3] bg-white text-[#0B2E59] hover:bg-[#F8FAFC]";
 
   return (
+    <CommunityActionGate returnTo={pathname || "/plaza"}>
     <div className={className}>
       <button
         type="button"
@@ -166,5 +171,6 @@ export function CommunityMicroAction(props: Props) {
         <p className="mt-2 text-[12px] leading-relaxed text-[#6B7A8C]">{feedback}</p>
       ) : null}
     </div>
+    </CommunityActionGate>
   );
 }

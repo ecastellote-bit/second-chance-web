@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { CommunityActionGate } from "@/components/perfil/CommunityActionGate";
 import {
   COMMUNITY_REPORT_CONFIRMATION,
   COMMUNITY_REPORT_REASON_OPTIONS,
 } from "@/lib/community/communityReportCopy";
+import { communityActionClientError } from "@/lib/content/communityActionGateCopy";
 import type {
   CommunityReportReason,
   CommunityReportTargetType,
@@ -18,6 +21,8 @@ type Props = {
 };
 
 export function ReportContentButton({ targetType, targetId, className = "" }: Props) {
+  const pathname = usePathname();
+  const returnTo = pathname || "/plaza";
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState<CommunityReportReason>("spam");
   const [details, setDetails] = useState("");
@@ -46,10 +51,12 @@ export function ReportContentButton({ targetType, targetId, className = "" }: Pr
         confirmation?: string;
       };
       if (!res.ok || !data.ok) {
+        const gateMsg = communityActionClientError(data.error);
         setFeedback(
-          data.error === "blob_not_configured"
-            ? "No pudimos registrar el reporte en este entorno."
-            : "No pudimos enviar el reporte. Probá de nuevo.",
+          gateMsg ||
+            (data.error === "blob_not_configured"
+              ? "No pudimos registrar el reporte en este entorno."
+              : "No pudimos enviar el reporte. Probá de nuevo."),
         );
         return;
       }
@@ -62,6 +69,7 @@ export function ReportContentButton({ targetType, targetId, className = "" }: Pr
   }
 
   return (
+    <CommunityActionGate returnTo={returnTo}>
     <div className={className}>
       <button
         type="button"
@@ -124,5 +132,6 @@ export function ReportContentButton({ targetType, targetId, className = "" }: Pr
         <p className="mt-2 text-[11px] leading-relaxed text-[#6B7A8C]">{feedback}</p>
       ) : null}
     </div>
+    </CommunityActionGate>
   );
 }

@@ -155,17 +155,17 @@ export async function postCommunityEvent(
         source?: "project_page" | "projects_list" | "activation";
         archiveId?: string | null;
       },
-): Promise<{ ok: boolean }> {
+): Promise<{ ok: boolean; error?: string }> {
   const { userId, archiveId } = resolveIds(
     "archiveId" in event ? event.archiveId : undefined,
   );
-  if (!userId) return { ok: false };
+  if (!userId) return { ok: false, error: "user_id_required" };
 
   const res = await fetch("/api/community/event", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId, archiveId, ...event }),
   });
-  const data = (await res.json()) as { ok?: boolean };
-  return { ok: Boolean(data.ok) };
+  const data = (await res.json()) as { ok?: boolean; error?: string };
+  return { ok: Boolean(data.ok), error: data.error };
 }

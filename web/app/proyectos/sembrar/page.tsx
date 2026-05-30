@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 import { FoundingMemberGate } from "@/components/founder/FoundingMemberGate";
-import { UserProfileGate } from "@/components/perfil/UserProfileGate";
+import { CommunityActionGate } from "@/components/perfil/CommunityActionGate";
 import { FOUNDER_FLOW_COPY } from "@/lib/content/founderFlowCopy";
 import { getFoundingMemberArchiveId } from "@/lib/learning/foundationalMember";
+import { communityActionClientError } from "@/lib/content/communityActionGateCopy";
 import { getOrCreateUserId } from "@/lib/users/activeUserSession";
 import { getFoundationalCohortBatch } from "@/lib/learning/foundationalCohort";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
@@ -35,8 +36,11 @@ function SembrarForm() {
           cohortBatch: getFoundationalCohortBatch(),
         }),
       });
-      const data = await res.json();
-      if (!data.ok) throw new Error(data.error ?? "Error al sembrar");
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!data.ok) {
+        const gateMsg = communityActionClientError(data.error);
+        throw new Error(gateMsg || data.error || "Error al sembrar");
+      }
       setDone(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
@@ -138,10 +142,10 @@ function SembrarForm() {
 
 export default function SembrarProyectoPage() {
   return (
-    <UserProfileGate>
+    <CommunityActionGate mode="page" returnTo="/proyectos">
       <FoundingMemberGate>
         <SembrarForm />
       </FoundingMemberGate>
-    </UserProfileGate>
+    </CommunityActionGate>
   );
 }

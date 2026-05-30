@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { CommunityActionGate } from "@/components/perfil/CommunityActionGate";
+import { communityActionClientError } from "@/lib/content/communityActionGateCopy";
 import { getOrCreateUserId } from "@/lib/users/activeUserSession";
 
 type CircleSignalType =
@@ -22,6 +25,8 @@ const ACTIONS: { type: CircleSignalType; label: string; needsNote?: boolean }[] 
 ];
 
 export function CircleSignalsPanel({ circleId, circleTitle }: Props) {
+  const pathname = usePathname();
+  const returnTo = pathname || `/circulos/${encodeURIComponent(circleId)}`;
   const [feedback, setFeedback] = useState("");
   const [ideaOpen, setIdeaOpen] = useState(false);
   const [ideaText, setIdeaText] = useState("");
@@ -75,12 +80,14 @@ export function CircleSignalsPanel({ circleId, circleTitle }: Props) {
         confirmation?: string;
       };
       if (!res.ok || !data.ok) {
+        const gateMsg = communityActionClientError(data.error);
         setFeedback(
-          data.error === "blob_not_configured"
-            ? "No pudimos guardar tu señal en este entorno. Probá desde la URL principal de producción."
-            : data.error === "circle_idea_note_required"
-              ? "Contanos tu idea en al menos 10 caracteres."
-              : "No pudimos guardar la señal ahora. Probá de nuevo.",
+          gateMsg ||
+            (data.error === "blob_not_configured"
+              ? "No pudimos guardar tu señal en este entorno. Probá desde la URL principal de producción."
+              : data.error === "circle_idea_note_required"
+                ? "Contanos tu idea en al menos 10 caracteres."
+                : "No pudimos guardar la señal ahora. Probá de nuevo."),
         );
         return;
       }
@@ -96,6 +103,7 @@ export function CircleSignalsPanel({ circleId, circleTitle }: Props) {
   }
 
   return (
+    <CommunityActionGate returnTo={returnTo}>
     <section id="circle-signals" className="w-full max-w-md scroll-mt-4 rounded-2xl border border-[#E8EEF3] bg-white p-4">
       <p className="text-[13px] leading-relaxed text-[#6B7A8C]">
         Este círculo está en etapa inicial. Podés dejar una señal para que el equipo entienda qué
@@ -164,5 +172,6 @@ export function CircleSignalsPanel({ circleId, circleTitle }: Props) {
         <p className="mt-3 text-[12px] leading-relaxed text-[#6B7A8C]">{feedback}</p>
       ) : null}
     </section>
+    </CommunityActionGate>
   );
 }

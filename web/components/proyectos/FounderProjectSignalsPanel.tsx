@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
+import { CommunityActionGate } from "@/components/perfil/CommunityActionGate";
 import { postCommunityEvent } from "@/lib/community/communityClient";
+import { communityActionClientError } from "@/lib/content/communityActionGateCopy";
 import { getOrCreateUserId } from "@/lib/users/activeUserSession";
 
 const CAPABILITY_OPTIONS = [
@@ -55,6 +58,10 @@ export function FounderProjectSignalsPanel({
   projectId: string;
   projectTitle: string;
 }) {
+  const pathname = usePathname();
+  const returnTo =
+    pathname ||
+    `/proyectos/semilla/${encodeURIComponent(projectId)}`;
   const [loadingType, setLoadingType] = useState<SignalType | null>(null);
   const [feedback, setFeedback] = useState("");
   const [selectedCapabilities, setSelectedCapabilities] = useState<string[]>([]);
@@ -108,7 +115,8 @@ export function FounderProjectSignalsPanel({
         source: "project_page",
       });
       if (!result.ok) {
-        setFeedback("No pudimos registrar la señal ahora. Probá de nuevo.");
+        const gateMsg = communityActionClientError(result.error);
+        setFeedback(gateMsg || "No pudimos registrar la señal ahora. Probá de nuevo.");
         return;
       }
       setExistingSignals((current) => {
@@ -133,6 +141,7 @@ export function FounderProjectSignalsPanel({
   }
 
   return (
+    <CommunityActionGate returnTo={returnTo}>
     <section id="project-signals" className="mt-6 scroll-mt-4 rounded-2xl border border-[#E8EEF3] bg-white px-4 py-4">
       <h2 className="text-base font-bold text-[#0B2E59]">Dejá una señal sobre este proyecto</h2>
       <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">
@@ -209,5 +218,6 @@ export function FounderProjectSignalsPanel({
 
       {feedback ? <p className="mt-3 text-[12px] leading-relaxed text-[#6B7A8C]">{feedback}</p> : null}
     </section>
+    </CommunityActionGate>
   );
 }
