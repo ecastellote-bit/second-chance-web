@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { PublicCommunityRecentActivity } from "@/components/community/PublicCommunityRecentActivity";
 import { CirculosLeftNav } from "@/components/circulos/CirculosLeftNav";
 import { CommunityMicroAction } from "@/components/community/CommunityMicroAction";
 import { EventoOpportunityCard } from "@/components/eventos/EventoOpportunityCard";
@@ -107,6 +108,8 @@ export function FormacionView() {
                 acercarte primero — sin prometer convenios ni descuentos que todavía no existen.
               </p>
             </div>
+
+            <PublicCommunityRecentActivity className="mb-6" limit={6} />
 
             <section className="mb-6 rounded-2xl border border-[#E8EEF3] bg-white p-4">
               <h2 className="text-lg font-bold text-[#0B2E59]">¿En qué te gustaría formarte?</h2>

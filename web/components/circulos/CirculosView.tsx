@@ -8,6 +8,7 @@ import {
   CirculosMobileStrip,
   CirculosRightPanel,
 } from "@/components/circulos/CirculosRightPanel";
+import { PublicCommunityRecentActivity } from "@/components/community/PublicCommunityRecentActivity";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
 import { CIRCULOS_CATALOG, CIRCULOS_HEADER, SUGERIDOS_IDS } from "@/lib/content/circulosCatalog";
 import { COMMUNITY_SEED_FOOTNOTE } from "@/lib/content/communitySeedCopy";
@@ -52,6 +53,8 @@ export function CirculosView() {
                   {COMMUNITY_SEED_FOOTNOTE}
                 </p>
               </div>
+
+              <PublicCommunityRecentActivity className="mb-6" limit={6} />
 
               {/* Paneles laterales en móvil: tiras horizontales */}
               <div className="xl:hidden">

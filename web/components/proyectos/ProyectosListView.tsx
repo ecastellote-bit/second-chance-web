@@ -9,6 +9,7 @@ import { FoundingMemberBadge } from "@/components/founder/FoundingMemberBadge";
 import { isFounderCommunityPreviewActive } from "@/lib/founder/communityPreviewBypass";
 import { ensureFoundingMemberAccess } from "@/lib/learning/ensureFoundingMemberAccess";
 import { isFoundingMemberQualified } from "@/lib/learning/foundationalMember";
+import { PublicCommunityRecentActivity } from "@/components/community/PublicCommunityRecentActivity";
 import { FounderSeedsSection } from "@/components/proyectos/FounderSeedsSection";
 import { MyFounderSeedBanner } from "@/components/proyectos/MyFounderSeedBanner";
 import { PROYECTOS_CATALOG, PROYECTOS_HEADER } from "@/lib/content/proyectosCatalog";
@@ -73,6 +74,8 @@ export function ProyectosListView() {
             <FoundingMemberBadge />
 
             <MyFounderSeedBanner />
+
+            <PublicCommunityRecentActivity className="mb-6" limit={8} />
 
             <FounderSeedsSection />
 
