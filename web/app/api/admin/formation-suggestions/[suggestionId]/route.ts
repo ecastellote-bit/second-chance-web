@@ -4,6 +4,7 @@ import {
   type FormationSuggestionStatus,
   updateFormationSuggestionStatus,
 } from "@/lib/learning/formationSuggestions";
+import { notifyFormationSuggestionReviewed } from "@/lib/learning/notificationEventIntegrations";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,6 +28,13 @@ export async function PATCH(req: Request, context: RouteContext) {
     );
     if (!suggestion) {
       return NextResponse.json({ ok: false, error: "suggestion_not_found" }, { status: 404 });
+    }
+
+    if (status === "reviewed") {
+      void notifyFormationSuggestionReviewed({
+        suggestionId: suggestion.suggestionId,
+        userId: suggestion.userId,
+      });
     }
 
     return NextResponse.json({ ok: true, suggestion });

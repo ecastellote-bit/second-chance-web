@@ -6,6 +6,10 @@ import {
   updateFounderProjectSeedStatus,
   type FounderProjectSeedStatus,
 } from "@/lib/learning/founderProjectSeeds";
+import {
+  notifyProjectHidden,
+  notifyProjectPublished,
+} from "@/lib/learning/notificationEventIntegrations";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,6 +47,14 @@ export async function PATCH(req: Request, context: RouteContext) {
 
     if (!seed) {
       return NextResponse.json({ ok: false, error: "update_failed" }, { status: 500 });
+    }
+
+    if (existing.status !== seed.status) {
+      if (seed.status === "published") {
+        void notifyProjectPublished(seed);
+      } else if (seed.status === "hidden") {
+        void notifyProjectHidden(seed);
+      }
     }
 
     return NextResponse.json({

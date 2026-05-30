@@ -18,6 +18,7 @@ import {
   FounderProjectSignalStoreError,
   upsertFounderProjectSignal,
 } from "@/lib/learning/founderProjectSignals";
+import { notifyProjectSignalReceived } from "@/lib/learning/notificationEventIntegrations";
 import {
   checkCommunityActionAllowed,
   communityActionDeniedResponse,
@@ -176,6 +177,12 @@ export async function POST(req: Request) {
           projectTitle,
           signalType,
           capabilities,
+        });
+
+        void notifyProjectSignalReceived({
+          seed,
+          signalId: persisted.signal.signalId,
+          actorUserId: userId,
         });
 
         return NextResponse.json({

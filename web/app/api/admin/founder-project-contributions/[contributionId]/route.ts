@@ -4,6 +4,7 @@ import {
   updateFounderProjectGuidedContributionStatus,
   type FounderProjectGuidedContributionStatus,
 } from "@/lib/learning/founderProjectGuidedContributions";
+import { notifyContributionVisible } from "@/lib/learning/notificationEventIntegrations";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,6 +34,14 @@ export async function PATCH(req: Request, context: RouteContext) {
     );
     if (!updated) {
       return NextResponse.json({ ok: false, error: "contribution_not_found" }, { status: 404 });
+    }
+
+    if (status === "visible") {
+      void notifyContributionVisible({
+        contributionId: updated.contributionId,
+        projectId: updated.projectId,
+        actorUserId: updated.actorUserId,
+      });
     }
 
     return NextResponse.json({ ok: true, contribution: updated });

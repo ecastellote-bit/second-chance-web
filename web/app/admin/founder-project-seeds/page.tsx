@@ -148,6 +148,12 @@ export default function FounderProjectSeedsAdminPage() {
             >
               Señales de proyectos →
             </Link>
+            <Link
+              href="/admin/notification-events"
+              className="font-semibold text-[#1A9BB0] underline"
+            >
+              Eventos de notificación →
+            </Link>
             <Link href="/" className="text-[#6B7A8C] underline">
               ← Inicio
             </Link>

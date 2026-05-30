@@ -6,6 +6,7 @@ import {
   type CircleSignalStatus,
   updateCircleSignalStatus,
 } from "@/lib/learning/circleSignals";
+import { notifyCircleIdeaVisible } from "@/lib/learning/notificationEventIntegrations";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,6 +30,11 @@ export async function PATCH(req: Request, context: RouteContext) {
       if (!updated) {
         return NextResponse.json({ ok: false, error: "signal_not_found" }, { status: 404 });
       }
+      void notifyCircleIdeaVisible({
+        signalId: updated.signalId,
+        circleId: updated.circleId,
+        actorUserId: updated.actorUserId,
+      });
       return NextResponse.json({ ok: true, signal: updated });
     }
 
