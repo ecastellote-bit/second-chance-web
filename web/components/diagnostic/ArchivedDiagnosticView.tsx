@@ -1,14 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   PersonalizedDiagnosticDeliverable,
   type PresentationForView,
 } from "@/components/diagnostic/PersonalizedDiagnosticDeliverable";
+import { ArchivedDiagnosticLoadFallback } from "@/components/diagnostic/ArchivedDiagnosticLoadFallback";
 import { RequestHumanReviewButton } from "@/components/diagnostic/RequestHumanReviewButton";
 import { useFullAnswers } from "@/app/full/fullAnswersContext";
 import { archivedCurrentResultToFinalReading } from "@/lib/full/restoreArchivedCaseToSession";
+import {
+  ARCHIVED_CASE_FETCH_TIMEOUT_MS,
+  classifyArchivedLoadError,
+  getArchivedLoadFallbackCopy,
+  type ArchivedLoadErrorKind,
+} from "@/lib/full/archivedDiagnosticLoadUx";
 import { setActiveHumanArchiveId } from "@/lib/learning/activeHumanArchive";
 import { grantFoundingMember } from "@/lib/learning/foundationalMember";
 
@@ -29,8 +36,12 @@ type Props = {
 
 export function ArchivedDiagnosticView({ archiveId }: Props) {
   const { setAnalysis, isHydrated } = useFullAnswers();
+  const setAnalysisRef = useRef(setAnalysis);
+  setAnalysisRef.current = setAnalysis;
+
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [errorKind, setErrorKind] = useState<ArchivedLoadErrorKind | null>(null);
+  const [errorDetail, setErrorDetail] = useState("");
   const [presentation, setPresentation] = useState<PresentationForView | null>(null);
   const [headline, setHeadline] = useState("Tu lectura");
   const [learning, setLearning] = useState<LearningReadiness | null>(null);
@@ -39,17 +50,36 @@ export function ArchivedDiagnosticView({ archiveId }: Props) {
   const themesHref = `/full/themes?archiveId=${encodeURIComponent(archiveId)}`;
   const plazaHref = `/plaza`;
   const perfilHref = `/perfil/crear?redirect=${encodeURIComponent(themesHref)}`;
+  const hasArchiveReference = Boolean(archiveId.trim());
 
   useEffect(() => {
+    const trimmedId = archiveId.trim();
+    if (!trimmedId) {
+      setLoading(false);
+      setErrorKind("not_found");
+      setErrorDetail("missing_archive_id");
+      return;
+    }
+
     let cancelled = false;
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => {
+      controller.abort();
+    }, ARCHIVED_CASE_FETCH_TIMEOUT_MS);
 
     async function load() {
       setLoading(true);
-      setError("");
+      setErrorKind(null);
+      setErrorDetail("");
+      setPresentation(null);
+      setCurrentResult(null);
+
+      let timedOut = false;
 
       try {
         const res = await fetch(
-          `/api/human-cases/${encodeURIComponent(archiveId)}`,
+          `/api/human-cases/${encodeURIComponent(trimmedId)}`,
+          { signal: controller.signal },
         );
         const data = (await res.json()) as {
           ok?: boolean;
@@ -89,27 +119,38 @@ export function ArchivedDiagnosticView({ archiveId }: Props) {
         );
         setLearning(data.learningReadiness ?? null);
         setCurrentResult(cr);
-        setActiveHumanArchiveId(archiveId);
-        grantFoundingMember(archiveId);
+        setActiveHumanArchiveId(trimmedId);
+        grantFoundingMember(trimmedId);
       } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : "load_failed");
+        if (cancelled) return;
+
+        if (err instanceof Error && err.name === "AbortError") {
+          timedOut = true;
         }
+
+        const message = err instanceof Error ? err.message : "load_failed";
+        const kind = classifyArchivedLoadError(message, { timedOut });
+        setErrorKind(kind);
+        setErrorDetail(message);
       } finally {
+        window.clearTimeout(timeoutId);
         if (!cancelled) setLoading(false);
       }
     }
 
-    load();
+    void load();
+
     return () => {
       cancelled = true;
+      controller.abort();
+      window.clearTimeout(timeoutId);
     };
-  }, [archiveId, setAnalysis]);
+  }, [archiveId]);
 
   useEffect(() => {
     if (!isHydrated || !currentResult) return;
-    setAnalysis(archivedCurrentResultToFinalReading(currentResult));
-  }, [isHydrated, currentResult, setAnalysis]);
+    setAnalysisRef.current(archivedCurrentResultToFinalReading(currentResult));
+  }, [isHydrated, currentResult]);
 
   if (loading) {
     return (
@@ -119,25 +160,15 @@ export function ArchivedDiagnosticView({ archiveId }: Props) {
     );
   }
 
-  if (error || !presentation) {
+  if (errorKind || !presentation) {
+    const kind = errorKind ?? "unknown";
+    const copy = getArchivedLoadFallbackCopy(kind, hasArchiveReference);
     return (
-      <main className="flex min-h-[100dvh] flex-col items-center justify-center bg-[#F8FAFC] px-6">
-        <div className="max-w-md space-y-4 rounded-2xl border border-amber-300 bg-amber-50 p-6 text-center">
-          <h1 className="text-lg font-bold text-[#0B2E59]">
-            No encontramos este caso en el servidor
-          </h1>
-          <p className="text-sm text-[#243647]">
-            ID: <code className="font-mono text-xs">{archiveId}</code>
-            {error ? ` · ${error}` : null}
-          </p>
-          <Link
-            href="/full/result/recuperar"
-            className="inline-block rounded-xl bg-[#0B2E59] px-5 py-3 text-sm font-semibold text-white"
-          >
-            Importar mi .json
-          </Link>
-        </div>
-      </main>
+      <ArchivedDiagnosticLoadFallback
+        copy={copy}
+        archiveId={hasArchiveReference ? archiveId.trim() : undefined}
+        errorDetail={errorDetail || undefined}
+      />
     );
   }
 

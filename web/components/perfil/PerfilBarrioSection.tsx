@@ -4,9 +4,17 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PerfilSection } from "@/components/perfil/PerfilSection";
 import { fetchCommunityActivities, fetchCommunityMessages } from "@/lib/community/communityClient";
+import { getFoundingMemberArchiveId } from "@/lib/learning/foundationalMember";
 import type { UserProfileClientView } from "@/lib/users/userProfileTypes";
 
+function resolveDiagnosticArchiveId(profile: UserProfileClientView): string {
+  const fromProfile = profile.diagnosticArchiveId?.trim() ?? "";
+  if (fromProfile) return fromProfile;
+  return getFoundingMemberArchiveId()?.trim() ?? "";
+}
+
 export function PerfilBarrioSection({ profile }: { profile: UserProfileClientView }) {
+  const diagnosticArchiveId = resolveDiagnosticArchiveId(profile);
   const [activityCount, setActivityCount] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const [hasSeed, setHasSeed] = useState(false);
@@ -24,17 +32,25 @@ export function PerfilBarrioSection({ profile }: { profile: UserProfileClientVie
   return (
     <PerfilSection title="Tu barrio" hint="Conexión con el ecosistema — sin red social">
       <ul className="space-y-2">
-        {profile.diagnosticArchiveId ? (
-          <li>
+        <li>
+          {diagnosticArchiveId ? (
             <Link
-              href={`/full/result/archivo/${encodeURIComponent(profile.diagnosticArchiveId)}`}
+              href={`/full/result/archivo/${encodeURIComponent(diagnosticArchiveId)}`}
               className="vu-focus flex min-h-[44px] items-center justify-between rounded-2xl bg-[#F8FAFC] px-3 py-2.5 ring-1 ring-[#E8EEF3] hover:bg-[#E6F6FA]"
             >
               <span className="text-sm font-semibold text-[#0B2E59]">Ver mi diagnóstico</span>
               <span className="text-[11px] text-[#1A9BB0]">Archivo</span>
             </Link>
-          </li>
-        ) : null}
+          ) : (
+            <Link
+              href="/comenzar"
+              className="vu-focus flex min-h-[44px] items-center justify-between rounded-2xl bg-[#0B2E59] px-3 py-2.5 text-white hover:bg-[#0a274f]"
+            >
+              <span className="text-sm font-semibold">Iniciar lectura vocacional</span>
+              <span className="text-[11px] text-white/80">Diagnóstico</span>
+            </Link>
+          )}
+        </li>
         <li>
           <Link
             href="/actividad"
