@@ -9,7 +9,12 @@ import { getFoundationalCohortBatch } from "@/lib/learning/foundationalCohort";
 import type { FounderProjectSeed } from "@/lib/learning/founderProjectSeeds";
 import { getOrCreateUserId } from "@/lib/users/activeUserSession";
 
-export function PlazaLivingPanel() {
+type Props = {
+  /** Versión más baja para panel bajo el mapa (plaza inicial). */
+  compact?: boolean;
+};
+
+export function PlazaLivingPanel({ compact = false }: Props = {}) {
   const [activities, setActivities] = useState<CommunityActivityItem[]>([]);
   const [mySeeds, setMySeeds] = useState<FounderProjectSeed[]>([]);
   const [ready, setReady] = useState(false);
@@ -53,19 +58,22 @@ export function PlazaLivingPanel() {
 
   if (!ready) return null;
 
+  const cardPad = compact ? "px-3 py-2.5" : "px-4 py-3";
+  const sectionGap = compact ? "space-y-2" : "space-y-3";
+
   return (
-    <section className="mb-4 space-y-3">
-      <div className="rounded-2xl border border-[#1A9BB0]/25 bg-[#E6F6FA] px-4 py-3">
-        <p className="text-[11px] font-bold uppercase tracking-wide text-[#0B2E59]">
+    <section className={`mb-2 ${sectionGap}`}>
+      <div className={`rounded-xl border border-[#1A9BB0]/25 bg-[#E6F6FA] ${cardPad}`}>
+        <p className="text-[10px] font-bold uppercase tracking-wide text-[#0B2E59]">
           Centro del barrio
         </p>
-        <p className="mt-1 text-[13px] leading-relaxed text-[#243647]">
+        <p className={`mt-0.5 text-[12px] leading-relaxed text-[#243647] ${compact ? "line-clamp-2" : ""}`}>
           Acá orientamos tus próximos pasos según lo que ya hiciste — no es un feed de novedades.
         </p>
       </div>
 
       {hasSeeded ? (
-        <div className="rounded-2xl border border-[#C6D92D]/45 bg-[#F4F9E0] px-4 py-3">
+        <div className={`rounded-xl border border-[#C6D92D]/45 bg-[#F4F9E0] ${cardPad}`}>
           <p className="text-sm font-semibold text-[#0B2E59]">Tu proyecto ya quedó sembrado</p>
           <p className="mt-1 text-[13px] leading-relaxed text-[#243647]">
             Podés revisar su estado en Actividad o mirar espacios relacionados. La revisión de la
@@ -98,7 +106,7 @@ export function PlazaLivingPanel() {
       ) : null}
 
       {latest ? (
-        <div className="rounded-2xl border border-[#E8EEF3] bg-white px-4 py-3 shadow-sm">
+        <div className={`rounded-xl border border-[#E8EEF3] bg-white shadow-sm ${cardPad}`}>
           <p className="text-[10px] font-bold uppercase tracking-wide text-[#6B7A8C]">
             Último movimiento
           </p>
@@ -116,7 +124,7 @@ export function PlazaLivingPanel() {
           ) : null}
         </div>
       ) : (
-        <div className="rounded-2xl border border-[#E8EEF3] bg-white px-4 py-3">
+        <div className={`rounded-xl border border-[#E8EEF3] bg-white ${cardPad}`}>
           <p className="text-sm font-semibold text-[#0B2E59]">Todavía no hay movimientos</p>
           <p className="mt-1 text-[12px] text-[#6B7A8C]">
             Elegí un camino en activación, sembrá un proyecto o marcá interés en un espacio.

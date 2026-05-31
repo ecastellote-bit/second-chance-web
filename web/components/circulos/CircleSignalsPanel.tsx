@@ -19,7 +19,7 @@ type Props = {
 
 const ACTIONS: { type: CircleSignalType; label: string; needsNote?: boolean }[] = [
   { type: "circle_interest", label: "Me interesa" },
-  { type: "circle_receive_updates", label: "Quiero recibir movimiento" },
+  { type: "circle_receive_updates", label: "Avisarme cuando el círculo se mueva" },
   { type: "circle_access_request", label: "Solicitar acceso" },
   { type: "circle_idea", label: "Tengo una idea para este círculo", needsNote: true },
 ];
@@ -155,7 +155,8 @@ export function CircleSignalsPanel({ circleId, circleTitle }: Props) {
               disabled={sending === action.type}
               onClick={() => submit(action.type)}
               className={[
-                "vu-focus flex min-h-[48px] w-full items-center justify-center rounded-2xl px-4 text-sm font-semibold disabled:opacity-60",
+                "vu-focus flex min-h-[48px] w-full items-center justify-center rounded-2xl px-3 text-center text-[13px] font-semibold leading-snug disabled:opacity-60 sm:text-sm",
+                action.type === "circle_receive_updates" ? "min-h-[52px]" : "",
                 isPrimary
                   ? "bg-[#C6D92D] text-[#0B2E59]"
                   : "border border-[#E8EEF3] bg-white text-[#0B2E59]",

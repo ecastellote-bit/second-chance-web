@@ -27,7 +27,7 @@ export const PROJECT_CTA_OPTIONS = [
 
 export const CIRCLE_CTA_OPTIONS = [
   { id: "circle_interest", label: "Me interesa", anchor: "#circle-signals" },
-  { id: "circle_receive_updates", label: "Quiero recibir movimiento", anchor: "#circle-signals" },
+  { id: "circle_receive_updates", label: "Avisarme cuando el círculo se mueva", anchor: "#circle-signals" },
   { id: "circle_access_request", label: "Solicitar acceso", anchor: "#circle-signals" },
   { id: "circle_idea", label: "Tengo una idea", anchor: "#circle-signals" },
 ] as const;

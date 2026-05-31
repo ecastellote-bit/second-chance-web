@@ -2,7 +2,7 @@ import type { CircleSignalStatus, CircleSignalType } from "@/lib/learning/circle
 
 export const CIRCLE_SIGNAL_TYPE_LABEL: Record<CircleSignalType, string> = {
   circle_interest: "Me interesa",
-  circle_receive_updates: "Recibir movimiento",
+  circle_receive_updates: "Aviso cuando el círculo se mueva",
   circle_access_request: "Solicitar acceso",
   circle_idea: "Idea para el círculo",
 };

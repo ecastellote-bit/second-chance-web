@@ -54,7 +54,7 @@ function circleSignalPublicText(signalType: string): string | null {
     case "circle_interest":
       return "Un círculo recibió interés inicial.";
     case "circle_receive_updates":
-      return "Un círculo sumó personas que quieren recibir movimiento.";
+      return "Un círculo sumó personas que pidieron aviso cuando se mueva.";
     case "circle_access_request":
       return "Un círculo recibió una solicitud de acceso para revisión.";
     default:

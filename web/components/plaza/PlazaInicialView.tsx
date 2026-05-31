@@ -149,8 +149,8 @@ export function PlazaInicialView({ showEntradaLink, onOpenEntrada }: PlazaInicia
 
   return (
     <div className="flex min-h-[100dvh] flex-col font-[family-name:var(--font-inter)] bg-[#0B2E59]">
-      {/* Plaza — full bleed */}
-      <div className="relative flex-1 min-h-0">
+      {/* Mapa primero: entradas visibles sin carteles encima */}
+      <div className="relative h-[min(56vh,480px)] min-h-[300px] shrink-0 w-full">
         <VuWarmImage
           src={PLAZA_IMAGE}
           alt=""
@@ -159,18 +159,16 @@ export function PlazaInicialView({ showEntradaLink, onOpenEntrada }: PlazaInicia
           priority
           sizes="100vw"
         />
-        {/* Velo suave — deja ver la foto, no taparla de azul */}
         <div
           className="absolute inset-0 z-[1]"
           style={{
             background:
-              "linear-gradient(180deg, rgba(11,46,89,0.38) 0%, rgba(11,46,89,0.08) 32%, rgba(11,46,89,0.05) 58%, rgba(11,46,89,0.28) 100%)",
+              "linear-gradient(180deg, rgba(11,46,89,0.42) 0%, rgba(11,46,89,0.06) 38%, rgba(11,46,89,0.04) 70%, rgba(11,46,89,0.2) 100%)",
           }}
         />
 
-        {/* Header — floating on image */}
-        <header className="absolute left-0 right-0 top-0 z-30 px-5 pt-12 pb-4 safe-top">
-          <div className="flex items-center justify-between gap-2 mb-3">
+        <header className="absolute left-0 right-0 top-0 z-30 px-4 pt-10 pb-2 safe-top sm:px-5 sm:pt-12">
+          <div className="mb-2 flex items-center justify-between gap-2">
             <Link
               href="/onboarding"
               className="vu-focus text-[10px] font-semibold uppercase tracking-wider text-[#C6D92D]"
@@ -183,37 +181,49 @@ export function PlazaInicialView({ showEntradaLink, onOpenEntrada }: PlazaInicia
             </span>
           </div>
           <h1
-            className="text-[1.6rem] font-bold leading-tight tracking-tight text-white"
+            className="text-[1.35rem] font-bold leading-tight tracking-tight text-white sm:text-[1.6rem]"
             style={{ textShadow: "0 2px 12px rgba(0,0,0,0.5)" }}
           >
             {PLAZA_HEADER.title}
           </h1>
           <p
-            className="mt-2 max-w-[320px] text-[14px] leading-relaxed text-white/95"
+            className="mt-1.5 line-clamp-2 max-w-[300px] text-[13px] leading-snug text-white/95 sm:mt-2 sm:max-w-[320px] sm:text-[14px] sm:leading-relaxed"
             style={{ textShadow: "0 1px 6px rgba(0,0,0,0.6)" }}
           >
             {PLAZA_HEADER.subtitle}
           </p>
-          <DeepReadingPlazaLink />
+          <div className="mt-1.5 hidden sm:block">
+            <DeepReadingPlazaLink />
+          </div>
           {showEntradaLink && onOpenEntrada ? (
             <button
               type="button"
               onClick={onOpenEntrada}
-              className="vu-focus mt-3 inline-flex min-h-[40px] items-center rounded-full bg-white/15 px-4 text-[12px] font-semibold text-white backdrop-blur-sm"
+              className="vu-focus mt-2 inline-flex min-h-[40px] items-center rounded-full bg-white/15 px-4 text-[12px] font-semibold text-white backdrop-blur-sm"
             >
               ← Volver a mi plaza de entrada
             </button>
           ) : null}
         </header>
 
+        <p className="pointer-events-none absolute bottom-3 left-0 right-0 z-20 px-4 text-center text-[11px] font-semibold text-white/90 sm:hidden">
+          Tocá un punto del mapa para explorar el barrio
+        </p>
+
         <PlazaPathLines />
 
         {PLAZA_PATHS.map((path) => (
           <PlazaPathNode key={path.id} path={path} onNavigate={(route) => router.push(route)} />
         ))}
+      </div>
 
-        <div className="absolute bottom-24 left-0 right-0 z-30 max-h-[38vh] overflow-y-auto px-4 pb-2">
-          <PlazaLivingPanel />
+      {/* Orientación debajo del mapa — no tapa entradas */}
+      <div className="min-h-0 flex-1 overflow-y-auto border-t border-[#1A9BB0]/20 bg-[#0B2E59]">
+        <div className="px-4 py-3 pb-24 sm:px-5">
+          <div className="mb-3 sm:hidden">
+            <DeepReadingPlazaLink />
+          </div>
+          <PlazaLivingPanel compact />
         </div>
       </div>
 

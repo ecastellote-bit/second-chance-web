@@ -6,45 +6,41 @@ import type { PerfilUsuario } from "@/lib/content/perfilCatalog";
 
 const DEFAULT_COVER = "/vu/llegada-silenciosa-patio.jpeg";
 
-const AVATAR_SIZE = "h-[112px] w-[112px] sm:h-[120px] sm:w-[120px]";
+const AVATAR_SIZE = "h-[88px] w-[88px] sm:h-[96px] sm:w-[96px]";
 
 type Props = {
   profile: PerfilUsuario;
 };
 
-/**
- * 70% portada · 30% navy (grid con mínimos). Avatar alto; textos sin solape del panel blanco.
- */
+/** Cabecera compacta: portada contenida + identidad visible sin scroll excesivo. */
 export function PerfilIdentityHeader({ profile }: Props) {
   const hasAvatar = Boolean(profile.avatarUrl);
   const coverSrc = profile.coverUrl ?? DEFAULT_COVER;
 
   return (
     <header className="relative z-20 shrink-0 overflow-visible bg-[#0B2E59]">
-      <div className="grid min-h-[400px] grid-rows-[minmax(200px,7fr)_minmax(240px,3fr)] sm:min-h-[440px]">
-        {/* ~70% portada */}
-        <div className="relative min-h-[200px] overflow-hidden">
+      <div className="grid min-h-0 grid-rows-[minmax(128px,42%)_auto] sm:min-h-[280px] sm:grid-rows-[minmax(140px,1.1fr)_auto]">
+        <div className="relative h-[128px] overflow-hidden sm:h-auto sm:min-h-[140px]">
           <VuWarmImage
             src={coverSrc}
             alt=""
             fill
             priority
-            className="object-cover object-center"
+            className="object-cover object-[center_35%]"
             sizes="100vw"
           />
           <div
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(180deg, rgba(11,46,89,0.05) 0%, transparent 55%, rgba(11,46,89,0.25) 85%, rgba(11,46,89,0.7) 100%)",
+                "linear-gradient(180deg, rgba(11,46,89,0.12) 0%, transparent 45%, rgba(11,46,89,0.35) 100%)",
             }}
           />
         </div>
 
-        {/* ~30% navy — altura garantizada para nombre + headline */}
-        <div className="relative overflow-visible bg-[#0B2E59]">
+        <div className="relative overflow-visible bg-[#0B2E59] pb-4">
           <div
-            className={`absolute left-1/2 top-0 z-30 -translate-x-1/2 -translate-y-[76%] sm:-translate-y-[78%] ${AVATAR_SIZE}`}
+            className={`absolute left-1/2 top-0 z-30 -translate-x-1/2 -translate-y-[62%] sm:-translate-y-[65%] ${AVATAR_SIZE}`}
           >
             <span
               className="pointer-events-none absolute -inset-3 rounded-full opacity-75 blur-2xl"
@@ -56,7 +52,7 @@ export function PerfilIdentityHeader({ profile }: Props) {
             />
             {hasAvatar ? (
               <span
-                className={`relative block ${AVATAR_SIZE} overflow-hidden rounded-full bg-[#1A9BB0] ring-[5px] ring-[#F8FAFC] shadow-[0_14px_48px_rgba(0,0,0,0.45)]`}
+                className={`relative block ${AVATAR_SIZE} overflow-hidden rounded-full bg-[#1A9BB0] ring-4 ring-[#F8FAFC] shadow-[0_10px_32px_rgba(0,0,0,0.35)]`}
               >
                 <VuWarmImage
                   src={profile.avatarUrl!}
@@ -69,23 +65,23 @@ export function PerfilIdentityHeader({ profile }: Props) {
               </span>
             ) : (
               <span
-                className={`flex ${AVATAR_SIZE} items-center justify-center rounded-full bg-[#1A9BB0] text-3xl font-extrabold text-white ring-[5px] ring-[#F8FAFC] shadow-[0_14px_48px_rgba(0,0,0,0.45)]`}
+                className={`flex ${AVATAR_SIZE} items-center justify-center rounded-full bg-[#1A9BB0] text-2xl font-extrabold text-white ring-4 ring-[#F8FAFC] shadow-[0_10px_32px_rgba(0,0,0,0.35)]`}
               >
                 {profile.initials}
               </span>
             )}
           </div>
 
-          <div className="relative z-20 mx-auto flex w-full max-w-lg flex-col px-4 pb-10 pt-[58px] text-center sm:pt-[62px] lg:text-left">
-            <h1 className="text-[1.85rem] font-extrabold leading-[1.12] tracking-[-0.02em] text-white sm:text-[2.125rem]">
+          <div className="relative z-20 mx-auto flex w-full max-w-lg flex-col px-4 pt-11 text-center sm:pt-12 lg:text-left">
+            <h1 className="text-[1.45rem] font-extrabold leading-[1.15] tracking-[-0.02em] text-white sm:text-[1.75rem]">
               {profile.name?.trim() || "Tu nombre en el barrio"}
             </h1>
             {profile.headline ? (
-              <p className="mx-auto mt-2 max-w-md text-[14px] font-medium leading-relaxed text-[#DFF4F7] sm:text-[15px] lg:mx-0">
+              <p className="mx-auto mt-1.5 line-clamp-2 max-w-md text-[13px] font-medium leading-snug text-[#DFF4F7] sm:text-[14px] lg:mx-0">
                 {profile.headline}
               </p>
             ) : null}
-            <p className="mt-3 inline-flex rounded-full border border-[#1A9BB0]/40 bg-[#1A9BB0]/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#C6D92D]">
+            <p className="mt-2 inline-flex rounded-full border border-[#1A9BB0]/40 bg-[#1A9BB0]/15 px-3 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-[#C6D92D] sm:text-[10px]">
               Identidad vocacional · no es un CV
             </p>
           </div>

@@ -24,8 +24,8 @@ export function PerfilUsuarioView({
       <div className="flex min-h-0 flex-1 flex-col">
         <PerfilIdentityHeader profile={profile} />
 
-        <main className="relative z-[1] mt-2 flex-1 overflow-y-auto rounded-t-[28px] bg-[#F8FAFC] shadow-[0_2px_12px_rgba(11,46,89,0.06)]">
-          <div className="mx-auto max-w-lg space-y-4 px-4 pt-7 pb-8">
+        <main className="relative z-[1] -mt-3 flex-1 overflow-y-auto rounded-t-[22px] bg-[#F8FAFC] shadow-[0_2px_12px_rgba(11,46,89,0.06)]">
+          <div className="mx-auto max-w-lg space-y-4 px-4 pt-5 pb-8">
             <PerfilBarrioSection profile={profileRecord} />
 
             <PerfilSection title="Mi momento actual">

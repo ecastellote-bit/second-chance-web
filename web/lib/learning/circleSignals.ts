@@ -239,7 +239,7 @@ export const CIRCLE_SIGNAL_CONFIRMATIONS: Record<CircleSignalType, string> = {
   circle_interest:
     "Guardamos tu interés. Esto ayuda a entender qué círculos empiezan a reunir movimiento.",
   circle_receive_updates:
-    "Te tendremos en cuenta si este círculo abre nuevos pasos o convocatorias.",
+    "Te avisaremos cuando este círculo tenga movimiento nuevo. No implica inscripción automática.",
   circle_access_request:
     "Recibimos tu solicitud. No abre contacto directo automático. Primero revisaremos si hay condiciones para habilitar participación.",
   circle_idea:
