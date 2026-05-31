@@ -17,17 +17,17 @@ export const FOUNDER_FLOW_COPY = {
     secondaryCta: "Ya tengo mi diagnóstico",
   },
   fullIntro: {
-    eyebrow: "Invitación fundadora",
-    title: "Tu lectura entrena el sistema",
+    eyebrow: "Lectura fundadora",
+    title: "Tu lectura fundadora empieza acá",
     description:
-      "Esto no es un test de personalidad. Es un diagnóstico vocacional serio: lo que contás alimenta jueces reales y mejora VocationUp para otros.",
+      "No es un test ni un formulario para lucirte. Es una lectura seria de tu historia: lo que contás ayuda a mejorar VocationUp para quien viene después, y vos recibís una devolución con estructura.",
     bullets: [
-      "Contá tu situación y tu historia sin maquillaje",
-      "Recibí una lectura con estructura — no una etiqueta vacía",
-      "Al llegar al diagnóstico, activás tu lugar fundante",
+      "Contá tu situación y tu historia con escenas reales",
+      "No hace falta escribir perfecto — hace falta ser honesto/a",
+      "Al terminar, activás tu lugar en la ola fundadora",
       "Después podés sembrar tu proyecto con visibilidad prioritaria",
     ],
-    primaryCta: "Empezar cuestionario",
+    primaryCta: "Empezar mi lectura",
     secondaryCta: "Volver a la invitación",
   },
   memberBadge: {

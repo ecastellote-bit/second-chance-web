@@ -11,7 +11,17 @@ import {
   type GuidedThemeOption,
 } from "@/lib/full/resolveGuidedThemesForReading";
 import { archivedCurrentResultToFinalReading } from "@/lib/full/restoreArchivedCaseToSession";
+import { FullFlowShell, FullFlowStepCard } from "@/components/full-flow/FullFlowShell";
 import { useFullAnswers } from "../fullAnswersContext";
+
+const themeChoiceClass =
+  "vu-focus w-full text-left rounded-[22px] border border-[#E8EEF3] bg-white p-5 shadow-[0_4px_16px_rgba(15,42,70,0.06)] transition-all hover:border-[#1A9BB0]/40 active:scale-[0.99] disabled:opacity-50";
+
+const themePrimaryBtn =
+  "vu-focus min-h-[48px] rounded-xl bg-[#0B2E59] px-6 py-3 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(11,46,89,0.15)]";
+
+const themeSecondaryBtn =
+  "vu-focus min-h-[48px] rounded-xl border border-[#E8EEF3] bg-white px-6 py-3 text-sm font-semibold text-[#0B2E59]";
 
 type ActivationOption = {
   id: string;
@@ -212,9 +222,11 @@ function ThemesPageContent() {
 
   if (hydrating || !analysis.result) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-white text-sm text-neutral-500">
-        Cargando tus temáticas…
-      </main>
+      <FullFlowShell variant="themes" maxWidth="md">
+        <FullFlowStepCard>
+          <p className="text-center text-sm text-[#6B7A8C]">Preparando tus temas de camino…</p>
+        </FullFlowStepCard>
+      </FullFlowShell>
     );
   }
 
@@ -224,16 +236,16 @@ function ThemesPageContent() {
     const officialPath = OFFICIAL_ACTIVATION_PATHS.find((p) => p.id === activationPath);
 
     return (
-      <main className="min-h-screen bg-white text-black px-6 py-10">
-        <div className="max-w-2xl mx-auto space-y-8 text-center">
+      <FullFlowShell variant="themes" maxWidth="md">
+        <div className="space-y-8 text-center">
           <div className="space-y-3">
-            <p className="text-sm uppercase tracking-wide text-neutral-500">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">
               Tu camino queda definido
             </p>
-            <h1 className="text-3xl font-semibold">
+            <h1 className="text-[1.65rem] font-bold text-[#0B2E59]">
               {selectedActivation?.shortLabel ?? "Listo"}
             </h1>
-            <p className="text-base text-neutral-700 leading-7">
+            <p className="text-[15px] leading-relaxed text-[#6B7A8C]">
               {isOwnProject
                 ? (officialPath?.plazaWelcome ??
                   "Tu camino es crear y presentar algo propio. En el siguiente paso vas a sembrar tu proyecto.")
@@ -242,45 +254,48 @@ function ThemesPageContent() {
             </p>
           </div>
 
-          <div className="border border-neutral-200 rounded-xl p-6 space-y-3">
-            <p className="text-sm text-neutral-500">Temática elegida</p>
-            <p className="text-lg font-medium">{selectedTheme?.shortLabel}</p>
-            <p className="text-sm text-neutral-600">{selectedTheme?.userFacingText}</p>
-          </div>
+          <FullFlowStepCard>
+            <p className="text-sm font-semibold text-[#0B2E59]">Temática elegida</p>
+            <p className="mt-2 text-lg font-bold text-[#0B2E59]">{selectedTheme?.shortLabel}</p>
+            <p className="mt-1 text-sm leading-relaxed text-[#6B7A8C]">
+              {selectedTheme?.userFacingText}
+            </p>
+          </FullFlowStepCard>
 
           <div className="flex flex-col gap-2">
             <button
+              type="button"
               onClick={() => {
                 setActivationChoice(mapGuidedActivationToStoredPath(activationPath));
                 router.push(isOwnProject ? "/proyectos/sembrar" : "/plaza");
               }}
-              className="px-6 py-3 bg-black text-white rounded-lg text-sm font-medium hover:bg-neutral-800 transition-colors"
+              className={themePrimaryBtn}
             >
-              {isOwnProject ? "Empezar mi proyecto" : "Entrar al barrio"}
+              {isOwnProject ? "Empezar mi proyecto" : "Ir a mi plaza"}
             </button>
             <button
               type="button"
               onClick={() => router.push("/actividad")}
-              className="px-6 py-3 rounded-lg border border-neutral-200 text-sm font-medium text-neutral-700"
+              className={themeSecondaryBtn}
             >
               Ver mi actividad
             </button>
           </div>
         </div>
-      </main>
+      </FullFlowShell>
     );
   }
 
   if (step === "activation" && activationDecision) {
     return (
-      <main className="min-h-screen bg-white text-black px-6 py-10">
-        <div className="max-w-2xl mx-auto space-y-8">
+      <FullFlowShell variant="themes" maxWidth="md">
+        <div className="space-y-8">
           <div className="space-y-3">
-            <p className="text-sm uppercase tracking-wide text-neutral-500">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">
               Elegiste: {selectedTheme?.shortLabel}
             </p>
-            <h1 className="text-2xl font-semibold">¿Cómo querés empezar?</h1>
-            <p className="text-sm text-neutral-700 leading-6">
+            <h1 className="text-[1.5rem] font-bold text-[#0B2E59]">¿Cómo querés empezar?</h1>
+            <p className="text-[15px] leading-relaxed text-[#6B7A8C]">
               Para esta temática, te sugerimos estas formas de empezar. Elegí la que más se
               parezca a lo que sentís ahora.
             </p>
@@ -292,13 +307,13 @@ function ThemesPageContent() {
                 key={activation.id}
                 onClick={() => handleActivationSelect(activation)}
                 disabled={loading}
-                className="w-full text-left border border-neutral-200 rounded-xl p-5 space-y-2 hover:border-black hover:shadow-sm transition-all disabled:opacity-50"
+                className={themeChoiceClass}
               >
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{ICON_MAP[activation.icon] ?? "•"}</span>
                   <span className="text-lg font-medium">{activation.shortLabel}</span>
                 </div>
-                <p className="text-sm text-neutral-700 leading-6 pl-10">
+                <p className="pl-10 text-sm leading-relaxed text-[#6B7A8C]">
                   {activation.description}
                 </p>
               </button>
@@ -311,24 +326,24 @@ function ThemesPageContent() {
               setSelectedTheme(null);
               setActivationDecision(null);
             }}
-            className="text-sm text-neutral-500 underline"
+            className="text-sm font-semibold text-[#1A9BB0] underline"
           >
             Volver a las temáticas
           </button>
         </div>
-      </main>
+      </FullFlowShell>
     );
   }
 
   return (
-    <main className="min-h-screen bg-white text-black px-6 py-10">
-      <div className="max-w-2xl mx-auto space-y-8">
+    <FullFlowShell variant="themes" maxWidth="md">
+      <div className="space-y-8">
         <div className="space-y-3">
-          <p className="text-sm uppercase tracking-wide text-neutral-500">
-            Una lectura se convierte en camino
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">
+            Después de tu lectura
           </p>
-          <h1 className="text-2xl font-semibold">¿Qué te resuena más?</h1>
-          <p className="text-sm text-neutral-700 leading-6">
+          <h1 className="text-[1.5rem] font-bold text-[#0B2E59]">¿Qué te resuena más?</h1>
+          <p className="text-[15px] leading-relaxed text-[#6B7A8C]">
             Basándonos en tu lectura, estas son las temáticas que más se alinean con lo que
             apareció. Elegí una — no es para siempre, es para empezar.
           </p>
@@ -346,7 +361,7 @@ function ThemesPageContent() {
                 onClick={() => router.push(resultBackHref)}
                 className="rounded-xl bg-[#0B2E59] px-5 py-3 text-sm font-semibold text-white"
               >
-                Volver al resultado
+                Volver a mi devolución
               </button>
               <button
                 type="button"
@@ -378,22 +393,22 @@ function ThemesPageContent() {
               key={theme.id}
               onClick={() => handleThemeSelect(theme)}
               disabled={loading}
-              className="w-full text-left border border-neutral-200 rounded-xl p-5 space-y-2 hover:border-black hover:shadow-sm transition-all disabled:opacity-50"
+              className={themeChoiceClass}
             >
-              <p className="text-lg font-medium">{theme.shortLabel}</p>
-              <p className="text-sm text-neutral-700 leading-6">{theme.userFacingText}</p>
+              <p className="text-lg font-bold text-[#0B2E59]">{theme.shortLabel}</p>
+              <p className="text-sm leading-relaxed text-[#6B7A8C]">{theme.userFacingText}</p>
             </button>
           ))}
         </div>
 
         <button
           onClick={() => router.push(resultBackHref)}
-          className="text-sm text-neutral-500 underline"
+          className="text-sm font-semibold text-[#1A9BB0] underline"
         >
-          Volver al resultado
+          Volver a mi devolución
         </button>
       </div>
-    </main>
+    </FullFlowShell>
   );
 }
 
@@ -401,7 +416,7 @@ export default function ThemesPage() {
   return (
     <Suspense
       fallback={
-        <main className="flex min-h-screen items-center justify-center bg-white text-sm text-neutral-500">
+        <main className="flex min-h-[100dvh] items-center justify-center bg-[#F8FAFC] text-sm text-[#6B7A8C]">
           Cargando…
         </main>
       }

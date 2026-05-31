@@ -1226,7 +1226,7 @@ function ResultPageInner() {
         const draftServerConfirmed = preservationLevel !== "local_only";
 
         return (
-    <main className="min-h-[100dvh] bg-white text-black px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-14 pb-24">
+    <main className="min-h-[100dvh] bg-[#F8FAFC] text-[#243647] px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-14 pb-24 font-[family-name:var(--font-inter)]">
       <div
         className={`mx-auto space-y-10 ${
           hasPersonalizedPresentation ? "max-w-6xl" : "max-w-3xl"

@@ -1,266 +1,267 @@
 export const FULL_FLOW_COPY = {
-    intro: {
-      eyebrow: "Second Chance — Full Flow v1",
-      title: "Lectura inicial seria, sin promesas vacías",
-      description:
-        "Este flujo no intenta adivinar una vocación mágica. Intenta leer tu historia, tu contexto actual y tus restricciones para detectar qué movimientos laborales tienen más sentido ahora.",
-      bullets: [
-        "ordenar tu contexto actual",
-        "recuperar señales de historia personal",
-        "distinguir entre cansancio, refugio y dirección",
-        "recibir una lectura inicial estructurada",
-      ],
-      primaryCta: "Empezar",
-      secondaryCta: "Volver",
-    },
+  intro: {
+    eyebrow: "Lectura vocacional",
+    title: "Tu lectura empieza acá",
+    description:
+      "No es un test de personalidad ni un formulario para “quedar bien”. Es una lectura seria de tu historia y tu momento actual, para orientar tu próximo movimiento con honestidad.",
+    bullets: [
+      "Contá tu situación y tu historia con tus palabras",
+      "Una escena concreta vale más que una respuesta prolija",
+      "Recibís una devolución estructurada — no una etiqueta vacía",
+      "Podés pausar; lo que escribís queda preservado en este dispositivo",
+    ],
+    primaryCta: "Empezar mi lectura",
+    secondaryCta: "Volver",
+  },
 
-    step1: {
-      stepLabel: "Paso 1 de 5",
-      title: "Tu situación actual",
-      subtitle: "Acá no busques lucirte. Buscá precisión.",
-      fields: {
-        age: {
-          label: "Edad",
-          placeholder: "Ej: 42",
-        },
-        country: {
-          label: "País",
-          placeholder: "Ej: Argentina",
-        },
-        employmentStatus: {
-          label: "Situación laboral",
-        },
-        currentRole: {
-          label: "¿A qué te dedicas actualmente?",
-          placeholder: "Ej: administrativo, ventas, docencia, operaciones",
-        },
-        currentSituation: {
-          label:
-            "Describí dónde estás parado hoy en tu vida, y sobre qué te gustaría pensar o reflexionar en este momento. Puede ser sobre tu trabajo o tus actividades.",
-          placeholder:
-            "Describí dónde estás parado hoy, sin épica y sin maquillaje.",
-        },
-        energyLevel: {
-          label: "Energía disponible",
-        },
-        economicPressure: {
-          label: "Presión económica",
-        },
-        familyLoad: {
-          label: "Carga familiar/práctica",
-        },
+  step1: {
+    stepLabel: "Estación 1 de 5",
+    title: "Tu punto de partida",
+    subtitle:
+      "No hace falta escribir perfecto. Lo importante es que aparezca una escena real de tu vida, no una respuesta preparada.",
+    containment:
+      "Podés escribir con tus palabras. Si dudás entre varias cosas, contá la que más se repite hoy.",
+    fields: {
+      age: {
+        label: "Edad",
+        placeholder: "Ej: 42",
       },
-      validation: {
-        summaryTitle: "Antes de seguir, corregí esto:",
-        ageRequired: "La edad no puede quedar vacía.",
-        countryRequired: "El país no puede quedar vacío.",
-        currentSituationRequired: "Esta respuesta no puede quedar vacía.",
+      country: {
+        label: "País",
+        placeholder: "Ej: Argentina",
       },
-      backLabel: "Volver",
-      nextLabel: "Guardar y seguir",
+      employmentStatus: {
+        label: "Situación laboral hoy",
+      },
+      currentRole: {
+        label: "¿A qué te dedicás actualmente?",
+        placeholder: "Ej: administración, ventas, docencia, oficio propio",
+      },
+      currentSituation: {
+        label:
+          "¿Dónde estás parado/a hoy — en el trabajo, en lo personal o en ambos? ¿Sobre qué necesitás pensar ahora?",
+        placeholder:
+          "Escribí como hablarías con alguien que intenta entenderte de verdad. Una escena concreta ayuda más que un resumen prolijo.",
+      },
+      energyLevel: {
+        label: "Energía disponible",
+      },
+      economicPressure: {
+        label: "Presión económica",
+      },
+      familyLoad: {
+        label: "Carga familiar o práctica",
+      },
     },
+    validation: {
+      summaryTitle: "Antes de seguir, completá esto:",
+      ageRequired: "La edad no puede quedar vacía.",
+      countryRequired: "El país no puede quedar vacío.",
+      currentSituationRequired: "Contanos al menos una escena de dónde estás hoy.",
+    },
+    backLabel: "Volver",
+    nextLabel: "Continuar mi lectura",
+  },
 
-    step2: {
-      stepLabel: "Paso 2 de 5",
-      title: "Memoria vocacional inicial",
-      subtitle:
-        "No busques quedar bien. Buscá hechos, patrones y recuerdos concretos.",
-      fields: {
-        childhoodMemories: {
-          label:
-            "¿Qué era lo que más disfrutabas de chico/a? Cuéntame sobre lo que más te interesaba antes de los 12 años.",
-        },
-        earlyFascinations: {
-          label:
-            "¿Qué cosas siguieron siendo importantes para vos en la adolescencia? ¿Qué soñabas ser en aquel momento?",
-        },
-        meaningfulSchoolSubjects: {
-          label:
-            "En el secundario, ¿qué materias o experiencias dentro de la escuela te llamaban la atención o te interesaban?",
-        },
-        repeatedWorkPatterns: {
-          label:
-            "Cuando tenés un poco de libertad, energía o margen, ¿a qué tipo de cosas volvés? ¿Qué se repite en vos, aunque cambien los trabajos o etapas?",
-        },
-        naturalSocialRoles: {
-          label:
-            "En tu trabajo o actividades, ¿qué lugar ocupas entre las personas que te rodean? ¿Cuál es tu rol entre ellos?",
-        },
+  step2: {
+    stepLabel: "Estación 2 de 5",
+    title: "Lo que se repite en tu historia",
+    subtitle:
+      "Buscamos patrones y recuerdos concretos — no una biografía ordenada.",
+    containment:
+      "No estamos buscando una etiqueta rápida. Esta lectura mejora cuando aparecen detalles reales.",
+    fields: {
+      childhoodMemories: {
+        label:
+          "De chico/a, ¿qué te absorbía antes de los 12 años? Contá una escena o un interés que todavía reconozcas.",
       },
-      validation: {
-        summaryTitle: "Antes de seguir, corregí esto:",
-        childhoodMemoriesRequired:
-          "No dejes vacía la pregunta sobre la infancia.",
-        earlyFascinationsRequired:
-          "No dejes vacía la pregunta sobre la adolescencia.",
-        repeatedWorkPatternsRequired:
-          "No dejes vacía la pregunta sobre patrones que se repiten en vos.",
+      earlyFascinations: {
+        label:
+          "En la adolescencia, ¿qué seguía importándote? ¿Qué soñabas ser o hacer?",
       },
-      backLabel: "Volver",
-      nextLabel: "Guardar y seguir",
+      meaningfulSchoolSubjects: {
+        label:
+          "En el secundario, ¿qué materias o momentos te despertaban curiosidad?",
+      },
+      repeatedWorkPatterns: {
+        label:
+          "¿Qué situación se repitió más de una vez en tu vida laboral o personal — aunque cambien los trabajos?",
+      },
+      naturalSocialRoles: {
+        label:
+          "Entre otras personas, ¿qué rol ocupás con naturalidad? (ej: ordenar, cuidar, explicar, impulsar)",
+      },
     },
+    validation: {
+      summaryTitle: "Antes de seguir, completá esto:",
+      childhoodMemoriesRequired: "Contá al menos un recuerdo de la infancia.",
+      earlyFascinationsRequired: "Contá al menos algo de la adolescencia.",
+      repeatedWorkPatternsRequired: "Contá al menos un patrón que se repite en vos.",
+    },
+    backLabel: "Volver",
+    nextLabel: "Continuar mi lectura",
+  },
 
-    step3: {
-      stepLabel: "Paso 3 de 5",
-      title: "Pérdidas, renuncias y compresión",
-      subtitle:
-        "Acá importa detectar qué se fue apagando y qué parte de tu vida actual te redujo.",
-      fields: {
-        lossesOrRenunciations: {
-          label:
-            "¿Qué fuiste dejando de lado por necesidad, cansancio o por haber tenido que adaptarte?",
-        },
-        whatFeelsCompressedNow: {
-          label:
-            "¿Qué parte tuya sentís que quedó tapada, achicada o postergada por trabajo, cuentas, responsabilidades o cansancio?",
-        },
+  step3: {
+    stepLabel: "Estación 3 de 5",
+    title: "Lo que todavía aparece vivo",
+    subtitle:
+      "Acá importa nombrar qué se fue apagando y qué parte de tu vida sentís comprimida hoy.",
+    containment:
+      "Una escena concreta vale más que una respuesta perfecta. No hace falta escribir lindo.",
+    fields: {
+      lossesOrRenunciations: {
+        label:
+          "¿Qué fuiste dejando de lado por necesidad, cansancio o por adaptarte a lo que había?",
       },
-      validation: {
-        summaryTitle: "Antes de seguir, corregí esto:",
-        lossesRequired:
-          "No dejes vacía la parte sobre lo que fuiste dejando de lado.",
-        compressedRequired:
-          "No dejes vacía la parte sobre lo que hoy se siente tapado o postergado.",
+      whatFeelsCompressedNow: {
+        label:
+          "¿Qué parte de tu vida laboral o personal sentís que se comprimió demasiado?",
       },
-      backLabel: "Volver",
-      nextLabel: "Guardar y seguir",
     },
+    validation: {
+      summaryTitle: "Antes de seguir, completá esto:",
+      lossesRequired: "Contá al menos algo que fuiste dejando de lado.",
+      compressedRequired: "Contá qué se siente comprimido o postergado hoy.",
+    },
+    backLabel: "Volver",
+    nextLabel: "Continuar mi lectura",
+  },
 
-    step4: {
-      stepLabel: "Paso 4 de 5",
-      title: "Restricciones y activos actuales",
-      subtitle:
-        "El sistema también tiene que leer con qué margen real contás hoy.",
-      fields: {
-        restrictionsText: {
-          label:
-            '¿Cuáles son las cosas que más "te atan" hoy? ¿Qué obstáculos te impiden lograr lo que querés ser?',
-          placeholder: "Una por línea o separadas por comas",
-        },
-        assetsText: {
-          label:
-            '¿Qué cosas hacés mejor que otros? O sea, ¿en qué pensás que "sos bueno"?',
-          placeholder:
-            "Experiencia, contactos, habilidades, credibilidad, herramientas, etc.",
-        },
-        transitionGoal: {
-          label:
-            "¿Qué tipo de movimiento te gustaría empezar a probar, sin romper tu realidad actual?",
-          placeholder:
-            "Ej: probar un rol lateral, un proyecto chico, una formación concreta",
-        },
+  step4: {
+    stepLabel: "Estación 4 de 5",
+    title: "Dónde aparece tu energía real",
+    subtitle:
+      "Tu lectura también necesita leer con qué margen contás hoy — ataduras y recursos.",
+    containment:
+      "Si dudás entre varias cosas, elegí las que más pesan en tu día a día.",
+    fields: {
+      restrictionsText: {
+        label: "¿Qué te ata hoy? (tiempo, dinero, miedo, responsabilidades)",
+        placeholder: "Una por línea o separadas por comas",
       },
-      validation: {
-        summaryTitle: "Antes de seguir, corregí esto:",
-        restrictionsRequired: "No dejes vacía la parte sobre lo que te ata.",
-        assetsRequired: "No dejes vacía la parte sobre en qué sos bueno/a.",
-        goalRequired:
-          "No dejes vacía la parte sobre el movimiento que te gustaría probar.",
+      assetsText: {
+        label: "¿En qué sos especialmente bueno/a o confiable?",
+        placeholder: "Experiencia, contactos, oficio, paciencia, ideas, etc.",
       },
-      backLabel: "Volver",
-      nextLabel: "Guardar y seguir",
+      transitionGoal: {
+        label: "¿Qué movimiento te gustaría probar sin romper tu realidad actual?",
+        placeholder: "Ej: un rol lateral, un proyecto chico, una formación concreta",
+      },
     },
+    validation: {
+      summaryTitle: "Antes de seguir, completá esto:",
+      restrictionsRequired: "Contá al menos una atadura o límite real.",
+      assetsRequired: "Contá al menos un recurso o fortaleza.",
+      goalRequired: "Contá al menos un movimiento que te gustaría probar.",
+    },
+    backLabel: "Volver",
+    nextLabel: "Continuar mi lectura",
+  },
 
-    step5: {
-      stepLabel: "Paso 5 de 5",
-      title: "Revisión final y envío",
-      subtitle:
-        "No estamos buscando una respuesta perfecta. Estamos buscando suficiente evidencia para una lectura seria.",
-      reviewLabels: {
-        currentSituation: "Dónde estás y sobre qué querés reflexionar",
-        childhoodMemories: "Infancia (antes de los 12)",
-        earlyFascinations: "Adolescencia y sueños",
-        repeatedWorkPatterns: "Patrones que volvés cuando hay margen",
-        lossesOrRenunciations: "Lo que fuiste dejando de lado",
-        whatFeelsCompressedNow: "Parte tapada o postergada",
-        restrictionsText: "Lo que te ata hoy",
-        assetsText: "En qué sos bueno/a",
-        transitionGoal: "Movimiento que te gustaría probar",
-        missingValue: "Todavía vacío",
-      },
-      backLabel: "Volver",
-      nextLabel: "Generar lectura inicial",
-      hydratingLabel: "Recuperando tu progreso...",
+  step5: {
+    stepLabel: "Estación 5 de 5",
+    title: "Qué movimiento tendría sentido ahora",
+    subtitle:
+      "Revisá con calma. No buscamos perfección: buscamos suficiente verdad para una lectura justa.",
+    containment:
+      "Si algo quedó corto, podés volver a la estación anterior antes de generar tu lectura.",
+    reviewLabels: {
+      currentSituation: "Dónde estás y sobre qué querés reflexionar",
+      childhoodMemories: "Infancia (antes de los 12)",
+      earlyFascinations: "Adolescencia y sueños",
+      repeatedWorkPatterns: "Patrones que volvés cuando hay margen",
+      lossesOrRenunciations: "Lo que fuiste dejando de lado",
+      whatFeelsCompressedNow: "Parte comprimida hoy",
+      restrictionsText: "Lo que te ata hoy",
+      assetsText: "En qué sos bueno/a",
+      transitionGoal: "Movimiento que te gustaría probar",
+      missingValue: "Todavía vacío",
     },
+    validation: {
+      summaryTitle: "Antes de seguir, completá esto:",
+    },
+    backLabel: "Volver",
+    nextLabel: "Generar mi lectura",
+    hydratingLabel: "Recuperando tu lectura en curso…",
+  },
 
-    processing: {
-      eyebrow: "Procesando",
-      title: "Ordenando señales y restricciones",
-      description:
-        "Estamos generando una lectura inicial a partir de tu historia y tu situación actual.",
-      waitNotice:
-        "Este procedimiento puede demorar hasta 2 minutos. No cierres la sesión.",
-      progressItems: [
-        "normalizando contexto actual",
-        "leyendo señales autobiográficas",
-        "estimando margen de transición",
-        "generando vectores de acción plausibles",
-        "verificando si hace falta una ronda extra de clarificación",
-      ],
-      recovery: {
-        title: "No pudimos completar la lectura",
-        hint: "Tus respuestas siguen guardadas en este dispositivo. Podés reintentar, volver al cuestionario o guardar una copia.",
-        retry: "Reintentar lectura",
-        download: "Descargar copia de seguridad",
-        backToQuestionnaire: "Volver al cuestionario",
-        recoverLater: "Recuperar más tarde",
-      },
-      preservation: {
-        title: "No pudimos guardar tu caso con seguridad todavía",
-        hint: "Antes de analizar tu lectura, necesitamos confirmar que tus respuestas quedaron preservadas. Podés reintentar ahora o descargar un respaldo.",
-        retry: "Reintentar guardado",
-        download: "Descargar respaldo",
-        backToQuestionnaire: "Volver al cuestionario",
-      },
-      preservationPostAnalyze: {
-        title: "Lectura generada, preservación pendiente",
-        hint: "Tu lectura está en este dispositivo. Todavía no confirmamos la copia segura; podés reintentar la preservación.",
-        retry: "Reintentar preservación",
-      },
+  processing: {
+    eyebrow: "Construyendo tu lectura",
+    title: "Estamos leyendo tu historia con cuidado",
+    description:
+      "Ordenamos lo que contaste para devolverte una lectura inicial clara. Esto puede tardar unos minutos.",
+    waitNotice:
+      "Puede demorar hasta 2 minutos. No cierres esta pantalla — tu lectura sigue en curso.",
+    progressItems: [
+      "ordenando tu momento actual",
+      "leyendo las escenas de tu historia",
+      "ubicando margen y restricciones",
+      "armando direcciones plausibles",
+      "viendo si hace falta una aclaración más",
+    ],
+    recovery: {
+      title: "No pudimos completar la lectura",
+      hint: "Tus respuestas siguen en este dispositivo. Podés reintentar, volver al cuestionario o guardar una copia.",
+      retry: "Reintentar lectura",
+      download: "Descargar copia de seguridad",
+      backToQuestionnaire: "Volver a mi lectura",
+      recoverLater: "Recuperar más tarde",
     },
-  
-    result: {
-      eyebrow: "Resultado inicial",
-      sections: {
-        dominantTension: "Tensión dominante",
-        hiloConductor: "Hilo conductor",
-        plausibleDirections: "Direcciones plausibles",
-        actionVectors: "Vectores de acción",
-        caminoMinimo: "Camino mínimo",
-      },
-      fallbacks: {
-        noDirections:
-          "Todavía no conviene forzar una dirección específica.",
-        noActionVectors:
-          "Antes de mover demasiado, hace falta ampliar evidencia.",
-      },
-      buttons: {
-        reentry: "Re-entry",
-        nextStep: "Ver siguiente paso",
-      },
+    preservation: {
+      title: "Todavía no confirmamos el guardado seguro",
+      hint: "Antes de devolverte la lectura, necesitamos preservar lo que escribiste. Podés reintentar o descargar un respaldo.",
+      retry: "Reintentar guardado",
+      download: "Descargar respaldo",
+      backToQuestionnaire: "Volver a mi lectura",
     },
-  
-    nextStep: {
-      eyebrow: "Next step",
-      title: "Qué hacer después de esta lectura",
-      subtitle:
-        "Esto es un placeholder real de continuidad. No es todavía la comunidad completa.",
-      sections: {
-        routing: "Routing sugerido",
-        cierre: "Cierre actual",
-        action: "Movimiento más razonable ahora",
-      },
-      routingLabels: {
-        discord_recommended: "Continuidad abierta recomendada",
-        cohort_candidate: "Candidato/a a círculo guiado",
-        reentry_first: "Conviene reingresar antes de una comunidad",
-        self_guided_next_step: "Siguiente paso autoguiado",
-        unknown: "Sin routing específico todavía",
-      },
-      detectedResultPrefix: "Resultado detectado:",
-      buttons: {
-        backToResult: "Volver al resultado",
-        reentry: "Re-entry",
-      },
+    preservationPostAnalyze: {
+      title: "Lectura lista, guardado pendiente",
+      hint: "Tu lectura está en este dispositivo. Todavía no confirmamos la copia segura; podés reintentar.",
+      retry: "Reintentar preservación",
     },
-  } as const;
+  },
+
+  result: {
+    eyebrow: "Tu devolución",
+    sections: {
+      dominantTension: "Tensión dominante",
+      hiloConductor: "Hilo conductor",
+      plausibleDirections: "Direcciones plausibles",
+      actionVectors: "Vectores de acción",
+      caminoMinimo: "Camino mínimo",
+    },
+    fallbacks: {
+      noDirections: "Todavía no conviene forzar una dirección específica.",
+      noActionVectors: "Antes de mover demasiado, hace falta ampliar lo que contaste.",
+    },
+    buttons: {
+      reentry: "Reingresar",
+      nextStep: "Ver siguiente paso",
+    },
+  },
+
+  nextStep: {
+    eyebrow: "Después de tu lectura",
+    title: "Qué hacer ahora",
+    subtitle:
+      "Una guía breve para tu próximo movimiento en VocationUp.",
+    sections: {
+      routing: "Camino sugerido",
+      cierre: "Cierre actual",
+      action: "Movimiento más razonable ahora",
+    },
+    routingLabels: {
+      discord_recommended: "Continuidad abierta recomendada",
+      cohort_candidate: "Candidato/a a círculo guiado",
+      reentry_first: "Conviene reingresar antes del barrio",
+      self_guided_next_step: "Siguiente paso autoguiado",
+      unknown: "Sin camino específico todavía",
+    },
+    detectedResultPrefix: "Lectura detectada:",
+    buttons: {
+      backToResult: "Volver a mi devolución",
+      reentry: "Reingresar",
+    },
+  },
+} as const;

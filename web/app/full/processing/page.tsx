@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { VuAtmosphereBand } from "@/components/ui/VuAtmosphereBand";
+import { FullFlowShell, FullFlowStepCard } from "@/components/full-flow/FullFlowShell";
 import { FULL_FLOW_COPY } from "@/lib/content/fullFlowCopy";
 import {
   activateFullFlowPreservation,
@@ -262,9 +263,9 @@ export default function FullProcessingPage() {
       : copy.recovery;
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#F8FAFC] text-[#243647] px-6 py-10 font-[family-name:var(--font-inter)]">
+    <FullFlowShell variant="processing" maxWidth="lg" className="relative overflow-hidden">
       <VuAtmosphereBand preset="fullProcessing" />
-      <div className="relative z-10 mx-auto max-w-3xl space-y-8">
+      <div className="relative z-10 space-y-8">
         <div className="space-y-3">
           <p className="text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">
             {copy.eyebrow}
@@ -348,7 +349,8 @@ export default function FullProcessingPage() {
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-[#E8EEF3] bg-white p-6 space-y-4 shadow-[0_4px_16px_rgba(15,42,70,0.06)]">
+          <FullFlowStepCard>
+            <div className="space-y-4">
             <div className="h-2 w-full overflow-hidden rounded-full bg-[#E8EEF3]">
               <div className="h-full w-1/2 animate-pulse rounded-full bg-[#1A9BB0]" />
             </div>
@@ -362,9 +364,10 @@ export default function FullProcessingPage() {
               Si supera los dos minutos, mostraremos opciones para reintentar sin perder tus
               respuestas.
             </p>
-          </div>
+            </div>
+          </FullFlowStepCard>
         )}
       </div>
-    </main>
+    </FullFlowShell>
   );
 }

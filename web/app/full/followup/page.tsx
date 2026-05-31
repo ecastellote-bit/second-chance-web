@@ -5,6 +5,12 @@ import { flushSync } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useFullAnswers } from "../fullAnswersContext";
 import {
+  FullFlowActions,
+  FullFlowShell,
+  FullFlowStepCard,
+} from "@/components/full-flow/FullFlowShell";
+import { fullFlowTextareaClass } from "@/components/full-flow/fullFlowStyles";
+import {
   describeFollowupRivalry,
   FOLLOWUP_UI,
   humanizeFollowupPack,
@@ -105,14 +111,16 @@ function QuestionCard({
   const normalized = normalizeAnswer(value);
 
   return (
-    <div className="rounded-2xl border border-neutral-200 p-5 space-y-4">
+    <div className="rounded-[18px] border border-[#E8EEF3] bg-[#F8FAFC] p-4 space-y-4 sm:p-5">
       <div className="space-y-2">
-        <p className="text-xs uppercase tracking-wide text-neutral-500">
+        <p className="text-[10px] font-bold uppercase tracking-wide text-[#1A9BB0]">
           {publicRoundHeading(question.round)}
         </p>
-        <h2 className="text-base font-medium">{question.prompt}</h2>
+        <h2 className="text-[15px] font-semibold leading-snug text-[#0B2E59]">
+          {question.prompt}
+        </h2>
         {question.helpText ? (
-          <p className="text-sm text-neutral-600">{question.helpText}</p>
+          <p className="text-[13px] leading-relaxed text-[#6B7A8C]">{question.helpText}</p>
         ) : null}
       </div>
 
@@ -121,7 +129,7 @@ function QuestionCard({
           value={normalized}
           onChange={(event) => onChange(event.target.value)}
           rows={question.kind === "micro_narrative" ? 5 : 4}
-          className="w-full rounded-xl border border-neutral-300 px-4 py-3 text-sm outline-none focus:border-black"
+          className={fullFlowTextareaClass}
           placeholder={placeholderForQuestion(question.kind, questionIndex)}
         />
       ) : (
@@ -132,7 +140,7 @@ function QuestionCard({
             return (
               <label
                 key={option.id}
-                className="flex items-start gap-3 rounded-xl border border-neutral-200 p-4 cursor-pointer"
+                className="vu-focus flex min-h-[48px] cursor-pointer items-start gap-3 rounded-xl border border-[#E8EEF3] bg-white p-4"
               >
                 <input
                   type="radio"
@@ -140,9 +148,9 @@ function QuestionCard({
                   value={option.id}
                   checked={checked}
                   onChange={() => onChange(option.id)}
-                  className="mt-1"
+                  className="mt-1 accent-[#1A9BB0]"
                 />
-                <span className="text-sm text-neutral-800">{option.label}</span>
+                <span className="text-sm leading-relaxed text-[#243647]">{option.label}</span>
               </label>
             );
           })}
@@ -223,79 +231,69 @@ export default function FullFollowupPage() {
 
   if (!isHydrated || isSubmitting || !pack) {
     return (
-      <main className="min-h-screen bg-white text-black px-6 py-10">
-        <div className="max-w-3xl mx-auto">
-          <div className="rounded-xl border border-neutral-200 p-5 text-sm text-neutral-700">
+      <FullFlowShell variant="clarification" maxWidth="lg">
+        <FullFlowStepCard>
+          <p className="text-sm leading-relaxed text-[#6B7A8C]">
             {isSubmitting
-              ? "Procesando nueva lectura..."
-              : "Preparando ronda de clarificación..."}
-          </div>
-        </div>
-      </main>
+              ? "Actualizando tu lectura con lo que contaste…"
+              : "Preparando una aclaración breve para afinar tu devolución…"}
+          </p>
+        </FullFlowStepCard>
+      </FullFlowShell>
     );
   }
 
   return (
-    <main className="min-h-screen bg-white text-black px-6 py-10">
-      <div className="max-w-3xl mx-auto space-y-8">
-        <div className="space-y-3">
-          <p className="text-sm uppercase tracking-wide text-neutral-500">
-            {publicRoundHeading(pack.round)} · Clarificación
-          </p>
-          <h1 className="text-3xl font-semibold">{pack.title}</h1>
-          <p className="text-sm text-neutral-700">{pack.objective}</p>
-        </div>
-
-        <div className="rounded-2xl border border-neutral-200 p-5 space-y-3">
-          <p className="text-sm font-medium">{FOLLOWUP_UI.whyAsking}</p>
-          <p className="text-sm text-neutral-700">
-            {humanizeFollowupReason(currentFollowup?.reason ?? "")}
-          </p>
-
-          {rivalryLine ? (
-            <p className="text-sm text-neutral-700">{rivalryLine}</p>
-          ) : null}
-        </div>
-
-        <div className="space-y-5">
-          {pack.questions.map((question, index) => (
-            <QuestionCard
-              key={question.id}
-              question={question}
-              questionIndex={index}
-              value={followup.answers[question.id]}
-              onChange={(value) => updateFollowupAnswer(question.id, value)}
-            />
-          ))}
-        </div>
-
-        {errorMessage ? (
-          <div className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800">
-            {errorMessage}
-          </div>
-        ) : null}
-
-        <div className="flex gap-3">
-          <button
-            onClick={() => {
-              if (isSubmitting) return;
-              router.push("/full/step-5");
-            }}
-            disabled={isSubmitting}
-            className="px-4 py-2 rounded-md border border-neutral-300 text-sm disabled:opacity-50"
-          >
-            {FOLLOWUP_UI.back}
-          </button>
-
-          <button
-            onClick={handleContinue}
-            disabled={isSubmitting}
-            className="px-4 py-2 rounded-md border border-black text-sm disabled:opacity-50"
-          >
-            {isSubmitting ? FOLLOWUP_UI.continueLoading : FOLLOWUP_UI.continue}
-          </button>
-        </div>
+    <FullFlowShell variant="clarification" maxWidth="lg" showPreservationNote>
+      <div className="mb-5 space-y-2">
+        <p className="text-[12px] font-semibold text-[#6B7A8C]">
+          {publicRoundHeading(pack.round)} · Afinar tu lectura
+        </p>
+        <h1 className="text-[1.5rem] font-bold leading-tight text-[#0B2E59]">{pack.title}</h1>
+        <p className="text-[15px] leading-relaxed text-[#6B7A8C]">{pack.objective}</p>
+        <p className="rounded-xl border border-[#C6D92D]/35 bg-[#F4F9E0]/80 px-4 py-3 text-[13px] text-[#243647]">
+          No hace falta escribir perfecto. Una escena concreta alcanza.
+        </p>
       </div>
-    </main>
+
+      <FullFlowStepCard>
+        <p className="text-sm font-semibold text-[#0B2E59]">{FOLLOWUP_UI.whyAsking}</p>
+        <p className="mt-2 text-sm leading-relaxed text-[#6B7A8C]">
+          {humanizeFollowupReason(currentFollowup?.reason ?? "")}
+        </p>
+        {rivalryLine ? (
+          <p className="mt-2 text-sm leading-relaxed text-[#6B7A8C]">{rivalryLine}</p>
+        ) : null}
+      </FullFlowStepCard>
+
+      <div className="mt-5 space-y-4">
+        {pack.questions.map((question, index) => (
+          <QuestionCard
+            key={question.id}
+            question={question}
+            questionIndex={index}
+            value={followup.answers[question.id]}
+            onChange={(value) => updateFollowupAnswer(question.id, value)}
+          />
+        ))}
+      </div>
+
+      {errorMessage ? (
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          {errorMessage}
+        </div>
+      ) : null}
+
+      <FullFlowActions
+        backLabel={FOLLOWUP_UI.back}
+        nextLabel={isSubmitting ? FOLLOWUP_UI.continueLoading : "Continuar mi lectura"}
+        onBack={() => {
+          if (isSubmitting) return;
+          router.push("/full/step-5");
+        }}
+        onNext={handleContinue}
+        nextDisabled={isSubmitting}
+      />
+    </FullFlowShell>
   );
 }
