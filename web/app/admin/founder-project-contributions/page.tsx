@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { adminFetch } from "@/lib/admin/adminFetch";
 import { GUIDED_CONTRIBUTION_KIND_OPTIONS } from "@/lib/community/guidedContributionCopy";
 import type {
   FounderProjectGuidedContributionKind,
@@ -50,7 +51,7 @@ export default function FounderProjectContributionsAdminPage() {
       const params = new URLSearchParams({ limit: "400" });
       if (statusFilter) params.set("status", statusFilter);
       if (projectFilter.trim()) params.set("projectId", projectFilter.trim());
-      const res = await fetch(
+      const res = await adminFetch(
         `/api/admin/founder-project-contributions/list?${params.toString()}`,
       );
       const data = (await res.json()) as {
@@ -81,7 +82,7 @@ export default function FounderProjectContributionsAdminPage() {
     setUpdatingId(contributionId);
     setError("");
     try {
-      const res = await fetch(
+      const res = await adminFetch(
         `/api/admin/founder-project-contributions/${encodeURIComponent(contributionId)}`,
         {
           method: "PATCH",

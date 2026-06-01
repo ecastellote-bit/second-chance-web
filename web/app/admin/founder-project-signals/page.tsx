@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/admin/adminFetch";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -73,7 +74,7 @@ export default function FounderProjectSignalsAdminPage() {
       if (typeFilter) params.set("signalType", typeFilter);
       if (projectFilter.trim()) params.set("projectId", projectFilter.trim());
 
-      const res = await fetch(`/api/admin/founder-project-signals/list?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/founder-project-signals/list?${params.toString()}`);
       const data = (await res.json()) as {
         ok?: boolean;
         signals?: SignalRow[];
@@ -103,7 +104,7 @@ export default function FounderProjectSignalsAdminPage() {
     setUpdatingId(signalId);
     setError("");
     try {
-      const res = await fetch(`/api/admin/founder-project-signals/${encodeURIComponent(signalId)}`, {
+      const res = await adminFetch(`/api/admin/founder-project-signals/${encodeURIComponent(signalId)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),

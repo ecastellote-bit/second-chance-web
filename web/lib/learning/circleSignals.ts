@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { get, list, put } from "@vercel/blob";
+import { presentCircleIdeaForPublic } from "@/lib/community/publicCircleIdeaPresentation";
 import { sanitizeCommunityPlainText } from "@/lib/community/sanitizeCommunityText";
 import {
   assertVercelBlobForProduction,
@@ -333,10 +334,12 @@ export async function listCirclePublicVisibleIdeas(options?: {
   });
   return signals
     .filter((item) => item.publicStatus === "visible" && item.publicText)
-    .map((item) => ({
-      signalId: item.signalId,
-      publicText: item.publicText!,
-    }));
+    .map((item) => {
+      const publicText = presentCircleIdeaForPublic(item.publicText!);
+      if (!publicText) return null;
+      return { signalId: item.signalId, publicText };
+    })
+    .filter((item): item is { signalId: string; publicText: string } => item !== null);
 }
 
 export async function approveCircleIdeaPublicVisibility(

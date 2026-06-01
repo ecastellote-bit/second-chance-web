@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminEntityCard } from "@/components/admin/AdminEntityCard";
 import { AdminSummaryCards } from "@/components/admin/AdminSummaryCards";
 import { filterInboxItems } from "@/lib/admin/unifiedModeration/filterInbox";
+import { adminFetch } from "@/lib/admin/adminFetch";
 import type { UnifiedModerationDashboard } from "@/lib/admin/unifiedModeration/types";
 
 const FILTERS: { id: string; label: string }[] = [
@@ -30,7 +31,7 @@ export function UnifiedAdminDashboard() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/admin/unified-moderation/dashboard");
+      const res = await adminFetch("/api/admin/unified-moderation/dashboard");
       const data = (await res.json()) as {
         ok?: boolean;
         dashboard?: UnifiedModerationDashboard;

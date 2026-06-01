@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/admin/adminFetch";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
@@ -35,7 +36,7 @@ export default function FormationSuggestionsAdminPage() {
     try {
       const params = new URLSearchParams({ limit: "300" });
       if (statusFilter) params.set("status", statusFilter);
-      const res = await fetch(`/api/admin/formation-suggestions/list?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/formation-suggestions/list?${params.toString()}`);
       const data = (await res.json()) as {
         ok?: boolean;
         suggestions?: SuggestionRow[];
@@ -61,7 +62,7 @@ export default function FormationSuggestionsAdminPage() {
     setUpdatingId(suggestionId);
     setError("");
     try {
-      const res = await fetch(`/api/admin/formation-suggestions/${encodeURIComponent(suggestionId)}`, {
+      const res = await adminFetch(`/api/admin/formation-suggestions/${encodeURIComponent(suggestionId)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),

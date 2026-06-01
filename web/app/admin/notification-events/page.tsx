@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/admin/adminFetch";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -77,7 +78,7 @@ export default function NotificationEventsAdminPage() {
       if (statusFilter) params.set("status", statusFilter);
       if (typeFilter) params.set("type", typeFilter);
       if (userIdFilter.trim()) params.set("userId", userIdFilter.trim());
-      const res = await fetch(`/api/admin/notification-events/list?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/notification-events/list?${params.toString()}`);
       const data = (await res.json()) as {
         ok?: boolean;
         events?: EventRow[];
@@ -107,7 +108,7 @@ export default function NotificationEventsAdminPage() {
     setUpdatingId(notificationId);
     setError("");
     try {
-      const res = await fetch(
+      const res = await adminFetch(
         `/api/admin/notification-events/${encodeURIComponent(notificationId)}`,
         {
           method: "PATCH",

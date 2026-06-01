@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/admin/adminFetch";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { COMMUNITY_REPORT_REASON_OPTIONS } from "@/lib/community/communityReportCopy";
@@ -53,7 +54,7 @@ export default function CommunityReportsAdminPage() {
     try {
       const params = new URLSearchParams({ limit: "400" });
       if (statusFilter) params.set("status", statusFilter);
-      const res = await fetch(`/api/admin/community-reports/list?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/community-reports/list?${params.toString()}`);
       const data = (await res.json()) as {
         ok?: boolean;
         reports?: ReportRow[];
@@ -82,7 +83,7 @@ export default function CommunityReportsAdminPage() {
     setUpdatingId(reportId);
     setError("");
     try {
-      const res = await fetch(`/api/admin/community-reports/${encodeURIComponent(reportId)}`, {
+      const res = await adminFetch(`/api/admin/community-reports/${encodeURIComponent(reportId)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),

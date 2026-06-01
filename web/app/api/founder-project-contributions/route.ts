@@ -9,6 +9,8 @@ import {
   type FounderProjectGuidedContributionKind,
 } from "@/lib/learning/founderProjectGuidedContributions";
 import { readFounderProjectSeed } from "@/lib/learning/founderProjectSeeds";
+import { toPublicAuthorIdentity } from "@/lib/public/publicAuthor";
+import { findUserProfileById } from "@/lib/users/userProfileStore";
 import {
   checkCommunityActionAllowed,
   communityActionDeniedResponse,
@@ -43,10 +45,26 @@ export async function GET(req: Request) {
       limit: 50,
     });
 
+    const publicContributions = await Promise.all(
+      contributions.map(async (item) => {
+        const profile = await findUserProfileById(item.actorUserId);
+        const publicAuthor = toPublicAuthorIdentity(
+          profile
+            ? {
+                displayName: profile.displayName,
+                email: profile.email,
+              }
+            : undefined,
+        );
+        const { actorUserId: _actor, ...publicFields } = item;
+        return { ...publicFields, publicAuthor };
+      }),
+    );
+
     return NextResponse.json({
       ok: true,
-      contributions: contributions.map(({ actorUserId: _actor, ...publicFields }) => publicFields),
-      total: contributions.length,
+      contributions: publicContributions,
+      total: publicContributions.length,
     });
   } catch (error) {
     if (error instanceof GuidedContributionStoreError) {

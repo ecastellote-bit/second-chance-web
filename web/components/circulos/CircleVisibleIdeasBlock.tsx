@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CURATED_CIRCLE_IDEA_LABEL } from "@/lib/community/publicCircleIdeaPresentation";
 
 type VisibleIdea = {
   signalId: string;
@@ -58,17 +59,22 @@ export function CircleVisibleIdeasBlock({ circleId, className = "" }: Props) {
           Todavía no hay ideas publicadas. Podés dejar una para revisión del equipo.
         </p>
       ) : (
-        <ul className="mt-3 space-y-2">
-          {ideas.map((idea) => (
-            <li
-              key={idea.signalId}
-              className="rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] px-3 py-2.5 text-[13px] leading-relaxed text-[#243647]"
-            >
-              <span className="font-semibold text-[#0B2E59]">Una idea recibida: </span>
-              {idea.publicText}
-            </li>
-          ))}
-        </ul>
+        <>
+          <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-[#6B7A8C]">
+            {CURATED_CIRCLE_IDEA_LABEL}
+          </p>
+          <ul className="mt-3 space-y-2">
+            {ideas.map((idea) => (
+              <li
+                key={idea.signalId}
+                className="rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] px-3 py-2.5 text-[13px] leading-relaxed text-[#243647]"
+              >
+                <span className="font-semibold text-[#0B2E59]">Señal del barrio: </span>
+                {idea.publicText}
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </section>
   );

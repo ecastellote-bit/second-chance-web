@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/admin/adminFetch";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { founderSeedStatusLabel } from "@/lib/public/founderSeedStatusLabel";
@@ -64,7 +65,7 @@ export default function FounderProjectSeedsAdminPage() {
       const params = new URLSearchParams({ limit: "100" });
       if (statusFilter) params.set("status", statusFilter);
 
-      const res = await fetch(`/api/admin/founder-project-seeds/list?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/founder-project-seeds/list?${params.toString()}`);
       const data = (await res.json()) as {
         ok: boolean;
         seeds?: SeedRow[];
@@ -111,7 +112,7 @@ export default function FounderProjectSeedsAdminPage() {
     setError("");
     try {
       const coverImageUrl = coverDrafts[seedId]?.trim() ?? "";
-      const res = await fetch(`/api/admin/founder-project-seeds/${encodeURIComponent(seedId)}`, {
+      const res = await adminFetch(`/api/admin/founder-project-seeds/${encodeURIComponent(seedId)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -134,7 +135,7 @@ export default function FounderProjectSeedsAdminPage() {
     setUpdatingId(seedId);
     setError("");
     try {
-      const res = await fetch(`/api/admin/founder-project-seeds/${encodeURIComponent(seedId)}`, {
+      const res = await adminFetch(`/api/admin/founder-project-seeds/${encodeURIComponent(seedId)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CURATED_CIRCLE_IDEA_LABEL } from "@/lib/community/publicCircleIdeaPresentation";
 import {
   CIRCLES_VOICE_EXAMPLES,
   COMMUNITY_EXAMPLE_CONVERSATIONS_LABEL,
@@ -68,7 +69,7 @@ export function CirclesVisibleIdeasPreview({ className = "" }: Props) {
         Ideas que empiezan a circular
       </h2>
       <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">
-        Textos curados por el equipo a partir de señales reales — no son chats en vivo.
+        {CURATED_CIRCLE_IDEA_LABEL}
       </p>
       <ul className="mt-4 flex flex-col gap-2.5">
         {ideas.map((idea) => (
@@ -76,6 +77,7 @@ export function CirclesVisibleIdeasPreview({ className = "" }: Props) {
             key={idea.signalId}
             className="rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] px-3 py-2.5 text-[13px] leading-relaxed text-[#243647]"
           >
+            <span className="font-semibold text-[#0B2E59]">Señal del barrio: </span>
             {idea.publicText}
           </li>
         ))}

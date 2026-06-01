@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/admin/adminFetch";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CIRCULOS_CATALOG } from "@/lib/content/circulosCatalog";
@@ -68,7 +69,7 @@ export default function CommunityAdminPostsPage() {
     async function loadTargets() {
       setTargetsLoading(true);
       try {
-        const res = await fetch(
+        const res = await adminFetch(
           "/api/admin/founder-project-seeds/list?status=published&limit=200",
         );
         const data = (await res.json()) as {
@@ -119,7 +120,7 @@ export default function CommunityAdminPostsPage() {
     try {
       const params = new URLSearchParams({ limit: "400" });
       if (statusFilter) params.set("status", statusFilter);
-      const res = await fetch(`/api/admin/community-admin-posts/list?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/community-admin-posts/list?${params.toString()}`);
       const data = (await res.json()) as {
         ok?: boolean;
         posts?: PostRow[];
@@ -146,7 +147,7 @@ export default function CommunityAdminPostsPage() {
     setCreating(true);
     setError("");
     try {
-      const res = await fetch("/api/admin/community-admin-posts", {
+      const res = await adminFetch("/api/admin/community-admin-posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -187,7 +188,7 @@ export default function CommunityAdminPostsPage() {
     setUpdatingId(postId);
     setError("");
     try {
-      const res = await fetch(`/api/admin/community-admin-posts/${encodeURIComponent(postId)}`, {
+      const res = await adminFetch(`/api/admin/community-admin-posts/${encodeURIComponent(postId)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),

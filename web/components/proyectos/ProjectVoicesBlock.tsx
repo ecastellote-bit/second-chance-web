@@ -10,6 +10,7 @@ type VisibleContribution = {
   contributionId: string;
   kind: FounderProjectGuidedContributionKind;
   text: string;
+  publicAuthor?: { publicName: string; initials: string };
 };
 
 type Props = {
@@ -99,16 +100,20 @@ export function ProjectVoicesBlock({ projectId, className = "" }: Props) {
       ) : (
         <ul className="mt-4 flex flex-col gap-3">
           {hasReal
-            ? visible.map((item) => (
-                <li key={item.contributionId}>
-                  <VoiceBubble
-                    author="Integrante del barrio"
-                    initials="IB"
-                    accent="#1A9BB0"
-                    body={`${GUIDED_CONTRIBUTION_VISIBLE_PREFIX[item.kind]} ${item.text}`}
-                  />
-                </li>
-              ))
+            ? visible.map((item) => {
+                const author = item.publicAuthor?.publicName?.trim() || "Integrante fundador";
+                const initials = item.publicAuthor?.initials?.trim() || "IF";
+                return (
+                  <li key={item.contributionId}>
+                    <VoiceBubble
+                      author={author}
+                      initials={initials}
+                      accent="#1A9BB0"
+                      body={`${GUIDED_CONTRIBUTION_VISIBLE_PREFIX[item.kind]} ${item.text}`}
+                    />
+                  </li>
+                );
+              })
             : examples.map((ex) => (
                 <li key={ex.id}>
                   <VoiceBubble

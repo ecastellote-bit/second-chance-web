@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/admin/adminFetch";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -43,7 +44,7 @@ export default function CircleSignalsAdminPage() {
     try {
       const params = new URLSearchParams({ limit: "400" });
       if (statusFilter) params.set("status", statusFilter);
-      const res = await fetch(`/api/admin/circle-signals/list?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/circle-signals/list?${params.toString()}`);
       const data = (await res.json()) as {
         ok?: boolean;
         signals?: SignalRow[];
@@ -69,7 +70,7 @@ export default function CircleSignalsAdminPage() {
     setUpdatingId(signalId);
     setError("");
     try {
-      const res = await fetch(`/api/admin/circle-signals/${encodeURIComponent(signalId)}`, {
+      const res = await adminFetch(`/api/admin/circle-signals/${encodeURIComponent(signalId)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -99,7 +100,7 @@ export default function CircleSignalsAdminPage() {
     setUpdatingId(signalId);
     setError("");
     try {
-      const res = await fetch(`/api/admin/circle-signals/${encodeURIComponent(signalId)}`, {
+      const res = await adminFetch(`/api/admin/circle-signals/${encodeURIComponent(signalId)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "hide_visibility" }),
@@ -118,7 +119,7 @@ export default function CircleSignalsAdminPage() {
     setUpdatingId(signalId);
     setError("");
     try {
-      const res = await fetch(`/api/admin/circle-signals/${encodeURIComponent(signalId)}`, {
+      const res = await adminFetch(`/api/admin/circle-signals/${encodeURIComponent(signalId)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),

@@ -14,10 +14,10 @@ export const ACTIVIDAD_COPY = {
 export const MENSAJES_COPY = {
   title: "Mensajes",
   subtitle:
-    "Acá vas a ver respuestas, avisos y próximos pasos vinculados a tus proyectos, intereses y movimientos dentro del barrio.",
-  emptyTitle: "Todavía no hay conversaciones abiertas",
+    "Bandeja de avisos del barrio — no es chat libre ni mensajería directa. Acá verás respuestas del equipo y próximos pasos cuando correspondan.",
+  emptyTitle: "Todavía no hay avisos para vos",
   emptyBody:
-    "Cuando tu proyecto reciba interés, el equipo revise una semilla o aparezca un próximo paso relevante, lo vas a ver acá.",
+    "Cuando tu proyecto reciba interés, el equipo revise una semilla o haya un próximo paso relevante, lo vas a ver acá. No hay conversaciones en vivo todavía.",
 };
 
 export const INTEREST_REGISTERED_TOAST =
