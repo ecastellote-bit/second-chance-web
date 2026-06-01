@@ -81,6 +81,12 @@ export default function FounderSeedPage() {
   const statusHint = founderSeedStatusHint(seed.status);
   const isPublished = seed.status === "published";
 
+  const publicAuthor =
+    (seed as unknown as { publicAuthor?: { publicName: string; initials: string } })
+      .publicAuthor;
+  const authorName = publicAuthor?.publicName?.trim() || "Integrante fundador";
+  const authorInitials = publicAuthor?.initials?.trim() || "IF";
+
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#F8FAFC] font-[family-name:var(--font-inter)]">
       <FounderPreviewBanner />
@@ -91,6 +97,17 @@ export default function FounderSeedPage() {
         <p className="mt-6 text-[10px] font-bold uppercase tracking-wider text-[#C6D92D]">
           {isPublished ? "Proyecto fundador · barrio" : "Tu proyecto · ola fundadora"}
         </p>
+
+        <div className="mt-4 flex items-center gap-3">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1A9BB0] text-sm font-extrabold text-white">
+            {authorInitials}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-bold text-[#0B2E59]">{authorName}</p>
+            <p className="text-[12px] text-[#6B7A8C]">Autor del proyecto</p>
+          </div>
+        </div>
+
         <h1 className="mt-2 text-2xl font-bold text-[#0B2E59]">{seed.title}</h1>
         <p className="mt-3 inline-flex rounded-full bg-[#E6F6FA] px-3 py-1 text-[12px] font-semibold text-[#0B2E59]">
           {statusLabel}

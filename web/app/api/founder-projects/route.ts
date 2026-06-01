@@ -12,6 +12,8 @@ import {
   checkCommunityActionAllowed,
   communityActionDeniedResponse,
 } from "@/lib/users/assertCommunityActionAllowed";
+import { findUserProfileById } from "@/lib/users/userProfileStore";
+import { toPublicAuthorIdentity } from "@/lib/public/publicAuthor";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +60,51 @@ export async function GET(req: Request) {
       cohortBatch: cohortBatch || undefined,
       visibility: visibility === "all" ? undefined : "public",
       status,
+    });
+  }
+
+  // Public listing: privacy-safe records + stable ordering by publish/approval time.
+  if (scope !== "admin" && !userId) {
+    const publicSeeds = seeds
+      .filter((s) => (visibility === "all" ? true : s.status === "published"))
+      .slice()
+      .sort((a, b) => {
+        const ad = a.publishedAt ?? a.statusUpdatedAt ?? a.createdAt;
+        const bd = b.publishedAt ?? b.statusUpdatedAt ?? b.createdAt;
+        return bd.localeCompare(ad);
+      });
+
+    const uniqueUserIds = Array.from(
+      new Set(publicSeeds.map((s) => s.userId).filter((x): x is string => Boolean(x?.trim()))),
+    );
+
+    const profiles = await Promise.all(
+      uniqueUserIds.map(async (id) => [id, await findUserProfileById(id)] as const),
+    );
+    const byUserId = new Map(profiles);
+
+    const seedsView = publicSeeds.map((seed) => {
+      const profile = seed.userId ? byUserId.get(seed.userId) ?? null : null;
+      const publicAuthor = toPublicAuthorIdentity({ displayName: profile?.displayName ?? null });
+      return {
+        seedId: seed.seedId,
+        title: seed.title,
+        summary: seed.summary,
+        createdAt: seed.createdAt,
+        status: seed.status,
+        publishedAt: seed.publishedAt ?? null,
+        statusUpdatedAt: seed.statusUpdatedAt ?? null,
+        visibilityTier: seed.visibilityTier,
+        cohortBatch: seed.cohortBatch,
+        publicAuthor,
+      };
+    });
+
+    return NextResponse.json({
+      ok: true,
+      total: seedsView.length,
+      seeds: seedsView,
+      store: getFounderProjectSeedStoreMeta(),
     });
   }
 
