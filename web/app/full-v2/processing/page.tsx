@@ -100,13 +100,14 @@ export default function FullProcessingPage() {
       <div className="max-w-3xl mx-auto space-y-8">
         <div className="space-y-3">
           <p className="text-sm uppercase tracking-wide text-neutral-500">
-            Processing
+            Preparando tu lectura
           </p>
           <h1 className="text-3xl font-semibold">
-            Ordenando señales y restricciones
+            Estamos preparando tu lectura
           </h1>
           <p className="text-sm text-neutral-700">
-            Estamos generando una lectura inicial a partir de tu historia y tu situación actual.
+            Ordenamos las señales principales de tu historia y conectamos tus respuestas
+            con posibles caminos.
           </p>
         </div>
 

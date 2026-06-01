@@ -249,10 +249,10 @@ export default function FullProcessingPage() {
   }, [isHydrated, runAnalysis]);
 
   const phaseLabel: Record<ProcessingPhase, string> = {
-    preserving_submission: "Confirmando que tus respuestas quedaron preservadas…",
-    analyzing: "Generando tu lectura inicial…",
-    preserving_result: "Registrando el resultado para el equipo…",
-    navigating: "Preparando tu devolución…",
+    preserving_submission: "Ordenando las señales principales de tu historia…",
+    analyzing: "Conectando tus respuestas con posibles caminos…",
+    preserving_result: "Preparando una lectura que puedas revisar con calma…",
+    navigating: "Un momento — ya casi está…",
   };
 
   const recoveryCopy =

@@ -187,38 +187,38 @@ export const FULL_FLOW_COPY = {
   },
 
   processing: {
-    eyebrow: "Construyendo tu lectura",
-    title: "Estamos leyendo tu historia con cuidado",
+    eyebrow: "Preparando tu lectura",
+    title: "Estamos preparando tu lectura",
     description:
-      "Ordenamos lo que contaste para devolverte una lectura inicial clara. Esto puede tardar unos minutos.",
+      "Ordenamos las señales principales de tu historia para devolverte una lectura que puedas revisar con calma. Esto puede tardar unos minutos.",
     waitNotice:
       "Puede demorar hasta 2 minutos. No cierres esta pantalla — tu lectura sigue en curso.",
     progressItems: [
-      "ordenando tu momento actual",
-      "leyendo las escenas de tu historia",
-      "ubicando margen y restricciones",
-      "armando direcciones plausibles",
+      "ordenando las señales principales de tu historia",
+      "conectando tus respuestas con posibles caminos",
+      "buscando una forma clara de devolverte lo que aparece",
+      "preparando una lectura que puedas revisar con calma",
       "viendo si hace falta una aclaración más",
     ],
     recovery: {
       title: "No pudimos completar la lectura",
-      hint: "Tus respuestas siguen en este dispositivo. Podés reintentar, volver al cuestionario o guardar una copia.",
+      hint: "Tus respuestas siguen en este dispositivo. Podés reintentar, volver al cuestionario o descargar una copia.",
       retry: "Reintentar lectura",
       download: "Descargar copia de seguridad",
       backToQuestionnaire: "Volver a mi lectura",
       recoverLater: "Recuperar más tarde",
     },
     preservation: {
-      title: "Todavía no confirmamos el guardado seguro",
-      hint: "Antes de devolverte la lectura, necesitamos preservar lo que escribiste. Podés reintentar o descargar un respaldo.",
-      retry: "Reintentar guardado",
+      title: "Todavía no confirmamos que tu lectura quedó disponible",
+      hint: "Antes de devolverte la lectura, necesitamos asegurarnos de que podés volver a verla. Podés reintentar o descargar un respaldo en este dispositivo.",
+      retry: "Reintentar",
       download: "Descargar respaldo",
       backToQuestionnaire: "Volver a mi lectura",
     },
     preservationPostAnalyze: {
-      title: "Lectura lista, guardado pendiente",
-      hint: "Tu lectura está en este dispositivo. Todavía no confirmamos la copia segura; podés reintentar.",
-      retry: "Reintentar preservación",
+      title: "Lectura lista — confirmación pendiente",
+      hint: "Tu lectura está lista en este dispositivo. Estamos confirmando que quede disponible para que puedas volver a verla.",
+      retry: "Reintentar confirmación",
     },
   },
 

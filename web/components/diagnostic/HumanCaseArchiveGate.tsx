@@ -116,11 +116,11 @@ export function HumanCaseArchiveGate({
         <div className="max-w-md space-y-4">
           <div className="mx-auto h-12 w-12 animate-pulse rounded-full bg-[#1A9BB0]/20 ring-4 ring-[#1A9BB0]/30" />
           <h1 className="text-xl font-bold text-[#0B2E59]">
-            Guardando tu caso para VocationUp
+            Estamos preparando tu lectura
           </h1>
           <p className="text-sm leading-relaxed text-[#6B7A8C]">
-            Estamos registrando tu diagnóstico de forma segura para revisión del equipo.
-            No cierres esta pantalla.
+            Ordenamos lo que contaste para devolverte una lectura clara. No cierres
+            esta pantalla. Tu lectura quedará disponible para que puedas volver a verla.
           </p>
         </div>
       </main>
@@ -132,10 +132,11 @@ export function HumanCaseArchiveGate({
       <main className="min-h-[100dvh] flex flex-col items-center justify-center bg-[#F8FAFC] px-6">
         <div className="max-w-md space-y-4 rounded-2xl border border-amber-300 bg-amber-50 p-6">
           <h1 className="text-lg font-bold text-[#0B2E59]">
-            No pudimos confirmar el guardado seguro
+            No pudimos confirmar que tu lectura quedó disponible
           </h1>
           <p className="text-sm leading-relaxed text-[#243647]">
-            No pudimos confirmar el guardado seguro. Reintentá o descargá el respaldo.
+            Todavía no pudimos asegurarnos de que podés volver a ver lo que escribiste.
+            Reintentá o descargá un respaldo en este dispositivo.
           </p>
           <button
             type="button"

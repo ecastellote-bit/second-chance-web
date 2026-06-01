@@ -27,7 +27,7 @@ export async function POST(req: Request) {
         {
           ok: false,
           error: "case_identity_required",
-          message: "Primero necesitamos guardar tu caso con seguridad.",
+          message: "Primero necesitamos confirmar que tu lectura quedó disponible.",
         },
         { status: 400 },
       );
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
         {
           ok: false,
           error: "draft_not_found",
-          message: "Primero necesitamos guardar tu caso con seguridad.",
+          message: "Primero necesitamos confirmar que tu lectura quedó disponible.",
         },
         { status: 404 },
       );
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
         {
           ok: false,
           error: "not_preserved",
-          message: "Primero necesitamos guardar tu caso con seguridad.",
+          message: "Primero necesitamos confirmar que tu lectura quedó disponible.",
         },
         { status: 409 },
       );

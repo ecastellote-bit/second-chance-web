@@ -68,7 +68,7 @@ export type FounderCaseRecord = {
 const ACTIVE_FOUNDER_CASE_KEY = "vu_founder_case_active";
 
 export const PRESERVATION_SAVE_BLOCKED_MESSAGE =
-  "No pudimos guardar tu caso con seguridad todavía. Antes de analizar tu lectura, necesitamos confirmar que tus respuestas quedaron preservadas. Podés reintentar ahora o descargar un respaldo.";
+  "No pudimos confirmar todavía que tu lectura quede disponible. Antes de seguir, necesitamos asegurarnos de que podés volver a ver lo que escribiste. Podés reintentar ahora o descargar un respaldo en este dispositivo.";
 
 function safeParse<T>(raw: string | null): T | null {
   if (!raw) return null;

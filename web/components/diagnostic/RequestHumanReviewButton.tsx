@@ -25,18 +25,18 @@ type Props = {
 function mapReviewErrorMessage(code: ReviewErrorCode): string {
   switch (code) {
     case "draft_not_found":
-      return "No encontramos todavía el registro seguro de este caso. Reintentá guardar antes de pedir revisión.";
+      return "No encontramos todavía tu lectura en el registro seguro. Reintentá antes de pedir revisión humana.";
     case "not_preserved":
-      return "Primero necesitamos guardar tu caso con seguridad antes de pedir revisión humana.";
+      return "Primero necesitamos confirmar que tu lectura quedó disponible antes de pedir revisión humana.";
     case "archive_not_found":
-      return "No encontramos el archivo de tu caso en el servidor. Reintentá guardar antes de pedir revisión.";
+      return "No encontramos tu lectura en el servidor. Reintentá antes de pedir revisión humana.";
     case "write_failed":
     case "review_request_failed":
-      return "No pudimos registrar la solicitud ahora. Tu caso sigue preservado; podés reintentar en unos minutos.";
+      return "No pudimos registrar la solicitud ahora. Tu lectura sigue en este dispositivo; podés reintentar en unos minutos.";
     case "invalid_payload":
-      return "Faltan datos para ubicar tu caso. Reintentá desde la pantalla de resultado.";
+      return "Faltan datos para ubicar tu lectura. Reintentá desde la pantalla de resultado.";
     default:
-      return "No pudimos registrar la solicitud ahora. Tu caso sigue preservado; podés reintentar en unos minutos.";
+      return "No pudimos registrar la solicitud ahora. Tu lectura sigue en este dispositivo; podés reintentar en unos minutos.";
   }
 }
 
@@ -137,7 +137,7 @@ export function RequestHumanReviewButton({
     return (
       <div className={`space-y-2 ${className}`}>
         <p className="mx-auto max-w-xl text-center text-sm leading-relaxed text-amber-800">
-          Primero necesitamos guardar tu caso con seguridad antes de pedir revisión humana.
+          Primero necesitamos confirmar que tu lectura quedó disponible antes de pedir revisión humana.
         </p>
       </div>
     );
