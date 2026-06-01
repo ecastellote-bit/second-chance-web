@@ -17,3 +17,10 @@ export const PUBLIC_BARRIO_ACTIVITY_TITLE = "Movimiento reciente del barrio";
 
 export const PUBLIC_BARRIO_ACTIVITY_EMPTY =
   "Este barrio está en etapa fundadora. Los primeros movimientos van a aparecer acá a medida que usuarios reales dejen señales, proyectos y sugerencias.";
+
+export const PUBLIC_PROJECTS_ACTIVITY_TITLE = "Lo que empieza a moverse en esta mesa";
+
+export const PUBLIC_PROJECTS_ACTIVITY_EYEBROW = "Movimiento en proyectos";
+
+export const PUBLIC_PROJECTS_ACTIVITY_EMPTY =
+  "Cuando se publiquen proyectos y lleguen las primeras señales o aportes, vas a ver acá cómo la mesa del barrio empieza a moverse.";

@@ -14,14 +14,19 @@ type Props = {
   limit?: number;
   className?: string;
   showRulesLink?: boolean;
+  /** Contextual copy and API filter — use on /proyectos instead of generic barrio block. */
+  surface?: "barrio" | "projects";
 };
 
 export function PublicCommunityRecentActivity({
   limit = 8,
   className = "",
   showRulesLink = true,
+  surface = "barrio",
 }: Props) {
-  const [title, setTitle] = useState("Movimiento reciente del barrio");
+  const [title, setTitle] = useState(
+    surface === "projects" ? "Lo que empieza a moverse en esta mesa" : "Movimiento reciente del barrio",
+  );
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [emptyMessage, setEmptyMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -32,7 +37,9 @@ export function PublicCommunityRecentActivity({
     async function load() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/community/public-activity?limit=${limit}`);
+        const params = new URLSearchParams({ limit: String(limit) });
+        if (surface === "projects") params.set("surface", "projects");
+        const res = await fetch(`/api/community/public-activity?${params.toString()}`);
         const data = (await res.json()) as {
           ok?: boolean;
           title?: string;
@@ -54,7 +61,7 @@ export function PublicCommunityRecentActivity({
     return () => {
       cancelled = true;
     };
-  }, [limit]);
+  }, [limit, surface]);
 
   return (
     <section
@@ -65,7 +72,7 @@ export function PublicCommunityRecentActivity({
       aria-busy={loading}
     >
       <p className="text-[10px] font-bold uppercase tracking-wide text-[#1A9BB0]">
-        Barrio en movimiento
+        {surface === "projects" ? "Movimiento en proyectos" : "Barrio en movimiento"}
       </p>
       <h2 className="mt-1 text-[15px] font-bold text-[#0B2E59]">{title}</h2>
 

@@ -15,6 +15,10 @@ type SeedRow = {
   createdAt: string;
   publishedAt?: string | null;
   statusUpdatedAt?: string | null;
+  coverImageUrl?: string | null;
+  galleryImageUrls?: string[] | null;
+  videoUrl?: string | null;
+  videoPosterUrl?: string | null;
 };
 
 type StoreStatus = {
@@ -48,6 +52,7 @@ export default function FounderProjectSeedsAdminPage() {
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState<"" | FounderProjectSeedStatus>("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [coverDrafts, setCoverDrafts] = useState<Record<string, string>>({});
   const [store, setStore] = useState<StoreStatus | null>(null);
   const [total, setTotal] = useState(0);
   const [origin, setOrigin] = useState("");
@@ -78,7 +83,13 @@ export default function FounderProjectSeedsAdminPage() {
         throw new Error(data.message ?? data.error ?? "Error al cargar semillas");
       }
 
-      setSeeds(data.seeds ?? []);
+      const rows = data.seeds ?? [];
+      setSeeds(rows);
+      setCoverDrafts(
+        Object.fromEntries(
+          rows.map((s) => [s.seedId, s.coverImageUrl?.trim() ?? ""]),
+        ),
+      );
       setStore(data.store ?? null);
       setTotal(data.total ?? data.seeds?.length ?? 0);
       if (typeof window !== "undefined") {
@@ -94,6 +105,30 @@ export default function FounderProjectSeedsAdminPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  async function saveCover(seedId: string) {
+    setUpdatingId(seedId);
+    setError("");
+    try {
+      const coverImageUrl = coverDrafts[seedId]?.trim() ?? "";
+      const res = await fetch(`/api/admin/founder-project-seeds/${encodeURIComponent(seedId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          coverImageUrl: coverImageUrl || null,
+        }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error ?? "No se pudo guardar la portada");
+      }
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error al guardar portada");
+    } finally {
+      setUpdatingId(null);
+    }
+  }
 
   async function setStatus(seedId: string, status: FounderProjectSeedStatus) {
     setUpdatingId(seedId);
@@ -273,6 +308,43 @@ export default function FounderProjectSeedsAdminPage() {
                   <span className="shrink-0 rounded-full bg-[#E6F6FA] px-3 py-1 text-[11px] font-semibold text-[#0B2E59]">
                     {founderSeedStatusLabel(seed.status)}
                   </span>
+                </div>
+
+                <div className="mt-4 rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] p-3">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-[#1A9BB0]">
+                    Portada visual (URL)
+                  </p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-[#6B7A8C]">
+                    Ruta interna <span className="font-mono">/vu/...</span> o HTTPS. Sin uploader en
+                    esta fase.
+                  </p>
+                  <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                    <input
+                      type="url"
+                      value={coverDrafts[seed.seedId] ?? ""}
+                      onChange={(e) =>
+                        setCoverDrafts((prev) => ({
+                          ...prev,
+                          [seed.seedId]: e.target.value,
+                        }))
+                      }
+                      placeholder="/vu/proyecto-manos-transforman.png"
+                      className="min-h-[44px] flex-1 rounded-xl border border-[#E8EEF3] bg-white px-3 text-sm text-[#243647]"
+                    />
+                    <button
+                      type="button"
+                      disabled={updatingId === seed.seedId}
+                      onClick={() => void saveCover(seed.seedId)}
+                      className="rounded-xl border border-[#1A9BB0]/40 bg-white px-3 py-2 text-xs font-semibold text-[#0B2E59] disabled:opacity-60"
+                    >
+                      Guardar portada
+                    </button>
+                  </div>
+                  {seed.coverImageUrl ? (
+                    <p className="mt-2 truncate font-mono text-[10px] text-[#6B7A8C]">
+                      Actual: {seed.coverImageUrl}
+                    </p>
+                  ) : null}
                 </div>
 
                 <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-[#6B7A8C] sm:grid-cols-4">

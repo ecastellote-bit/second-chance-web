@@ -7,7 +7,10 @@ export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
     const limit = Math.min(Math.max(Number(url.searchParams.get("limit") ?? 10), 1), 20);
-    const activity = await getPublicCommunityRecentActivity({ limit });
+    const surfaceParam = url.searchParams.get("surface")?.trim();
+    const surface =
+      surfaceParam === "projects" ? ("projects" as const) : ("barrio" as const);
+    const activity = await getPublicCommunityRecentActivity({ limit, surface });
     return NextResponse.json({ ok: true, ...activity });
   } catch (error) {
     return NextResponse.json(

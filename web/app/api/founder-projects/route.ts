@@ -14,6 +14,7 @@ import {
 } from "@/lib/users/assertCommunityActionAllowed";
 import { findUserProfileById } from "@/lib/users/userProfileStore";
 import { toPublicAuthorIdentity } from "@/lib/public/publicAuthor";
+import { toPublicProjectMedia } from "@/lib/public/projectSeedMedia";
 
 export const dynamic = "force-dynamic";
 
@@ -86,6 +87,7 @@ export async function GET(req: Request) {
     const seedsView = publicSeeds.map((seed) => {
       const profile = seed.userId ? byUserId.get(seed.userId) ?? null : null;
       const publicAuthor = toPublicAuthorIdentity({ displayName: profile?.displayName ?? null });
+      const media = toPublicProjectMedia(seed.seedId, seed);
       return {
         seedId: seed.seedId,
         title: seed.title,
@@ -97,6 +99,11 @@ export async function GET(req: Request) {
         visibilityTier: seed.visibilityTier,
         cohortBatch: seed.cohortBatch,
         publicAuthor,
+        coverImageUrl: media.coverImageUrl,
+        coverSrc: media.coverSrc,
+        galleryImageUrls: media.galleryImageUrls,
+        videoUrl: media.videoUrl,
+        videoPosterUrl: media.videoPosterUrl,
       };
     });
 

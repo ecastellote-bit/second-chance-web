@@ -5,8 +5,10 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FounderPreviewBanner } from "@/components/founder/FounderPreviewBanner";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
-import { CommunityAdminPostsBlock } from "@/components/community/CommunityAdminPostsBlock";
-import { ReportContentButton } from "@/components/community/ReportContentButton";
+import {
+  FounderSeedPublicView,
+  type FounderSeedPublicViewModel,
+} from "@/components/proyectos/FounderSeedPublicView";
 import { FounderProjectGuidedContributionsPanel } from "@/components/proyectos/FounderProjectGuidedContributionsPanel";
 import { FounderProjectSignalsPanel } from "@/components/proyectos/FounderProjectSignalsPanel";
 import {
@@ -16,11 +18,19 @@ import {
 import type { FounderProjectSeed } from "@/lib/learning/founderProjectSeeds";
 import { getOrCreateUserId } from "@/lib/users/activeUserSession";
 
+type PublicSeedPayload = FounderSeedPublicViewModel;
+
+function isPublicPublishedSeed(
+  seed: FounderProjectSeed | PublicSeedPayload,
+): seed is PublicSeedPayload {
+  return seed.status === "published" && "coverSrc" in seed;
+}
+
 export default function FounderSeedPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const seedId = typeof params.seedId === "string" ? params.seedId : "";
-  const [seed, setSeed] = useState<FounderProjectSeed | null>(null);
+  const [seed, setSeed] = useState<FounderProjectSeed | PublicSeedPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [notVisible, setNotVisible] = useState(false);
 
@@ -35,7 +45,7 @@ export default function FounderSeedPage() {
       .then(async (r) => {
         const data = (await r.json()) as {
           ok?: boolean;
-          seed?: FounderProjectSeed;
+          seed?: FounderProjectSeed | PublicSeedPayload;
           error?: string;
         };
         if (!r.ok || !data.ok || !data.seed) {
@@ -77,15 +87,18 @@ export default function FounderSeedPage() {
     );
   }
 
+  if (isPublicPublishedSeed(seed)) {
+    return (
+      <div className="flex min-h-[100dvh] flex-col">
+        <FounderPreviewBanner />
+        <FounderSeedPublicView seed={seed} />
+        <VuBottomNav active="plaza" />
+      </div>
+    );
+  }
+
   const statusLabel = founderSeedStatusLabel(seed.status);
   const statusHint = founderSeedStatusHint(seed.status);
-  const isPublished = seed.status === "published";
-
-  const publicAuthor =
-    (seed as unknown as { publicAuthor?: { publicName: string; initials: string } })
-      .publicAuthor;
-  const authorName = publicAuthor?.publicName?.trim() || "Integrante fundador";
-  const authorInitials = publicAuthor?.initials?.trim() || "IF";
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#F8FAFC] font-[family-name:var(--font-inter)]">
@@ -95,19 +108,8 @@ export default function FounderSeedPage() {
           ← Proyectos
         </Link>
         <p className="mt-6 text-[10px] font-bold uppercase tracking-wider text-[#C6D92D]">
-          {isPublished ? "Proyecto fundador · barrio" : "Tu proyecto · ola fundadora"}
+          Tu proyecto · ola fundadora
         </p>
-
-        <div className="mt-4 flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1A9BB0] text-sm font-extrabold text-white">
-            {authorInitials}
-          </span>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-[#0B2E59]">{authorName}</p>
-            <p className="text-[12px] text-[#6B7A8C]">Autor del proyecto</p>
-          </div>
-        </div>
-
         <h1 className="mt-2 text-2xl font-bold text-[#0B2E59]">{seed.title}</h1>
         <p className="mt-3 inline-flex rounded-full bg-[#E6F6FA] px-3 py-1 text-[12px] font-semibold text-[#0B2E59]">
           {statusLabel}
@@ -118,57 +120,17 @@ export default function FounderSeedPage() {
         <p className="mt-6 rounded-2xl border border-[#E8EEF3] bg-white px-4 py-3 text-[13px] leading-relaxed text-[#6B7A8C]">
           {statusHint}
         </p>
-        {isPublished ? (
-          <>
-            <CommunityAdminPostsBlock
-              targetType="founder_project"
-              targetId={seed.seedId}
-              title="Movimientos de este proyecto"
-              emptyMessage="Este proyecto todavía no tiene movimientos publicados por el equipo. Podés dejar una señal o un aporte guiado."
-              className="mt-6"
-            />
-            <FounderProjectSignalsPanel
-              projectId={seed.seedId}
-              projectTitle={seed.title}
-            />
-            <FounderProjectGuidedContributionsPanel
-              projectId={seed.seedId}
-              projectTitle={seed.title}
-            />
-            <ReportContentButton
-              targetType="founder_project"
-              targetId={seed.seedId}
-              className="mt-4"
-            />
-          </>
-        ) : null}
-
-        <div className="mt-8 flex flex-col gap-2">
-          <Link
-            href="/actividad"
-            className="vu-focus flex min-h-[48px] items-center justify-center rounded-2xl bg-[#0B2E59] text-sm font-bold text-white"
-          >
-            Ver actividad
-          </Link>
-          <Link
-            href="/mensajes"
-            className="vu-focus flex min-h-[48px] items-center justify-center rounded-2xl border border-[#1A9BB0]/40 bg-white text-sm font-semibold text-[#0B2E59]"
-          >
-            Ver mensajes
-          </Link>
-          <Link
-            href="/proyectos"
-            className="vu-focus flex min-h-[48px] items-center justify-center rounded-2xl border border-[#E8EEF3] bg-white text-sm font-semibold text-[#6B7A8C]"
-          >
-            Volver a proyectos
-          </Link>
-          <Link
-            href="/plaza"
-            className="vu-focus flex min-h-[48px] items-center justify-center text-sm font-semibold text-[#1A9BB0] underline"
-          >
-            Ir a la plaza
-          </Link>
-        </div>
+        <FounderProjectSignalsPanel projectId={seed.seedId} projectTitle={seed.title} />
+        <FounderProjectGuidedContributionsPanel
+          projectId={seed.seedId}
+          projectTitle={seed.title}
+        />
+        <Link
+          href="/proyectos"
+          className="vu-focus mt-8 flex min-h-[48px] items-center justify-center rounded-2xl border border-[#E8EEF3] bg-white text-sm font-semibold text-[#6B7A8C]"
+        >
+          Volver a proyectos
+        </Link>
       </main>
       <VuBottomNav active="plaza" />
     </div>

@@ -10,8 +10,11 @@ import { isFounderCommunityPreviewActive } from "@/lib/founder/communityPreviewB
 import { ensureFoundingMemberAccess } from "@/lib/learning/ensureFoundingMemberAccess";
 import { isFoundingMemberQualified } from "@/lib/learning/foundationalMember";
 import { PublicCommunityRecentActivity } from "@/components/community/PublicCommunityRecentActivity";
+import { PublicInitialsAvatar } from "@/components/community/PublicInitialsAvatar";
 import { MyFounderSeedBanner } from "@/components/proyectos/MyFounderSeedBanner";
+import { ProjectCover } from "@/components/proyectos/ProjectCover";
 import { CommunityMicroAction } from "@/components/community/CommunityMicroAction";
+import { resolveProjectCoverSrc } from "@/lib/public/projectSeedMedia";
 import { PROYECTOS_CATALOG, PROYECTOS_HEADER } from "@/lib/content/proyectosCatalog";
 
 type PublicSeedListItem = {
@@ -23,6 +26,8 @@ type PublicSeedListItem = {
   publishedAt: string | null;
   statusUpdatedAt: string | null;
   publicAuthor?: { publicName: string; initials: string };
+  coverImageUrl?: string | null;
+  coverSrc?: string;
 };
 
 function formatPublishedHint(seed: PublicSeedListItem): string {
@@ -120,7 +125,7 @@ export function ProyectosListView() {
 
             <MyFounderSeedBanner />
 
-            <PublicCommunityRecentActivity className="mb-6" limit={8} />
+            <PublicCommunityRecentActivity className="mb-6" limit={6} surface="projects" />
 
             <section className="mb-6 rounded-[28px] bg-white p-5 shadow-[0_4px_16px_rgba(15,42,70,0.06)] ring-1 ring-[#E8EEF3]">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -172,58 +177,61 @@ export function ProyectosListView() {
                   </div>
                 </div>
               ) : (
-                <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {publishedSeeds.map((seed) => {
                     const initials = seed.publicAuthor?.initials?.trim() || "IF";
                     const author = seed.publicAuthor?.publicName?.trim() || "Integrante fundador";
+                    const coverSrc =
+                      seed.coverSrc ??
+                      resolveProjectCoverSrc(seed.seedId, seed.coverImageUrl ?? null);
                     return (
                       <li key={seed.seedId}>
-                        <Link
-                          href={`/proyectos/semilla/${encodeURIComponent(seed.seedId)}`}
-                          className="vu-focus block overflow-hidden rounded-[24px] bg-white shadow-[0_4px_16px_rgba(15,42,70,0.08)] ring-1 ring-[#E8EEF3] transition-shadow hover:shadow-[0_8px_24px_rgba(15,42,70,0.12)]"
-                        >
-                          <div className="p-4">
-                            <div className="flex items-start gap-3">
-                              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#1A9BB0] text-sm font-extrabold text-white">
-                                {initials}
-                              </span>
-                              <div className="min-w-0 flex-1">
-                                <p className="text-[13px] font-bold text-[#0B2E59]">{author}</p>
-                                <p className="text-[11px] font-semibold text-[#6B7A8C]">
-                                  {formatPublishedHint(seed)}
-                                </p>
+                        <article className="overflow-hidden rounded-[24px] bg-white shadow-[0_4px_16px_rgba(15,42,70,0.08)] ring-1 ring-[#E8EEF3] transition-shadow hover:shadow-[0_8px_24px_rgba(15,42,70,0.12)]">
+                          <Link
+                            href={`/proyectos/semilla/${encodeURIComponent(seed.seedId)}`}
+                            className="vu-focus block"
+                          >
+                            <ProjectCover src={coverSrc} variant="card" />
+                            <div className="p-4">
+                              <div className="flex flex-wrap gap-2">
+                                <span className="rounded-full bg-[#E6F6FA] px-2.5 py-1 text-[10px] font-bold text-[#0B2E59]">
+                                  Publicado
+                                </span>
+                                <span className="rounded-full bg-[#F4F9E0] px-2.5 py-1 text-[10px] font-bold text-[#0B2E59]">
+                                  Ola fundadora
+                                </span>
                               </div>
-                              <span className="rounded-full bg-[#E6F6FA] px-2.5 py-1 text-[10px] font-bold text-[#0B2E59]">
-                                Publicado
-                              </span>
-                            </div>
-                            <h2 className="mt-3 text-[15px] font-bold leading-snug text-[#0B2E59]">
-                              {seed.title}
-                            </h2>
-                            <p className="mt-1 text-[13px] leading-relaxed text-[#6B7A8C] line-clamp-3">
-                              {seed.summary}
-                            </p>
-                              <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                <Link
-                                  href={`/proyectos/semilla/${encodeURIComponent(seed.seedId)}`}
-                                  className="vu-focus flex min-h-[44px] items-center justify-center rounded-2xl bg-[#0B2E59] px-4 text-sm font-bold text-white"
-                                >
-                                  Ver proyecto
-                                </Link>
-
-                                <div className="w-full sm:w-[210px]">
-                                  <CommunityMicroAction
-                                    kind="project"
-                                    projectId={seed.seedId}
-                                    projectTitle={seed.title}
-                                    mode="interest"
-                                    label="Me interesa una idea así"
-                                    variant="primary"
-                                  />
+                              <div className="mt-3 flex items-start gap-3">
+                                <PublicInitialsAvatar initials={initials} />
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-[13px] font-bold text-[#0B2E59]">{author}</p>
+                                  <p className="text-[11px] font-semibold text-[#6B7A8C]">
+                                    {formatPublishedHint(seed)}
+                                  </p>
                                 </div>
                               </div>
+                              <h2 className="mt-3 text-[15px] font-bold leading-snug text-[#0B2E59]">
+                                {seed.title}
+                              </h2>
+                              <p className="mt-1 text-[13px] leading-relaxed text-[#6B7A8C] line-clamp-3">
+                                {seed.summary}
+                              </p>
+                              <span className="vu-focus mt-4 flex min-h-[44px] items-center justify-center rounded-2xl bg-[#0B2E59] px-4 text-sm font-bold text-white">
+                                Ver proyecto
+                              </span>
+                            </div>
+                          </Link>
+                          <div className="border-t border-[#E8EEF3] px-4 pb-4 pt-2">
+                            <CommunityMicroAction
+                              kind="project"
+                              projectId={seed.seedId}
+                              projectTitle={seed.title}
+                              mode="interest"
+                              label="Me interesa una idea así"
+                              variant="primary"
+                            />
                           </div>
-                        </Link>
+                        </article>
                       </li>
                     );
                   })}

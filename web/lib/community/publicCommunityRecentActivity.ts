@@ -8,7 +8,19 @@ import { listCircleSignals } from "@/lib/learning/circleSignals";
 import {
   PUBLIC_BARRIO_ACTIVITY_EMPTY,
   PUBLIC_BARRIO_ACTIVITY_TITLE,
+  PUBLIC_PROJECTS_ACTIVITY_EMPTY,
+  PUBLIC_PROJECTS_ACTIVITY_TITLE,
 } from "@/lib/community/communityRulesCopy";
+
+export type PublicCommunityActivitySurface = "barrio" | "projects";
+
+const PROJECT_ACTIVITY_KINDS = new Set<PublicCommunityActivityKind>([
+  "project_published",
+  "project_signal",
+  "project_guided_contribution_pending",
+  "project_guided_contribution_visible",
+  "community_admin_post",
+]);
 
 export type PublicCommunityActivityKind =
   | "project_published"
@@ -141,9 +153,14 @@ function adminPostPublicText(targetType: string): string {
   }
 }
 
-async function collectCommunityAdminPostEvents(): Promise<PublicCommunityActivityItem[]> {
+async function collectCommunityAdminPostEvents(options?: {
+  founderProjectsOnly?: boolean;
+}): Promise<PublicCommunityActivityItem[]> {
   const posts = await listCommunityAdminPosts({ status: "published", limit: 200 });
-  return posts.map((post) => ({
+  const filtered = options?.founderProjectsOnly
+    ? posts.filter((post) => post.targetType === "founder_project")
+    : posts;
+  return filtered.map((post) => ({
     activityId: `admin_post:${post.postId}`,
     kind: "community_admin_post" as const,
     text: adminPostPublicText(post.targetType),
@@ -185,20 +202,31 @@ async function collectCircleSignalEvents(): Promise<PublicCommunityActivityItem[
  */
 export async function getPublicCommunityRecentActivity(options?: {
   limit?: number;
+  surface?: PublicCommunityActivitySurface;
 }): Promise<PublicCommunityRecentActivityResult> {
   const limit = Math.min(Math.max(options?.limit ?? 10, 1), 20);
+  const surface = options?.surface ?? "barrio";
   const buckets: PublicCommunityActivityItem[] = [];
 
-  const collectors = [
-    collectProjectPublishedEvents,
-    collectProjectSignalEvents,
-    collectFormationSuggestionEvents,
-    collectGuidedContributionPendingEvents,
-    collectGuidedContributionVisibleEvents,
-    collectCommunityAdminPostEvents,
-    collectCircleSignalEvents,
-    collectCircleVisibleIdeaEvents,
-  ];
+  const collectors: Array<() => Promise<PublicCommunityActivityItem[]>> =
+    surface === "projects"
+      ? [
+          collectProjectPublishedEvents,
+          collectProjectSignalEvents,
+          collectGuidedContributionPendingEvents,
+          collectGuidedContributionVisibleEvents,
+          () => collectCommunityAdminPostEvents({ founderProjectsOnly: true }),
+        ]
+      : [
+          collectProjectPublishedEvents,
+          collectProjectSignalEvents,
+          collectFormationSuggestionEvents,
+          collectGuidedContributionPendingEvents,
+          collectGuidedContributionVisibleEvents,
+          () => collectCommunityAdminPostEvents(),
+          collectCircleSignalEvents,
+          collectCircleVisibleIdeaEvents,
+        ];
 
   for (const collect of collectors) {
     try {
@@ -209,15 +237,22 @@ export async function getPublicCommunityRecentActivity(options?: {
     }
   }
 
-  const items = buckets
+  let items = buckets
     .filter((item) => Boolean(item.occurredAt))
-    .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))
-    .slice(0, limit);
+    .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));
+
+  if (surface === "projects") {
+    items = items.filter((item) => PROJECT_ACTIVITY_KINDS.has(item.kind));
+  }
+
+  items = items.slice(0, limit);
 
   return {
-    title: PUBLIC_BARRIO_ACTIVITY_TITLE,
+    title:
+      surface === "projects" ? PUBLIC_PROJECTS_ACTIVITY_TITLE : PUBLIC_BARRIO_ACTIVITY_TITLE,
     items,
-    emptyMessage: PUBLIC_BARRIO_ACTIVITY_EMPTY,
+    emptyMessage:
+      surface === "projects" ? PUBLIC_PROJECTS_ACTIVITY_EMPTY : PUBLIC_BARRIO_ACTIVITY_EMPTY,
     hasRealActivity: items.length > 0,
   };
 }

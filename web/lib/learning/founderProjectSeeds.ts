@@ -7,6 +7,10 @@ import {
   requiresVercelBlob,
 } from "@/lib/storage/vercelBlobEnv";
 import { getFoundationalCohortBatch } from "./foundationalCohort";
+import {
+  normalizeProjectSeedMediaFields,
+  type ProjectSeedMediaFields,
+} from "@/lib/public/projectSeedMedia";
 
 export type FounderProjectSeedStatus = "pending_review" | "published" | "hidden";
 
@@ -25,7 +29,14 @@ export type FounderProjectSeed = {
   publishedAt?: string | null;
   /** ISO timestamp of the last visibility/status change. */
   statusUpdatedAt?: string | null;
+  /** Optional hero/cover — URL https o ruta /vu/... */
+  coverImageUrl?: string | null;
+  galleryImageUrls?: string[] | null;
+  videoUrl?: string | null;
+  videoPosterUrl?: string | null;
 };
+
+export type FounderProjectSeedMediaPatch = ProjectSeedMediaFields;
 
 export type ListFounderProjectSeedsOptions = {
   limit?: number;
@@ -105,12 +116,17 @@ function normalizeSeed(raw: FounderProjectSeed): FounderProjectSeed {
     raw.status === "published" || raw.status === "hidden" || raw.status === "pending_review"
       ? raw.status
       : "pending_review";
+  const media = normalizeProjectSeedMediaFields(raw);
   return {
     ...raw,
     recordType: "founder_project_seed",
     status,
     publishedAt: raw.publishedAt ?? null,
     statusUpdatedAt: raw.statusUpdatedAt ?? raw.createdAt,
+    coverImageUrl: media.coverImageUrl,
+    galleryImageUrls: media.galleryImageUrls.length > 0 ? media.galleryImageUrls : null,
+    videoUrl: media.videoUrl,
+    videoPosterUrl: media.videoPosterUrl,
   };
 }
 
@@ -426,6 +442,46 @@ export async function updateFounderProjectSeedStatus(
         : status === "pending_review"
           ? null
           : existing.publishedAt ?? null,
+  };
+
+  if (isVercelBlobConfigured()) {
+    await writeSeedToBlob(updated);
+    await registerSeedInManifest(updated.seedId).catch(() => {});
+    return updated;
+  }
+
+  await writeSeedToLocal(updated);
+  return updated;
+}
+
+export async function updateFounderProjectSeedMedia(
+  seedId: string,
+  patch: FounderProjectSeedMediaPatch,
+): Promise<FounderProjectSeed | null> {
+  assertFounderProjectSeedDurableStore("update_media");
+
+  const existing = await readFounderProjectSeed(seedId);
+  if (!existing) return null;
+
+  const media = normalizeProjectSeedMediaFields({
+    coverImageUrl:
+      patch.coverImageUrl !== undefined ? patch.coverImageUrl : existing.coverImageUrl,
+    galleryImageUrls:
+      patch.galleryImageUrls !== undefined
+        ? patch.galleryImageUrls
+        : existing.galleryImageUrls,
+    videoUrl: patch.videoUrl !== undefined ? patch.videoUrl : existing.videoUrl,
+    videoPosterUrl:
+      patch.videoPosterUrl !== undefined ? patch.videoPosterUrl : existing.videoPosterUrl,
+  });
+
+  const updated: FounderProjectSeed = {
+    ...existing,
+    coverImageUrl: media.coverImageUrl,
+    galleryImageUrls: media.galleryImageUrls.length > 0 ? media.galleryImageUrls : null,
+    videoUrl: media.videoUrl,
+    videoPosterUrl: media.videoPosterUrl,
+    statusUpdatedAt: new Date().toISOString(),
   };
 
   if (isVercelBlobConfigured()) {

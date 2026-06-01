@@ -6,6 +6,7 @@ import {
   readFounderProjectSeed,
 } from "@/lib/learning/founderProjectSeeds";
 import { toPublicAuthorIdentity } from "@/lib/public/publicAuthor";
+import { toPublicProjectMedia } from "@/lib/public/projectSeedMedia";
 import { findUserProfileById } from "@/lib/users/userProfileStore";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +31,7 @@ export async function GET(req: Request, context: RouteContext) {
     if (seed.status === "published") {
       const profile = seed.userId ? await findUserProfileById(seed.userId).catch(() => null) : null;
       const publicAuthor = toPublicAuthorIdentity({ displayName: profile?.displayName ?? null });
+      const media = toPublicProjectMedia(seed.seedId, seed);
       const publicSeed = {
         seedId: seed.seedId,
         title: seed.title,
@@ -41,6 +43,11 @@ export async function GET(req: Request, context: RouteContext) {
         visibilityTier: seed.visibilityTier,
         cohortBatch: seed.cohortBatch,
         publicAuthor,
+        coverImageUrl: media.coverImageUrl,
+        coverSrc: media.coverSrc,
+        galleryImageUrls: media.galleryImageUrls,
+        videoUrl: media.videoUrl,
+        videoPosterUrl: media.videoPosterUrl,
       };
       return NextResponse.json({
         ok: true,

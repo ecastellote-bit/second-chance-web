@@ -23,9 +23,15 @@ type VisibleContribution = {
 type Props = {
   projectId: string;
   projectTitle: string;
+  /** When ProjectVoicesBlock shows published contributions above. */
+  hideVisibleList?: boolean;
 };
 
-export function FounderProjectGuidedContributionsPanel({ projectId, projectTitle }: Props) {
+export function FounderProjectGuidedContributionsPanel({
+  projectId,
+  projectTitle,
+  hideVisibleList = false,
+}: Props) {
   const pathname = usePathname();
   const returnTo =
     pathname || `/proyectos/semilla/${encodeURIComponent(projectId)}`;
@@ -162,35 +168,37 @@ export function FounderProjectGuidedContributionsPanel({ projectId, projectTitle
       </div>
       </CommunityActionGate>
 
-      <div className="rounded-2xl border border-[#E8EEF3] bg-white p-4">
-        <h3 className="text-[15px] font-bold text-[#0B2E59]">Algunos aportes recibidos</h3>
-        {loadingVisible ? (
-          <p className="mt-2 text-[13px] text-[#6B7A8C]">Cargando aportes publicados…</p>
-        ) : visible.length === 0 ? (
-          <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">
-            Todavía no hay aportes publicados. Podés dejar uno para revisión.
-          </p>
-        ) : (
-          <ul className="mt-3 space-y-3">
-            {visible.map((item) => (
-              <li
-                key={item.contributionId}
-                className="rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] px-3 py-2.5 text-[13px] leading-relaxed text-[#243647]"
-              >
-                <span className="font-semibold text-[#0B2E59]">
-                  {GUIDED_CONTRIBUTION_VISIBLE_PREFIX[item.kind]}
-                </span>{" "}
-                {item.text}
-                <ReportContentButton
-                  targetType="project_guided_contribution"
-                  targetId={item.contributionId}
-                  className="mt-2"
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {hideVisibleList ? null : (
+        <div className="rounded-2xl border border-[#E8EEF3] bg-white p-4">
+          <h3 className="text-[15px] font-bold text-[#0B2E59]">Algunos aportes recibidos</h3>
+          {loadingVisible ? (
+            <p className="mt-2 text-[13px] text-[#6B7A8C]">Cargando aportes publicados…</p>
+          ) : visible.length === 0 ? (
+            <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">
+              Todavía no hay aportes publicados. Podés dejar uno para revisión.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-3">
+              {visible.map((item) => (
+                <li
+                  key={item.contributionId}
+                  className="rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] px-3 py-2.5 text-[13px] leading-relaxed text-[#243647]"
+                >
+                  <span className="font-semibold text-[#0B2E59]">
+                    {GUIDED_CONTRIBUTION_VISIBLE_PREFIX[item.kind]}
+                  </span>{" "}
+                  {item.text}
+                  <ReportContentButton
+                    targetType="project_guided_contribution"
+                    targetId={item.contributionId}
+                    className="mt-2"
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </section>
   );
 }
