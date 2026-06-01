@@ -10,6 +10,7 @@ import {
   isFounderCommunityPreviewActive,
 } from "@/lib/founder/communityPreviewBypass";
 import { isFoundingMemberQualified } from "@/lib/learning/foundationalMember";
+import { DIAGNOSIS_FIRST_COPY } from "@/lib/content/diagnosisFirstCopy";
 import { NEIGHBORHOOD_JOURNEY } from "@/lib/content/neighborhoodJourney";
 
 function FundadorPageContent() {
@@ -85,8 +86,9 @@ function FundadorPageContent() {
         <p className="text-sm leading-relaxed text-[#6B7A8C] border-l-4 border-[#1A9BB0] pl-4">
           {copy.requirement}
         </p>
+        <p className="text-[13px] leading-relaxed text-[#6B7A8C]">{DIAGNOSIS_FIRST_COPY.rector}</p>
 
-        <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="flex flex-col gap-3">
           <Link
             href="/full?founder=1"
             className="inline-flex justify-center rounded-xl bg-[#0B2E59] px-5 py-3 text-sm font-semibold text-white"
@@ -101,12 +103,20 @@ function FundadorPageContent() {
               {copy.secondaryCta}
             </Link>
           ) : (
-            <Link
-              href="/full/result"
-              className="inline-flex justify-center rounded-xl border border-[#0B2E59]/30 px-5 py-3 text-sm font-semibold text-[#0B2E59]"
-            >
-              Ir a mi diagnóstico
-            </Link>
+            <>
+              <Link
+                href="/full/result"
+                className="inline-flex justify-center rounded-xl border border-[#0B2E59]/30 px-5 py-3 text-sm font-semibold text-[#0B2E59]"
+              >
+                {copy.alreadyHaveReadingCta}
+              </Link>
+              <Link
+                href="/plaza"
+                className="inline-flex justify-center rounded-xl px-5 py-2 text-sm font-medium text-[#6B7A8C] underline"
+              >
+                {copy.exploreBarrioCta}
+              </Link>
+            </>
           )}
         </div>
 
@@ -120,7 +130,10 @@ function FundadorPageContent() {
         ) : null}
 
         <section className="space-y-3 pt-4">
-          <h2 className="text-lg font-bold text-[#0B2E59]">Recorrido del barrio</h2>
+          <h2 className="text-lg font-bold text-[#0B2E59]">Después de tu lectura: el barrio</h2>
+          <p className="text-[13px] leading-relaxed text-[#6B7A8C]">
+            {DIAGNOSIS_FIRST_COPY.barrioMapNote}
+          </p>
           <ol className="space-y-2">
             {NEIGHBORHOOD_JOURNEY.slice(0, 8).map((path, i) => (
               <li
@@ -135,7 +148,7 @@ function FundadorPageContent() {
               </li>
             ))}
           </ol>
-          <Link href="/barrio" className="text-sm font-semibold text-[#1A9BB0] underline">
+          <Link href="/barrio" className="text-sm font-medium text-[#6B7A8C] underline">
             Ver mapa completo del barrio →
           </Link>
         </section>

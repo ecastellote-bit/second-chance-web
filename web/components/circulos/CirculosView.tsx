@@ -8,6 +8,7 @@ import {
   CirculosMobileStrip,
   CirculosRightPanel,
 } from "@/components/circulos/CirculosRightPanel";
+import { DiagnosisFirstBanner } from "@/components/founder/DiagnosisFirstBanner";
 import { NeighborhoodHero } from "@/components/community/NeighborhoodHero";
 import { PublicCommunityRecentActivity } from "@/components/community/PublicCommunityRecentActivity";
 import { CirclesVisibleIdeasPreview } from "@/components/circulos/CirclesVisibleIdeasPreview";
@@ -47,6 +48,8 @@ export function CirculosView() {
                 subtitle={CIRCULOS_HEADER.subtitle}
                 imageSrc="/vu/circulo-encuentros-presenciales.png"
               />
+
+              <DiagnosisFirstBanner variant="light" className="mb-6" />
 
               <p className="mb-6 max-w-2xl rounded-xl border border-[#E8EEF3] bg-white px-4 py-3 text-[13px] leading-relaxed text-[#6B7A8C]">
                 {COMMUNITY_SEED_FOOTNOTE}

@@ -4,8 +4,8 @@ import { VuWarmImage } from "@/components/ui/VuWarmImage";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
+import { PlazaDiagnosisPrompt } from "@/components/founder/DiagnosisFirstBanner";
 import { PlazaLivingPanel } from "@/components/plaza/PlazaLivingPanel";
-import { DeepReadingPlazaLink } from "@/components/neighborhood/DeepReadingCTA";
 import {
   PLAZA_HEADER,
   PLAZA_HUB,
@@ -193,7 +193,7 @@ export function PlazaInicialView({ showEntradaLink, onOpenEntrada }: PlazaInicia
             {PLAZA_HEADER.subtitle}
           </p>
           <div className="mt-1.5 hidden sm:block">
-            <DeepReadingPlazaLink />
+            <PlazaDiagnosisPrompt />
           </div>
           {showEntradaLink && onOpenEntrada ? (
             <button
@@ -221,7 +221,7 @@ export function PlazaInicialView({ showEntradaLink, onOpenEntrada }: PlazaInicia
       <div className="min-h-0 flex-1 overflow-y-auto border-t border-[#1A9BB0]/20 bg-[#0B2E59]">
         <div className="px-4 py-3 pb-24 sm:px-5">
           <div className="mb-3 sm:hidden">
-            <DeepReadingPlazaLink />
+            <PlazaDiagnosisPrompt />
           </div>
           <PlazaLivingPanel compact />
         </div>

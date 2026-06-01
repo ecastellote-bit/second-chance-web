@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { NEIGHBORHOOD_JOURNEY } from "@/lib/content/neighborhoodJourney";
 import { FoundingMemberBadge } from "@/components/founder/FoundingMemberBadge";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
+import { DIAGNOSIS_FIRST_COPY } from "@/lib/content/diagnosisFirstCopy";
 import { isFounderCommunityPreviewActive } from "@/lib/founder/communityPreviewBypass";
 import { isFoundingMemberQualified } from "@/lib/learning/foundationalMember";
 
@@ -33,8 +34,7 @@ export default function BarrioMapPage() {
         </p>
         <h1 className="mt-2 text-[1.6rem] font-bold text-[#0B2E59]">Mapa del barrio</h1>
         <p className="mt-2 text-[15px] leading-relaxed text-[#6B7A8C]">
-          Todos los caminos planificados para la ola fundacional. Algunos requieren diagnóstico
-          archivado.
+          {DIAGNOSIS_FIRST_COPY.barrioMapNote}
         </p>
       </header>
 
@@ -42,10 +42,9 @@ export default function BarrioMapPage() {
         <FoundingMemberBadge />
         {!qualified && (
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-            Para desbloquear sembrar proyecto y tramos marcados, completá el cuestionario hasta el
-            diagnóstico.{" "}
-            <Link href="/fundador" className="font-semibold underline">
-              Invitación fundadora
+            {DIAGNOSIS_FIRST_COPY.bannerBody}{" "}
+            <Link href="/full?founder=1" className="font-semibold underline">
+              {DIAGNOSIS_FIRST_COPY.primaryCta}
             </Link>
           </p>
         )}

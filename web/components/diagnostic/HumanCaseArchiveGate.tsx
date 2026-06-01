@@ -193,8 +193,8 @@ export function HumanCaseArchiveGate({
             Tu caso quedó registrado
           </p>
           <p className="mt-1 text-sm text-[#243647]">
-            Gracias por entrenar el sistema. Revisaremos tu caso antes de usarlo como
-            aprendizaje validado.
+            Gracias por dejar una referencia útil para esta etapa fundadora. Revisaremos
+            tu caso para ayudar a que tu lectura quede mejor ubicada.
           </p>
           <a
             href={perfilHref}

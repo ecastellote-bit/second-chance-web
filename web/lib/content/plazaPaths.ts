@@ -10,7 +10,7 @@ export type PlazaPath = {
 
 export const PLAZA_HEADER = {
   title: "Tu plaza inicial",
-  subtitle: "Explorá, conectá y crecé junto a otros.",
+  subtitle: "Después de tu lectura, el barrio se vuelve más claro. Explorá con dirección.",
 } as const;
 
 /** Center of path hub (percent) — subtle lines radiate from here */

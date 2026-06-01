@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { DiagnosisFirstBanner } from "@/components/founder/DiagnosisFirstBanner";
 import { NeighborhoodHero } from "@/components/community/NeighborhoodHero";
 import { PublicCommunityRecentActivity } from "@/components/community/PublicCommunityRecentActivity";
 import { FormationLearningThemesBlock } from "@/components/formacion/FormationLearningThemesBlock";
@@ -105,6 +106,8 @@ export function FormacionView() {
               subtitle={MICROCOPY.formacion}
               imageSrc="/vu/aprender-acompanado-taller.jpeg"
             />
+
+            <DiagnosisFirstBanner variant="light" className="mb-6" />
 
             <p className="mb-6 max-w-2xl rounded-xl border border-[#E8EEF3] bg-white px-4 py-3 text-[13px] leading-relaxed text-[#6B7A8C]">
               Primeras rutas en preparación. Podés marcar interés para que sepamos qué acercarte

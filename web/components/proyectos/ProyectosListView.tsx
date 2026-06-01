@@ -9,6 +9,7 @@ import { FoundingMemberBadge } from "@/components/founder/FoundingMemberBadge";
 import { isFounderCommunityPreviewActive } from "@/lib/founder/communityPreviewBypass";
 import { ensureFoundingMemberAccess } from "@/lib/learning/ensureFoundingMemberAccess";
 import { isFoundingMemberQualified } from "@/lib/learning/foundationalMember";
+import { DiagnosisFirstBanner } from "@/components/founder/DiagnosisFirstBanner";
 import { PublicCommunityRecentActivity } from "@/components/community/PublicCommunityRecentActivity";
 import { PublicInitialsAvatar } from "@/components/community/PublicInitialsAvatar";
 import { MyFounderSeedBanner } from "@/components/proyectos/MyFounderSeedBanner";
@@ -122,6 +123,8 @@ export function ProyectosListView() {
             </div>
 
             <FoundingMemberBadge />
+
+            <DiagnosisFirstBanner variant="light" className="mb-6" />
 
             <MyFounderSeedBanner />
 

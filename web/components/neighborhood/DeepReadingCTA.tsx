@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { DEEP_READING } from "@/lib/content/neighborhoodMicrocopy";
 
-const HREF = "/full/step-1";
+const HREF = "/full?founder=1";
 
 /** Unifica barrio + diagnóstico profundo sin romper el tono neighborhood */
 export function DeepReadingPlazaLink() {

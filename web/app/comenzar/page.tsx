@@ -3,42 +3,43 @@
 import Link from "next/link";
 import { MvpPioneerBanner } from "@/components/mvp/MvpPioneerBanner";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
+import { DIAGNOSIS_FIRST_COPY } from "@/lib/content/diagnosisFirstCopy";
 import { trackObservatoryEvent } from "@/lib/observatory/client";
 import { useEffect } from "react";
 
 const STEPS = [
   {
-    n: 0,
+    n: 1,
     title: "Invitación fundadora",
-    body: "Entrená el sistema, 6 meses gratis y sembrá tu proyecto con visibilidad prioritaria.",
+    body: "Lectura inicial, seis meses gratis y sembrar tu proyecto con visibilidad prioritaria.",
     href: "/fundador",
     cta: "Ver invitación",
   },
   {
-    n: 1,
-    title: "Entrada al barrio",
-    body: "Elegí una de las tres puertas según cómo llegás hoy.",
-    href: "/onboarding",
-    cta: "Elegir puerta",
+    n: 2,
+    title: "Lectura inicial",
+    body: "Cinco pasos honestos para ordenar tu historia antes de entrar al barrio.",
+    href: "/full?founder=1",
+    cta: "Hacer mi lectura",
   },
   {
-    n: 2,
+    n: 3,
     title: "Temáticas",
-    body: "Confirmá o afiná lo que el diagnóstico (o tu intuición) ya sugirió.",
+    body: "Confirmá o afiná lo que la lectura (o tu intuición) ya sugirió.",
     href: "/tematicas",
     cta: "Ver temáticas",
   },
   {
-    n: 3,
+    n: 4,
     title: "Activación",
     body: "Elegí una forma de empezar en el barrio: cinco caminos de activación.",
     href: "/activacion",
     cta: "Elegir camino",
   },
   {
-    n: 4,
+    n: 5,
     title: "Tu plaza",
-    body: "Primer tramo, tres puertas y compromiso con el barrio.",
+    body: "Centro del barrio: mapa, compromiso y puertas comunitarias.",
     href: "/plaza",
     cta: "Ir a la plaza",
   },
@@ -59,7 +60,7 @@ export default function ComenzarPage() {
           Comenzar en VocationUp
         </h1>
         <p className="mt-2 text-[15px] leading-relaxed text-[#6B7A8C]">
-          Camino sugerido para pioneros. Podés pausar y volver cuando quieras.
+          {DIAGNOSIS_FIRST_COPY.rector} Camino sugerido para la ola fundadora.
         </p>
       </header>
 
@@ -73,7 +74,7 @@ export default function ComenzarPage() {
               className="vu-focus flex gap-4 rounded-[20px] border border-[#E8EEF3] bg-white p-4 shadow-[0_4px_16px_rgba(15,42,70,0.06)] active:scale-[0.99]"
             >
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0B2E59] text-sm font-bold text-white">
-                {step.n === 0 ? "★" : step.n}
+                {step.n}
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-[14px] font-bold text-[#0B2E59]">{step.title}</p>
@@ -88,27 +89,21 @@ export default function ComenzarPage() {
       </ol>
 
       <div className="mx-4 mt-6 rounded-2xl border border-dashed border-[#CBD5E1] bg-white/80 p-4">
-        <p className="text-[13px] font-semibold text-[#0B2E59]">¿Preferís el diagnóstico completo?</p>
+        <p className="text-[13px] font-semibold text-[#0B2E59]">¿Querés mirar el barrio antes?</p>
         <p className="mt-1 text-[12px] leading-relaxed text-[#6B7A8C]">
-          Si querés la lectura profunda antes del barrio, usá el flujo extendido.
+          Podés explorarlo, pero te recomendamos la lectura inicial para orientarte mejor.
         </p>
         <Link
-          href="/fundador"
-          className="vu-focus mt-3 inline-block text-[13px] font-semibold text-[#1A9BB0] underline"
+          href="/plaza"
+          className="vu-focus mt-3 inline-block text-[13px] font-semibold text-[#6B7A8C] underline"
         >
-          Invitación fundadora (recomendado)
+          {DIAGNOSIS_FIRST_COPY.secondaryCta}
         </Link>
         <Link
-          href="/full/step-1"
+          href="/onboarding"
           className="vu-focus mt-2 block text-[12px] font-medium text-[#6B7A8C] underline"
         >
-          Diagnóstico sin invitación
-        </Link>
-        <Link
-          href="/barrio"
-          className="vu-focus mt-2 block text-[12px] font-medium text-[#6B7A8C] underline"
-        >
-          Mapa del barrio
+          Elegir puerta de entrada (alternativa)
         </Link>
       </div>
 
