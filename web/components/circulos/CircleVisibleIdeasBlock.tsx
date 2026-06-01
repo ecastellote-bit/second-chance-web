@@ -45,7 +45,10 @@ export function CircleVisibleIdeasBlock({ circleId, className = "" }: Props) {
         className,
       ].join(" ")}
     >
-      <h2 className="text-[15px] font-bold text-[#0B2E59]">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">
+        Voces del espacio
+      </p>
+      <h2 className="mt-1 text-[15px] font-bold text-[#0B2E59]">
         Ideas que están apareciendo en este círculo
       </h2>
       {loading ? (

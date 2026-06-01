@@ -10,13 +10,11 @@ export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
     const circleId = url.searchParams.get("circleId")?.trim();
-    if (!circleId) {
-      return NextResponse.json({ ok: false, error: "circleId_required" }, { status: 400 });
-    }
+    const limit = Math.min(Number(url.searchParams.get("limit") ?? 20), 30);
 
     const ideas = await listCirclePublicVisibleIdeas({
-      circleId,
-      limit: 20,
+      circleId: circleId || undefined,
+      limit,
     });
 
     return NextResponse.json({ ok: true, ideas, total: ideas.length });

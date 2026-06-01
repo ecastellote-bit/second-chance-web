@@ -24,3 +24,23 @@ export const PUBLIC_PROJECTS_ACTIVITY_EYEBROW = "Movimiento en proyectos";
 
 export const PUBLIC_PROJECTS_ACTIVITY_EMPTY =
   "Cuando se publiquen proyectos y lleguen las primeras señales o aportes, vas a ver acá cómo la mesa del barrio empieza a moverse.";
+
+export const PUBLIC_CIRCLES_ACTIVITY_TITLE = "Qué empieza a moverse en los círculos";
+
+export const PUBLIC_CIRCLES_ACTIVITY_EMPTY =
+  "Cuando lleguen ideas visibles, señales o movimientos editoriales en los círculos, vas a ver acá cómo el barrio empieza a encontrarse.";
+
+export const PUBLIC_FORMATION_ACTIVITY_TITLE = "Lo que empieza a aprenderse en comunidad";
+
+export const PUBLIC_FORMATION_ACTIVITY_EMPTY =
+  "Las primeras sugerencias formativas y avisos del barrio van a aparecer acá a medida que la comunidad deje señales.";
+
+export const PUBLIC_EVENTS_ACTIVITY_TITLE = "Próximas oportunidades en el barrio";
+
+export const PUBLIC_EVENTS_ACTIVITY_EMPTY =
+  "Las convocatorias semilla y avisos del calendario van a mostrarse acá cuando el barrio empiece a moverse.";
+
+export const PUBLIC_CONNECTION_ACTIVITY_TITLE = "Mesas donde el barrio empieza a encontrarse";
+
+export const PUBLIC_CONNECTION_ACTIVITY_EMPTY =
+  "Las primeras señales de interés, círculos y proyectos van a traducirse acá en movimiento cooperativo — sin contacto automático.";

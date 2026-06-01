@@ -8,7 +8,9 @@ import {
   CirculosMobileStrip,
   CirculosRightPanel,
 } from "@/components/circulos/CirculosRightPanel";
+import { NeighborhoodHero } from "@/components/community/NeighborhoodHero";
 import { PublicCommunityRecentActivity } from "@/components/community/PublicCommunityRecentActivity";
+import { CirclesVisibleIdeasPreview } from "@/components/circulos/CirclesVisibleIdeasPreview";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
 import { CIRCULOS_CATALOG, CIRCULOS_HEADER, SUGERIDOS_IDS } from "@/lib/content/circulosCatalog";
 import { COMMUNITY_SEED_FOOTNOTE } from "@/lib/content/communitySeedCopy";
@@ -39,22 +41,20 @@ export function CirculosView() {
         <div className="flex min-h-0 flex-1 overflow-hidden">
           <main className="min-h-0 flex-1 overflow-y-auto">
             <div className="mx-auto w-full max-w-3xl px-4 py-5 pb-8 lg:max-w-none lg:px-8 lg:py-8">
-              <div className="mb-6 max-w-2xl">
-                <p className="mb-1 hidden text-xs font-semibold uppercase tracking-wider text-[#1A9BB0] lg:block">
-                  Comunidad · Barrio VocationUp
-                </p>
-                <h1 className="text-[1.65rem] font-bold tracking-tight text-[#0B2E59] lg:text-[1.85rem]">
-                  {CIRCULOS_HEADER.title}
-                </h1>
-                <p className="mt-2 text-[15px] leading-relaxed text-[#6B7A8C]">
-                  {CIRCULOS_HEADER.subtitle}
-                </p>
-                <p className="mt-3 rounded-xl border border-[#E8EEF3] bg-white px-4 py-3 text-[13px] leading-relaxed text-[#6B7A8C]">
-                  {COMMUNITY_SEED_FOOTNOTE}
-                </p>
-              </div>
+              <NeighborhoodHero
+                eyebrow="Comunidad · Barrio VocationUp"
+                title={CIRCULOS_HEADER.title}
+                subtitle={CIRCULOS_HEADER.subtitle}
+                imageSrc="/vu/circulo-encuentros-presenciales.png"
+              />
 
-              <PublicCommunityRecentActivity className="mb-6" limit={6} />
+              <p className="mb-6 max-w-2xl rounded-xl border border-[#E8EEF3] bg-white px-4 py-3 text-[13px] leading-relaxed text-[#6B7A8C]">
+                {COMMUNITY_SEED_FOOTNOTE}
+              </p>
+
+              <PublicCommunityRecentActivity className="mb-6" limit={6} surface="circles" />
+
+              <CirclesVisibleIdeasPreview className="mb-6" />
 
               {/* Paneles laterales en móvil: tiras horizontales */}
               <div className="xl:hidden">

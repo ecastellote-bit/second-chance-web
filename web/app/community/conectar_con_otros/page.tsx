@@ -1,5 +1,5 @@
-import { CommunityDoorHub } from "@/components/community/CommunityDoorHub";
+import { ConectarConOtrosView } from "@/components/community/ConectarConOtrosView";
 
 export default function ConectarConOtrosPage() {
-  return <CommunityDoorHub doorId="conectar_con_otros" />;
+  return <ConectarConOtrosView />;
 }

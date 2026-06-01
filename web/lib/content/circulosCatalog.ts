@@ -13,8 +13,9 @@ export type CircleItem = {
 };
 
 export const CIRCULOS_HEADER = {
-  title: "Círculos que te acompañan",
-  subtitle: "Espacios para compartir, aprender y crecer juntos.",
+  title: "Círculos del barrio",
+  subtitle:
+    "Espacios para encontrarte con otros alrededor de una búsqueda, una capacidad o una inquietud compartida.",
 } as const;
 
 export const CIRCLE_STATUS_LABEL: Record<CircleStatus, string> = {

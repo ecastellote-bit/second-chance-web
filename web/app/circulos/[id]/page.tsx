@@ -35,7 +35,7 @@ export default function CirculoDetailPage() {
       backLabel="Círculos"
       image={circle.image}
       title={circle.title}
-      meta="Espacio semilla · ejemplos para orientarte"
+      meta="Mesa temática en formación · espacio semilla"
       badge={CIRCLE_STATUS_BADGE[circle.status]}
       footer={
         <div className="flex w-full max-w-md flex-col gap-2">
@@ -55,16 +55,22 @@ export default function CirculoDetailPage() {
         </div>
       }
     >
+      <p className="mb-4 text-[15px] leading-relaxed text-[#243647]">
+        {circle.description}
+      </p>
+      <p className="mb-4 rounded-2xl border border-[#E8EEF3] bg-[#F8FAFC] px-4 py-3 text-[13px] leading-relaxed text-[#6B7A8C]">
+        Una mesa temática donde el barrio puede acercarse con señales guiadas — sin chat libre ni
+        contacto automático entre personas.
+      </p>
+      <CircleVisibleIdeasBlock circleId={circle.id} className="mb-4" />
       <CommunityAdminPostsBlock
         targetType="circle"
         targetId={circle.id}
-        title="Movimientos de este círculo"
+        title="Lo que el barrio va contando de este círculo"
         emptyMessage="Este círculo está en etapa inicial. Podés dejar una señal o una idea para revisión."
         className="mb-4"
       />
-      <CircleVisibleIdeasBlock circleId={circle.id} className="mb-4" />
-      <p>{circle.description}</p>
-      <p className="mt-4">{COMMUNITY_SEED_INTERIOR_BODY}</p>
+      <p className="text-[13px] leading-relaxed text-[#6B7A8C]">{COMMUNITY_SEED_INTERIOR_BODY}</p>
       <ReportContentButton targetType="circle" targetId={circle.id} className="mt-4" />
     </NeighborhoodActivityDetail>
   );

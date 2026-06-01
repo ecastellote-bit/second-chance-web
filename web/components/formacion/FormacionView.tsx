@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { NeighborhoodHero } from "@/components/community/NeighborhoodHero";
 import { PublicCommunityRecentActivity } from "@/components/community/PublicCommunityRecentActivity";
+import { FormationLearningThemesBlock } from "@/components/formacion/FormationLearningThemesBlock";
 import { CommunityActionGate } from "@/components/perfil/CommunityActionGate";
 import { communityActionClientError } from "@/lib/content/communityActionGateCopy";
 import { CirculosLeftNav } from "@/components/circulos/CirculosLeftNav";
@@ -97,23 +99,26 @@ export function FormacionView() {
 
         <main className="min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto w-full max-w-3xl px-4 py-5 pb-8 lg:max-w-4xl lg:px-8 lg:py-8">
-            <div className="mb-6 max-w-2xl">
-              <p className="mb-1 hidden text-xs font-semibold uppercase tracking-wider text-[#1A9BB0] lg:block">
-                Rutas de aprendizaje
-              </p>
-              <h1 className="text-[1.65rem] font-bold tracking-tight text-[#0B2E59] lg:text-[1.85rem]">
-                Formación en el barrio
-              </h1>
-              <p className="mt-2 text-[15px] leading-relaxed text-[#6B7A8C]">
-                {MICROCOPY.formacion}
-              </p>
-              <p className="mt-3 rounded-xl border border-[#E8EEF3] bg-white px-4 py-3 text-[13px] leading-relaxed text-[#6B7A8C]">
-                Estamos sembrando las primeras rutas. Podés marcar interés para que sepamos qué
-                acercarte primero — sin prometer convenios ni descuentos que todavía no existen.
-              </p>
-            </div>
+            <NeighborhoodHero
+              eyebrow="Rutas de aprendizaje"
+              title="Formación en el barrio"
+              subtitle={MICROCOPY.formacion}
+              imageSrc="/vu/aprender-acompanado-taller.jpeg"
+            />
 
-            <PublicCommunityRecentActivity className="mb-6" limit={6} />
+            <p className="mb-6 max-w-2xl rounded-xl border border-[#E8EEF3] bg-white px-4 py-3 text-[13px] leading-relaxed text-[#6B7A8C]">
+              Primeras rutas en preparación. Podés marcar interés para que sepamos qué acercarte
+              primero — sin prometer convenios, descuentos ni formación existente si todavía no está
+              confirmada.
+            </p>
+
+            <FormationLearningThemesBlock />
+
+            <PublicCommunityRecentActivity className="mb-6" limit={5} surface="formation" />
+
+            <p className="mb-4 text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">
+              Rutas y talleres semilla
+            </p>
 
             <CommunityActionGate returnTo="/formacion">
             <section className="mb-6 rounded-2xl border border-[#E8EEF3] bg-white p-4">

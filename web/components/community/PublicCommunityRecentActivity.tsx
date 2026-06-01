@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import type { PublicCommunityActivitySurface } from "@/lib/community/publicCommunityRecentActivity";
 
 type ActivityItem = {
   activityId: string;
@@ -10,12 +11,29 @@ type ActivityItem = {
   occurredAt: string;
 };
 
+const EYEBROW: Record<PublicCommunityActivitySurface, string> = {
+  barrio: "Barrio en movimiento",
+  projects: "Movimiento en proyectos",
+  circles: "Movimiento en círculos",
+  formation: "Aprendizaje en siembra",
+  events: "Próximas oportunidades",
+  connection: "Mesas de conexión",
+};
+
+const DEFAULT_TITLE: Record<PublicCommunityActivitySurface, string> = {
+  barrio: "Movimiento reciente del barrio",
+  projects: "Lo que empieza a moverse en esta mesa",
+  circles: "Qué empieza a moverse en los círculos",
+  formation: "Lo que empieza a aprenderse en comunidad",
+  events: "Próximas oportunidades en el barrio",
+  connection: "Mesas donde el barrio empieza a encontrarse",
+};
+
 type Props = {
   limit?: number;
   className?: string;
   showRulesLink?: boolean;
-  /** Contextual copy and API filter — use on /proyectos instead of generic barrio block. */
-  surface?: "barrio" | "projects";
+  surface?: PublicCommunityActivitySurface;
 };
 
 export function PublicCommunityRecentActivity({
@@ -24,9 +42,7 @@ export function PublicCommunityRecentActivity({
   showRulesLink = true,
   surface = "barrio",
 }: Props) {
-  const [title, setTitle] = useState(
-    surface === "projects" ? "Lo que empieza a moverse en esta mesa" : "Movimiento reciente del barrio",
-  );
+  const [title, setTitle] = useState(DEFAULT_TITLE[surface]);
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [emptyMessage, setEmptyMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -38,7 +54,7 @@ export function PublicCommunityRecentActivity({
       setLoading(true);
       try {
         const params = new URLSearchParams({ limit: String(limit) });
-        if (surface === "projects") params.set("surface", "projects");
+        if (surface !== "barrio") params.set("surface", surface);
         const res = await fetch(`/api/community/public-activity?${params.toString()}`);
         const data = (await res.json()) as {
           ok?: boolean;
@@ -48,7 +64,7 @@ export function PublicCommunityRecentActivity({
         };
         if (cancelled) return;
         if (data.ok) {
-          setTitle(data.title ?? "Movimiento reciente del barrio");
+          setTitle(data.title ?? DEFAULT_TITLE[surface]);
           setItems(Array.isArray(data.items) ? data.items : []);
           setEmptyMessage(data.emptyMessage ?? "");
         }
@@ -72,12 +88,12 @@ export function PublicCommunityRecentActivity({
       aria-busy={loading}
     >
       <p className="text-[10px] font-bold uppercase tracking-wide text-[#1A9BB0]">
-        {surface === "projects" ? "Movimiento en proyectos" : "Barrio en movimiento"}
+        {EYEBROW[surface]}
       </p>
       <h2 className="mt-1 text-[15px] font-bold text-[#0B2E59]">{title}</h2>
 
       {loading ? (
-        <p className="mt-3 text-[13px] leading-relaxed text-[#6B7A8C]">Cargando movimiento reciente…</p>
+        <p className="mt-3 text-[13px] leading-relaxed text-[#6B7A8C]">Cargando movimiento…</p>
       ) : items.length > 0 ? (
         <ul className="mt-3 flex flex-col gap-2.5">
           {items.map((item) => (
