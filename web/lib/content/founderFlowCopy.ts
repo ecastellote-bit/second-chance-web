@@ -1,15 +1,16 @@
 export const FOUNDER_FLOW_COPY = {
   landing: {
-    eyebrow: "Ola fundadora · Second Chance",
+    eyebrow: "Etapa fundadora · Second Chance",
     title: "Primero tu lectura. Después el barrio.",
     description:
-      "Sos de los primeros en recorrer VocationUp en serio. La lectura inicial te orienta con más claridad; después entrás al barrio con temática sugerida, activación posible y seis meses gratis para sembrar tu proyecto.",
-    offerBullets: [
-      "Hacé tu lectura inicial — ordena tu historia y tus señales vocacionales",
-      "Recibí orientación para que tu entrada al barrio tenga más sentido",
-      "Creá tu perfil en VocationUp (necesario para moverte con otros)",
-      "Seis meses de permanencia sin costo en la ola fundadora",
-      "Sembrá tu proyecto con visibilidad prioritaria en la Comunidad",
+      "Sos de los primeros en recorrer VocationUp en serio. La lectura inicial te orienta con más claridad; después entrás al barrio con temática sugerida y activación posible dentro de la etapa fundadora.",
+    accessSectionTitle: "Acceso fundador",
+    accessBullets: [
+      "Hacé tu lectura inicial para ordenar tu historia y tus señales vocacionales.",
+      "Recibí una orientación inicial para entrar al barrio con más sentido.",
+      "Creá tu perfil para moverte dentro de VocationUp.",
+      "Participá de la etapa fundadora durante seis meses sin costo.",
+      "Sembrá tu proyecto y recibí revisión prioritaria del equipo.",
     ],
     requirement:
       "Para ser miembro fundante completá la lectura hasta el resultado. Es lo que nos permite abrirte el barrio con seriedad — sin prometer precisión absoluta, sí con dirección inicial.",
@@ -26,15 +27,15 @@ export const FOUNDER_FLOW_COPY = {
     bullets: [
       "Contá tu situación y tu historia con escenas reales",
       "No hace falta escribir perfecto — hace falta ser honesto/a",
-      "Al terminar, activás tu lugar en la ola fundadora",
+      "Al terminar, activás tu lugar en la etapa fundadora",
       "Después podés elegir temática, activación y sembrar tu proyecto",
     ],
     primaryCta: "Empezar mi lectura",
     secondaryCta: "Volver a la invitación",
   },
   memberBadge: {
-    title: "Miembro fundante",
-    body: "Completaste tu lectura inicial. Tenés 6 meses gratis y podés sembrar la Comunidad con tu proyecto.",
+    title: "Acceso fundador activo",
+    body: "Completaste tu lectura inicial. Participás de la etapa fundadora durante seis meses sin costo y podés sembrar tu proyecto en la Comunidad.",
   },
   gate: {
     title: "Primero la lectura inicial",
@@ -45,12 +46,12 @@ export const FOUNDER_FLOW_COPY = {
     eyebrow: "Sembrar la Comunidad",
     title: "Tu proyecto en el barrio",
     subtitle:
-      "Como fundador/a, tu iniciativa entra con visibilidad prioritaria durante 6 meses. Contanos en pocas líneas qué sembrás.",
+      "Como integrante fundador/a, tu iniciativa entra con revisión prioritaria del equipo durante la etapa fundadora.",
     visibilityNote:
-      "Visibilidad prioritaria: destacamos tu proyecto entre los usuarios de la ola fundacional y en la mesa del barrio.",
+      "Revisión prioritaria: el equipo ubica tu proyecto en la mesa del barrio antes que las semillas generales.",
     submitCta: "Sembrar en la Comunidad",
     successTitle: "Proyecto sembrado",
     successBody:
-      "Registramos tu semilla. El equipo la revisará y la ubicará en la mesa del barrio con prioridad fundadora.",
+      "Registramos tu semilla. El equipo la revisará y la ubicará en la mesa del barrio con prioridad de la etapa fundadora.",
   },
 } as const;

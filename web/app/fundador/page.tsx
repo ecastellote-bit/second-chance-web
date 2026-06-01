@@ -74,10 +74,10 @@ function FundadorPageContent() {
 
         <div className="rounded-2xl border border-[#C6D92D]/40 bg-[#F4F9E0] p-5 space-y-2">
           <p className="text-[12px] font-bold uppercase tracking-wide text-[#0B2E59]">
-            Tu oferta fundadora
+            {copy.accessSectionTitle}
           </p>
           <ul className="space-y-2 text-[14px] leading-relaxed text-[#243647]">
-            {copy.offerBullets.map((item) => (
+            {copy.accessBullets.map((item) => (
               <li key={item}>• {item}</li>
             ))}
           </ul>

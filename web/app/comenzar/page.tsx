@@ -11,7 +11,7 @@ const STEPS = [
   {
     n: 1,
     title: "Invitación fundadora",
-    body: "Lectura inicial, seis meses gratis y sembrar tu proyecto con visibilidad prioritaria.",
+    body: "Lectura inicial, acceso a la etapa fundadora y espacio para sembrar tu proyecto.",
     href: "/fundador",
     cta: "Ver invitación",
   },

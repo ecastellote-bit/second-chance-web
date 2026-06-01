@@ -67,7 +67,7 @@ export const NEIGHBORHOOD_JOURNEY: NeighborhoodPath[] = [
   {
     id: "sembrar",
     title: "Sembrar tu proyecto",
-    description: "Visibilidad prioritaria para fundadores (6 meses).",
+    description: "Revisión prioritaria del equipo durante la etapa fundadora.",
     route: "/proyectos/sembrar",
     phase: "deep",
     requiresFoundingMember: true,
@@ -140,7 +140,7 @@ export const COMMUNITY_DOOR_HUBS: Record<
       {
         label: "Sembrar mi proyecto",
         route: "/proyectos/sembrar",
-        description: "Fundadores: visibilidad prioritaria por 6 meses.",
+        description: "Fundadores: revisión prioritaria del equipo en la etapa fundadora.",
       },
       {
         label: "Mesa de proyectos",
