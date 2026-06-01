@@ -1,0 +1,77 @@
+---
+description: Git/OneDrive safety — no branch checkout, no destructive git; feat/community-core-v0 only
+alwaysApply: true
+---
+
+# Git / OneDrive — VocationUp
+
+Este repo vive en una carpeta **sincronizada por OneDrive**. Cambiar de rama puede hacer que Git quite del disco archivos que otra rama no trackea (p. ej. todo `web/`), y OneDrive muestra ventanas de **eliminación masiva**. Eso no es borrado autorizado.
+
+## No asumir que `main` es producción
+
+`main` contiene una versión **antigua/minimalista** y **no comparte** la historia operativa actual. **No representa** el producto ni producción real.
+
+## Rama operativa
+
+```txt
+feat/community-core-v0
+```
+
+Trabajar siempre en esta rama salvo autorización explícita del fundador (E. J. H. Castellote o delegado por escrito).
+
+## Prohibido (sin autorización explícita del fundador)
+
+- `git checkout main` / `git switch main`
+- `git checkout <otra-rama>` / `git switch <otra-rama>`
+- `git reset --hard`
+- `git clean`
+- `rm`, `Remove-Item`
+- merges contra `main`
+- rebases
+- cualquier operación que mueva o elimine muchos archivos en disco
+
+## Versión corta (resumen inviolable)
+
+No hagas checkout/switch a `main` ni a ninguna otra rama dentro del repo en OneDrive. No uses reset, clean, rm ni Remove-Item. La rama operativa es `feat/community-core-v0`. Para inspeccionar `main`, usá comandos de lectura sobre `origin/main` sin cambiar la rama local. Si necesitás otra rama, pedí autorización o usá un **clon separado fuera de OneDrive**.
+
+## Auditar `main` o producción — solo lectura
+
+**No cambiar la rama local.** Ejemplos permitidos:
+
+```bash
+git status --short --branch
+git log origin/main --oneline -5
+git show origin/main:path/to/file
+git branch -vv
+git rev-parse HEAD
+git log --oneline --decorate -10
+git diff --stat origin/main...feat/community-core-v0
+git log --left-right --count origin/main...feat/community-core-v0
+git branch -r --contains <commit>
+git fetch
+```
+
+**No** hacer `checkout` de `main`.
+
+## Otra rama
+
+- Clon/copia **fuera de OneDrive** para inspección, o
+- autorización explícita antes de cualquier `checkout`/`switch`.
+
+## Antes de cualquier operación Git sensible
+
+Reportar primero y **esperar confirmación**:
+
+```bash
+git status --short --branch
+git diff --stat
+git branch -vv
+```
+
+## Política general
+
+- No borrar, limpiar, resetear, cambiar de rama ni fusionar sin autorización explícita.
+- Para auditar: solo lectura.
+- Si aparece **cualquier ventana de OneDrive** pidiendo eliminar archivos: **detenerse de inmediato** y avisar al fundador. No confirmar eliminación.
+
+Complementa la Carta Magna (`carta-magna-no-destructive.mdc`).
