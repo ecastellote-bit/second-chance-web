@@ -18,7 +18,7 @@ export const PLAZA_HUB = { x: 50, y: 58 };
 
 export const PLAZA_PATHS: PlazaPath[] = [
   { id: "circulos", label: "Círculos", route: "/circulos", x: 14, y: 32, accent: "lime" },
-  { id: "proyectos", label: "Proyectos", route: "/proyectos/manos-que-transforman", x: 82, y: 30, accent: "teal" },
+  { id: "proyectos", label: "Proyectos", route: "/proyectos", x: 82, y: 30, accent: "teal" },
   { id: "formacion", label: "Formación", route: "/formacion", x: 10, y: 52, accent: "teal" },
   { id: "oportunidades", label: "Oportunidades", route: "/eventos", x: 88, y: 50, accent: "lime" },
   { id: "conectar", label: "Conectar", route: "/community/conectar_con_otros", x: 22, y: 72, accent: "teal" },
