@@ -13,6 +13,7 @@ import {
   downloadHumanCaseBackup,
   persistHumanCaseFromBrowserWithRetry,
 } from "@/lib/learning/persistHumanCaseFromBrowser";
+import { trackObservatoryEventOnce } from "@/lib/observatory/client";
 
 type GateState =
   | "archiving"
@@ -109,6 +110,13 @@ export function HumanCaseArchiveGate({
       cancelled = true;
     };
   }, [archivePayload]);
+
+  useEffect(() => {
+    if (state !== "confirmed" && state !== "minimal_received") return;
+    trackObservatoryEventOnce("funnel.diagnostic_archived", "campaign", {
+      level: state === "confirmed" ? "full" : "minimal",
+    });
+  }, [state]);
 
   if (state === "archiving") {
     return (

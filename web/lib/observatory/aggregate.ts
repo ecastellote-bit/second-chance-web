@@ -1,3 +1,4 @@
+import { getObservatoryStoreMeta } from "./store";
 import type { ObservatoryEvent, ObservatoryPeriod, ObservatoryReport } from "./types";
 
 function rate(numerator: number, denominator: number): number | null {
@@ -37,6 +38,7 @@ export function buildObservatoryReport(
   const { from, label } = periodBounds(period);
   const filtered = filterEventsByPeriod(events, period);
   const nowIso = new Date().toISOString();
+  const storeMeta = getObservatoryStoreMeta();
 
   const byType: Record<string, number> = {};
   const byScenario: Record<string, number> = {};
@@ -50,6 +52,12 @@ export function buildObservatoryReport(
   const sessions = new Set<string>();
   let humanReviewSuggested = 0;
   let compressionSignals = 0;
+
+  let fundadorViews = 0;
+  let fullReadingIntroViews = 0;
+  let step1Views = 0;
+  let analysisStarted = 0;
+  let campaignDiagnosticArchived = 0;
 
   let comenzarViews = 0;
   let onboardingDoorEvents = 0;
@@ -65,6 +73,22 @@ export function buildObservatoryReport(
     if (event.sessionId) sessions.add(event.sessionId);
 
     switch (event.type) {
+      case "funnel.fundador_view":
+        fundadorViews += 1;
+        break;
+      case "funnel.full_reading_intro":
+        fullReadingIntroViews += 1;
+        break;
+      case "funnel.full_step1_view":
+        step1Views += 1;
+        break;
+      case "funnel.analysis_started":
+        analysisStarted += 1;
+        break;
+      case "funnel.diagnostic_archived":
+        campaignDiagnosticArchived += 1;
+        diagnosticArchived += 1;
+        break;
       case "funnel.comenzar_view":
         comenzarViews += 1;
         break;
@@ -117,7 +141,10 @@ export function buildObservatoryReport(
 
   const notes: string[] = [
     "Las tasas de conversión son sobre eventos registrados, no usuarios únicos (salvo sesiones).",
-    "En Vercel serverless el archivo JSONL puede no persistir; en local y servidor con disco sí.",
+    storeMeta.durable
+      ? `Almacén durable activo (${storeMeta.backend}).`
+      : "Desarrollo local: eventos en JSONL; en Vercel requiere BLOB_READ_WRITE_TOKEN.",
+    "Pulso de campaña: fundador → lectura → paso 1 → análisis → archivo.",
     "Promoción a learnedCases.ts sigue siendo manual vía /lab.",
   ];
 
@@ -129,12 +156,26 @@ export function buildObservatoryReport(
       from: from?.toISOString() ?? null,
       to: nowIso,
     },
+    store: {
+      backend: storeMeta.backend,
+      durable: storeMeta.durable,
+    },
     totals: {
       events: filtered.length,
       uniqueSessions: sessions.size,
     },
     byType,
     byScenario,
+    campaign: {
+      fundadorViews,
+      fullReadingIntroViews,
+      step1Views,
+      analysisStarted,
+      diagnosticArchived: campaignDiagnosticArchived,
+      fundadorToStep1Rate: rate(step1Views, fundadorViews),
+      fundadorToAnalysisRate: rate(analysisStarted, fundadorViews),
+      fundadorToArchivedRate: rate(campaignDiagnosticArchived, fundadorViews),
+    },
     funnel: {
       comenzarViews,
       onboardingDoors: onboardingDoorEvents,

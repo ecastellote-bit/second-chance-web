@@ -24,6 +24,8 @@ import { useFullAnswers } from "../fullAnswersContext";
 import type { FollowupOrchestratorResult } from "@/lib/engines/followupOrchestrator";
 import type { FinalReading } from "@/lib/types/result";
 import { persistContextualFromFinalReading } from "@/lib/tematicas/persistContextualOnAnalyze";
+import { isFounderWaveSession } from "@/lib/learning/founderCaseDraftClient";
+import { trackObservatoryEventOnce } from "@/lib/observatory/client";
 
 type GuidedThemePayload = {
   id: string;
@@ -106,6 +108,9 @@ export default function FullProcessingPage() {
 
       setPhase("analyzing");
       void syncAnalysisStarted({ rawAnswers, builtUserIntake });
+      trackObservatoryEventOnce("funnel.analysis_started", "campaign", {
+        founder: isFounderWaveSession(),
+      });
 
       const res = await fetchWithTimeout(
         "/api/analyze",

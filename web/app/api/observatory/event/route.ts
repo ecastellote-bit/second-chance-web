@@ -1,8 +1,17 @@
 import { NextResponse } from "next/server";
+import {
+  sanitizeObservatoryPayload,
+  sanitizeObservatorySessionId,
+} from "@/lib/observatory/sanitizePayload";
 import { appendObservatoryEvent, buildObservatoryEvent } from "@/lib/observatory/store";
 import type { ObservatoryEventType } from "@/lib/observatory/types";
 
 const ALLOWED: ObservatoryEventType[] = [
+  "funnel.fundador_view",
+  "funnel.full_reading_intro",
+  "funnel.full_step1_view",
+  "funnel.analysis_started",
+  "funnel.diagnostic_archived",
   "funnel.comenzar_view",
   "funnel.onboarding_door",
   "funnel.tematica_selected",
@@ -16,6 +25,8 @@ const ALLOWED: ObservatoryEventType[] = [
 ];
 
 export async function POST(request: Request) {
+  let eventId = "";
+
   try {
     const body = (await request.json()) as {
       type?: string;
@@ -30,16 +41,26 @@ export async function POST(request: Request) {
 
     const event = buildObservatoryEvent({
       type: body.type as ObservatoryEventType,
-      scenario: body.scenario ?? "general",
-      sessionId: body.sessionId,
-      payload: body.payload,
+      scenario:
+        typeof body.scenario === "string" ? body.scenario.trim().slice(0, 40) : "general",
+      sessionId: sanitizeObservatorySessionId(body.sessionId),
+      payload: sanitizeObservatoryPayload(body.payload),
     });
 
-    await appendObservatoryEvent(event);
+    eventId = event.id;
 
-    return NextResponse.json({ ok: true, id: event.id });
+    try {
+      await appendObservatoryEvent(event);
+      return NextResponse.json({ ok: true, id: event.id, stored: true });
+    } catch (appendError) {
+      console.error("observatory/event append failed:", appendError);
+      return NextResponse.json({ ok: true, id: event.id, stored: false });
+    }
   } catch (error) {
     console.error("observatory/event failed:", error);
-    return NextResponse.json({ ok: false, error: "internal_error" }, { status: 500 });
+    return NextResponse.json(
+      { ok: true, id: eventId || null, stored: false, error: "accepted_without_store" },
+      { status: 200 },
+    );
   }
 }

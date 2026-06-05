@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { CampaignPulsePanel } from "@/components/admin/CampaignPulsePanel";
+import { adminFetch } from "@/lib/admin/adminFetch";
 import type { ObservatoryPeriod, ObservatoryReport } from "@/lib/observatory/types";
 
 function StatCard({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
@@ -49,7 +51,7 @@ export default function ObservatorioPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/observatory/report?period=${period}`);
+      const res = await adminFetch(`/api/admin/observatory/report?period=${period}`);
       const data = await res.json();
       if (!res.ok || !data.ok) {
         throw new Error(data.error ?? "No se pudo cargar el reporte");
@@ -66,17 +68,22 @@ export default function ObservatorioPage() {
     load();
   }, [load]);
 
+  const campaign = report?.campaign;
+
   return (
     <main className="min-h-screen bg-[#F8FAFC] px-4 py-10 font-[family-name:var(--font-inter)]">
       <div className="mx-auto max-w-4xl">
-        <Link href="/" className="text-sm font-semibold text-[#1A9BB0] underline">
-          ← Inicio
+        <Link href="/admin" className="text-sm font-semibold text-[#1A9BB0] underline">
+          ← Admin
         </Link>
         <h1 className="mt-4 text-2xl font-bold text-[#0B2E59]">Observatorio estadístico</h1>
         <p className="mt-2 text-[15px] leading-relaxed text-[#6B7A8C]">
-          Registro permanente de eventos del MVP: embudo, diagnóstico y aprendizaje. Actualizá el
-          período para informes periódicos.
+          Embudo fundador, diagnóstico y aprendizaje. Eventos durable en producción (Vercel Blob).
         </p>
+
+        <div className="mt-6">
+          <CampaignPulsePanel />
+        </div>
 
         <div className="mt-6 flex flex-wrap gap-2">
           {(["7d", "30d", "all"] as ObservatoryPeriod[]).map((p) => (
@@ -103,39 +110,48 @@ export default function ObservatorioPage() {
           </button>
         </div>
 
-        {loading ? (
-          <p className="mt-10 text-[#6B7A8C]">Generando reporte…</p>
-        ) : null}
-        {error ? (
-          <p className="mt-10 text-red-600">{error}</p>
-        ) : null}
+        {loading ? <p className="mt-10 text-[#6B7A8C]">Generando reporte…</p> : null}
+        {error ? <p className="mt-10 text-red-600">{error}</p> : null}
 
         {report && !loading ? (
           <div className="mt-8 space-y-8">
             <p className="text-xs text-[#6B7A8C]">
               {report.period.label} · generado {new Date(report.generatedAt).toLocaleString("es-AR")}
+              {report.store?.durable
+                ? ` · almacén ${report.store.backend}`
+                : " · almacén local (dev)"}
             </p>
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard label="Eventos" value={report.totals.events} />
               <StatCard label="Sesiones únicas" value={report.totals.uniqueSessions} />
               <StatCard
-                label="Activación → plaza"
+                label="Fundador → paso 1"
                 value={
-                  report.funnel.activacionToPlazaRate != null
-                    ? `${report.funnel.activacionToPlazaRate}%`
+                  campaign?.fundadorToStep1Rate != null
+                    ? `${campaign.fundadorToStep1Rate}%`
                     : "—"
                 }
               />
               <StatCard
-                label="Plaza → compromiso"
+                label="Fundador → análisis"
                 value={
-                  report.funnel.commitmentAfterPlazaRate != null
-                    ? `${report.funnel.commitmentAfterPlazaRate}%`
+                  campaign?.fundadorToAnalysisRate != null
+                    ? `${campaign.fundadorToAnalysisRate}%`
                     : "—"
                 }
               />
             </div>
+
+            {campaign ? (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                <StatCard label="Visitas fundador" value={campaign.fundadorViews} />
+                <StatCard label="Inicio lectura" value={campaign.fullReadingIntroViews} />
+                <StatCard label="Paso 1" value={campaign.step1Views} />
+                <StatCard label="Análisis iniciado" value={campaign.analysisStarted} />
+                <StatCard label="Lecturas archivadas" value={campaign.diagnosticArchived} />
+              </div>
+            ) : null}
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <StatCard label="Comenzar" value={report.funnel.comenzarViews} />
@@ -153,14 +169,14 @@ export default function ObservatorioPage() {
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
+              <RecordList title="Por tipo de evento" items={report.byType} />
+              <RecordList title="Por escenario" items={report.byScenario} />
               <RecordList title="Carteles de activación" items={report.activacionCarteles} />
               <RecordList title="Compromisos con el barrio" items={report.commitments} />
               <RecordList title="Puertas de onboarding" items={report.onboardingDoors} />
               <RecordList title="Temáticas elegidas" items={report.tematicas} />
               <RecordList title="Resultado diagnóstico" items={report.diagnostic.byResultType} />
               <RecordList title="Familia principal" items={report.diagnostic.byPrimaryFamily} />
-              <RecordList title="Por tipo de evento" items={report.byType} />
-              <RecordList title="Por escenario" items={report.byScenario} />
             </div>
 
             <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4">

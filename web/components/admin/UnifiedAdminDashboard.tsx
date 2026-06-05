@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminEntityCard } from "@/components/admin/AdminEntityCard";
 import { AdminSummaryCards } from "@/components/admin/AdminSummaryCards";
+import { CampaignPulsePanel } from "@/components/admin/CampaignPulsePanel";
 import { filterInboxItems } from "@/lib/admin/unifiedModeration/filterInbox";
 import { adminFetch } from "@/lib/admin/adminFetch";
 import type { UnifiedModerationDashboard } from "@/lib/admin/unifiedModeration/types";
@@ -100,6 +101,10 @@ export function UnifiedAdminDashboard() {
             <p className="mt-1">{dashboard.storeAlert.message}</p>
           </div>
         ) : null}
+
+        <div className="mb-6">
+          <CampaignPulsePanel compact />
+        </div>
 
         {error ? (
           <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">

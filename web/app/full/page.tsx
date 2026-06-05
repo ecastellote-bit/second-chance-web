@@ -14,6 +14,7 @@ import {
   FullFlowPrimaryLink,
   FullFlowShell,
 } from "@/components/full-flow/FullFlowShell";
+import { trackObservatoryEventOnce } from "@/lib/observatory/client";
 
 function FullFlowIntroContent() {
   const searchParams = useSearchParams();
@@ -23,6 +24,9 @@ function FullFlowIntroContent() {
   useEffect(() => {
     activateFullFlowPreservation();
     if (isFounder) activateFounderWaveSession();
+    trackObservatoryEventOnce("funnel.full_reading_intro", "campaign", {
+      founder: isFounder,
+    });
   }, [isFounder]);
 
   return (

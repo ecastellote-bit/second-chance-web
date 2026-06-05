@@ -1,5 +1,10 @@
 /** Tipos de evento del observatorio — ampliar según crezca el producto */
 export type ObservatoryEventType =
+  | "funnel.fundador_view"
+  | "funnel.full_reading_intro"
+  | "funnel.full_step1_view"
+  | "funnel.analysis_started"
+  | "funnel.diagnostic_archived"
   | "funnel.comenzar_view"
   | "funnel.onboarding_door"
   | "funnel.tematica_selected"
@@ -24,6 +29,17 @@ export type ObservatoryEvent = {
 
 export type ObservatoryPeriod = "7d" | "30d" | "all";
 
+export type ObservatoryCampaignFunnel = {
+  fundadorViews: number;
+  fullReadingIntroViews: number;
+  step1Views: number;
+  analysisStarted: number;
+  diagnosticArchived: number;
+  fundadorToStep1Rate: number | null;
+  fundadorToAnalysisRate: number | null;
+  fundadorToArchivedRate: number | null;
+};
+
 export type ObservatoryReport = {
   generatedAt: string;
   period: {
@@ -32,12 +48,17 @@ export type ObservatoryReport = {
     from: string | null;
     to: string;
   };
+  store: {
+    backend: "blob" | "local_jsonl";
+    durable: boolean;
+  };
   totals: {
     events: number;
     uniqueSessions: number;
   };
   byType: Record<string, number>;
   byScenario: Record<string, number>;
+  campaign: ObservatoryCampaignFunnel;
   funnel: {
     comenzarViews: number;
     onboardingDoors: number;

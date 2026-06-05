@@ -4,7 +4,7 @@ import Link from "next/link";
 import { MvpPioneerBanner } from "@/components/mvp/MvpPioneerBanner";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
 import { DIAGNOSIS_FIRST_COPY } from "@/lib/content/diagnosisFirstCopy";
-import { trackObservatoryEvent } from "@/lib/observatory/client";
+import { trackObservatoryEventOnce } from "@/lib/observatory/client";
 import { useEffect } from "react";
 
 const STEPS = [
@@ -47,7 +47,7 @@ const STEPS = [
 
 export default function ComenzarPage() {
   useEffect(() => {
-    trackObservatoryEvent("funnel.comenzar_view", "funnel");
+    trackObservatoryEventOnce("funnel.comenzar_view", "funnel");
   }, []);
 
   return (

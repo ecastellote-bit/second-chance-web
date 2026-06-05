@@ -12,6 +12,10 @@ import {
 import { isFoundingMemberQualified } from "@/lib/learning/foundationalMember";
 import { DIAGNOSIS_FIRST_COPY } from "@/lib/content/diagnosisFirstCopy";
 import { NEIGHBORHOOD_JOURNEY } from "@/lib/content/neighborhoodJourney";
+import {
+  buildFundadorViewPayload,
+  trackObservatoryEventOnce,
+} from "@/lib/observatory/client";
 
 function FundadorPageContent() {
   const copy = FOUNDER_FLOW_COPY.landing;
@@ -19,6 +23,10 @@ function FundadorPageContent() {
   const [qualified, setQualified] = useState(false);
   const [preview, setPreview] = useState(false);
   const [previewMsg, setPreviewMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    trackObservatoryEventOnce("funnel.fundador_view", "campaign", buildFundadorViewPayload());
+  }, []);
 
   useEffect(() => {
     setQualified(isFoundingMemberQualified());

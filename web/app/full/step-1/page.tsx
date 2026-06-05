@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { trackObservatoryEventOnce } from "@/lib/observatory/client";
 import { useRouter } from "next/navigation";
 import { useFullAnswers } from "../fullAnswersContext";
 import { FULL_FLOW_COPY } from "@/lib/content/fullFlowCopy";
@@ -19,6 +20,10 @@ export default function FullStep1Page() {
   const [errors, setErrors] = useState<string[]>([]);
 
   const copy = FULL_FLOW_COPY.step1;
+
+  useEffect(() => {
+    trackObservatoryEventOnce("funnel.full_step1_view", "campaign");
+  }, []);
 
   const handleNext = () => {
     const nextErrors: string[] = [];
