@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { CampaignFunnelDropoff } from "@/components/admin/CampaignFunnelDropoff";
 import { adminFetch } from "@/lib/admin/adminFetch";
 import type { ObservatoryReport } from "@/lib/observatory/types";
 
@@ -87,13 +88,24 @@ export function CampaignPulsePanel({ compact = false }: { compact?: boolean }) {
         </p>
       ) : campaign ? (
         <>
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-            <PulseCard label="Visitas fundador" value={campaign.fundadorViews} />
-            <PulseCard label="Inicio lectura" value={campaign.fullReadingIntroViews} />
-            <PulseCard label="Paso 1" value={campaign.step1Views} />
-            <PulseCard label="Análisis iniciado" value={campaign.analysisStarted} />
-            <PulseCard label="Lecturas archivadas" value={campaign.diagnosticArchived} />
-          </div>
+          {compact ? (
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <PulseCard label="Visitas fundador" value={campaign.fundadorViews} />
+              <PulseCard label="Paso 1" value={campaign.step1Views} />
+              <PulseCard label="Paso 5" value={campaign.step5Views} />
+              <PulseCard label="Análisis" value={campaign.analysisStarted} />
+              <PulseCard label="Archivadas" value={campaign.diagnosticArchived} />
+            </div>
+          ) : (
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+              <PulseCard label="Visitas fundador" value={campaign.fundadorViews} />
+              <PulseCard label="Inicio lectura" value={campaign.fullReadingIntroViews} />
+              <PulseCard label="Paso 1" value={campaign.step1Views} />
+              <PulseCard label="Análisis iniciado" value={campaign.analysisStarted} />
+              <PulseCard label="Lecturas archivadas" value={campaign.diagnosticArchived} />
+            </div>
+          )}
+          <CampaignFunnelDropoff campaign={campaign} />
           {!compact ? (
             <p className="mt-3 text-xs text-[#6B7A8C]">
               Sesiones únicas: {report?.totals.uniqueSessions ?? 0} · eventos totales:{" "}

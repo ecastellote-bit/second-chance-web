@@ -62,6 +62,19 @@ export function trackObservatoryEvent(
   });
 }
 
+/** Una vez por sesión y por paso del cuestionario fundador. */
+const STEP_EVENT_TYPES = {
+  1: "funnel.full_step1_view",
+  2: "funnel.full_step2_view",
+  3: "funnel.full_step3_view",
+  4: "funnel.full_step4_view",
+  5: "funnel.full_step5_view",
+} as const;
+
+export function trackFullStepView(step: 1 | 2 | 3 | 4 | 5): void {
+  trackObservatoryEventOnce(STEP_EVENT_TYPES[step], "campaign");
+}
+
 /** Una vez por sesión de pestaña — evita inflar métricas por re-render. */
 export function trackObservatoryEventOnce(
   type: ObservatoryEventType,

@@ -12,6 +12,8 @@ export const FOUNDER_FLOW_COPY = {
       "Participá de la etapa fundadora durante seis meses sin costo.",
       "Sembrá tu proyecto y recibí revisión prioritaria del equipo.",
     ],
+    accessReadingNote:
+      "La lectura inicial para orientarte es sin costo en esta etapa y no requiere tarjeta.",
     requirement:
       "Para ser miembro fundante completá la lectura hasta el resultado. Es lo que nos permite abrirte el barrio con seriedad — sin prometer precisión absoluta, sí con dirección inicial.",
     primaryCta: "Hacer mi lectura inicial",

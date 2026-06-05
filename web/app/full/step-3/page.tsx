@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { trackFullStepView } from "@/lib/observatory/client";
 import { useRouter } from "next/navigation";
 import { useFullAnswers } from "../fullAnswersContext";
 import { FULL_FLOW_COPY } from "@/lib/content/fullFlowCopy";
@@ -13,6 +14,10 @@ export default function FullStep3Page() {
   const [errors, setErrors] = useState<string[]>([]);
 
   const copy = FULL_FLOW_COPY.step3;
+
+  useEffect(() => {
+    trackFullStepView(3);
+  }, []);
 
   const handleNext = () => {
     const nextErrors: string[] = [];

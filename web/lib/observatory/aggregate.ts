@@ -56,6 +56,10 @@ export function buildObservatoryReport(
   let fundadorViews = 0;
   let fullReadingIntroViews = 0;
   let step1Views = 0;
+  let step2Views = 0;
+  let step3Views = 0;
+  let step4Views = 0;
+  let step5Views = 0;
   let analysisStarted = 0;
   let campaignDiagnosticArchived = 0;
 
@@ -81,6 +85,18 @@ export function buildObservatoryReport(
         break;
       case "funnel.full_step1_view":
         step1Views += 1;
+        break;
+      case "funnel.full_step2_view":
+        step2Views += 1;
+        break;
+      case "funnel.full_step3_view":
+        step3Views += 1;
+        break;
+      case "funnel.full_step4_view":
+        step4Views += 1;
+        break;
+      case "funnel.full_step5_view":
+        step5Views += 1;
         break;
       case "funnel.analysis_started":
         analysisStarted += 1;
@@ -144,7 +160,7 @@ export function buildObservatoryReport(
     storeMeta.durable
       ? `Almacén durable activo (${storeMeta.backend}).`
       : "Desarrollo local: eventos en JSONL; en Vercel requiere BLOB_READ_WRITE_TOKEN.",
-    "Pulso de campaña: fundador → lectura → paso 1 → análisis → archivo.",
+    "Pulso de campaña: fundador → lectura → pasos 1–5 → análisis → archivo.",
     "Promoción a learnedCases.ts sigue siendo manual vía /lab.",
   ];
 
@@ -170,6 +186,10 @@ export function buildObservatoryReport(
       fundadorViews,
       fullReadingIntroViews,
       step1Views,
+      step2Views,
+      step3Views,
+      step4Views,
+      step5Views,
       analysisStarted,
       diagnosticArchived: campaignDiagnosticArchived,
       fundadorToStep1Rate: rate(step1Views, fundadorViews),

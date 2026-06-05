@@ -16,6 +16,7 @@ import {
   buildFundadorViewPayload,
   trackObservatoryEventOnce,
 } from "@/lib/observatory/client";
+import { FounderReadingTrustNotice } from "@/components/founder/FounderReadingTrustNotice";
 
 function FundadorPageContent() {
   const copy = FOUNDER_FLOW_COPY.landing;
@@ -89,12 +90,17 @@ function FundadorPageContent() {
               <li key={item}>• {item}</li>
             ))}
           </ul>
+          <p className="pt-1 text-[13px] font-semibold leading-relaxed text-[#0B2E59]">
+            {copy.accessReadingNote}
+          </p>
         </div>
 
         <p className="text-sm leading-relaxed text-[#6B7A8C] border-l-4 border-[#1A9BB0] pl-4">
           {copy.requirement}
         </p>
         <p className="text-[13px] leading-relaxed text-[#6B7A8C]">{DIAGNOSIS_FIRST_COPY.rector}</p>
+
+        <FounderReadingTrustNotice prominent />
 
         <div className="flex flex-col gap-3">
           <Link

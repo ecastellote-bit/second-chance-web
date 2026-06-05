@@ -3,6 +3,10 @@ export type ObservatoryEventType =
   | "funnel.fundador_view"
   | "funnel.full_reading_intro"
   | "funnel.full_step1_view"
+  | "funnel.full_step2_view"
+  | "funnel.full_step3_view"
+  | "funnel.full_step4_view"
+  | "funnel.full_step5_view"
   | "funnel.analysis_started"
   | "funnel.diagnostic_archived"
   | "funnel.comenzar_view"
@@ -33,6 +37,10 @@ export type ObservatoryCampaignFunnel = {
   fundadorViews: number;
   fullReadingIntroViews: number;
   step1Views: number;
+  step2Views: number;
+  step3Views: number;
+  step4Views: number;
+  step5Views: number;
   analysisStarted: number;
   diagnosticArchived: number;
   fundadorToStep1Rate: number | null;

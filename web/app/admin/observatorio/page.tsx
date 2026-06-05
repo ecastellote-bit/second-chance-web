@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { CampaignPulsePanel } from "@/components/admin/CampaignPulsePanel";
+import { CampaignFunnelDropoff } from "@/components/admin/CampaignFunnelDropoff";
 import { adminFetch } from "@/lib/admin/adminFetch";
 import type { ObservatoryPeriod, ObservatoryReport } from "@/lib/observatory/types";
 
@@ -144,13 +145,22 @@ export default function ObservatorioPage() {
             </div>
 
             {campaign ? (
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                <StatCard label="Visitas fundador" value={campaign.fundadorViews} />
-                <StatCard label="Inicio lectura" value={campaign.fullReadingIntroViews} />
-                <StatCard label="Paso 1" value={campaign.step1Views} />
-                <StatCard label="Análisis iniciado" value={campaign.analysisStarted} />
-                <StatCard label="Lecturas archivadas" value={campaign.diagnosticArchived} />
-              </div>
+              <>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                  <StatCard label="Visitas fundador" value={campaign.fundadorViews} />
+                  <StatCard label="Inicio lectura" value={campaign.fullReadingIntroViews} />
+                  <StatCard label="Paso 1" value={campaign.step1Views} />
+                  <StatCard label="Paso 2" value={campaign.step2Views} />
+                  <StatCard label="Paso 3" value={campaign.step3Views} />
+                  <StatCard label="Paso 4" value={campaign.step4Views} />
+                  <StatCard label="Paso 5" value={campaign.step5Views} />
+                  <StatCard label="Análisis iniciado" value={campaign.analysisStarted} />
+                  <StatCard label="Lecturas archivadas" value={campaign.diagnosticArchived} />
+                </div>
+                <section className="rounded-2xl border border-[#E8EEF3] bg-white p-4">
+                  <CampaignFunnelDropoff campaign={campaign} />
+                </section>
+              </>
             ) : null}
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

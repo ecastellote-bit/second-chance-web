@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { trackFullStepView } from "@/lib/observatory/client";
 import { useFullAnswers } from "../fullAnswersContext";
 import { FULL_FLOW_COPY } from "@/lib/content/fullFlowCopy";
 import {
@@ -21,6 +23,10 @@ export default function FullStep5Page() {
 
   const copy = FULL_FLOW_COPY.step5;
   const fallback = copy.reviewLabels.missingValue;
+
+  useEffect(() => {
+    trackFullStepView(5);
+  }, []);
 
   const handleContinue = () => {
     clearAnalysis();

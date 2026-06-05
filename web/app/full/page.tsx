@@ -15,6 +15,7 @@ import {
   FullFlowShell,
 } from "@/components/full-flow/FullFlowShell";
 import { trackObservatoryEventOnce } from "@/lib/observatory/client";
+import { FounderReadingTrustNotice } from "@/components/founder/FounderReadingTrustNotice";
 
 function FullFlowIntroContent() {
   const searchParams = useSearchParams();
@@ -56,6 +57,8 @@ function FullFlowIntroContent() {
             ))}
           </ul>
         </FullFlowIntroCard>
+
+        {isFounder ? <FounderReadingTrustNotice prominent /> : null}
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <FullFlowPrimaryLink
