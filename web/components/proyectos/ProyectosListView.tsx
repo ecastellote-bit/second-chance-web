@@ -135,9 +135,8 @@ export function ProyectosListView() {
               <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">
                 Convocatorias semilla del equipo
               </p>
-              <p className="mb-4 max-w-2xl text-[13px] leading-relaxed text-[#6B7A8C]">
-                Propuestas iniciales de VocationUp y Second Chance — sin actividad fingida ni autores
-                externos inventados. Marcá interés para que el equipo sepa qué mesas abrir primero.
+              <p className="mb-4 max-w-2xl text-[13px] leading-snug text-[#6B7A8C]">
+                Propuestas del equipo — marcá interés sin compromiso automático.
               </p>
               <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {TEAM_PROJECTS_CATALOG.map((project) => (

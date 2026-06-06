@@ -1,6 +1,7 @@
 /** Tipos de evento del observatorio — ampliar según crezca el producto */
 export type ObservatoryEventType =
   | "funnel.fundador_view"
+  | "funnel.barrio_view"
   | "funnel.full_reading_intro"
   | "funnel.full_step1_view"
   | "funnel.full_step2_view"
@@ -19,7 +20,9 @@ export type ObservatoryEventType =
   | "diagnostic.case_archived"
   | "human_case.persisted"
   | "learning.observation_stored"
-  | "learning.validated_case_stored";
+  | "learning.validated_case_stored"
+  | "barrio.action_card_click"
+  | "barrio.start_reading_click";
 
 export type ObservatoryEvent = {
   id: string;

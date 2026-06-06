@@ -7,6 +7,7 @@ import {
   FUNDADOR_LANDING_COPY,
 } from "@/lib/content/fundadorLandingCopy";
 import { VuWarmImage } from "@/components/ui/VuWarmImage";
+import { trackObservatoryEvent } from "@/lib/observatory/client";
 
 type Props = {
   qualified: boolean;
@@ -122,6 +123,13 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
               </Link>
               <Link
                 href="/barrio"
+                onClick={() =>
+                  trackObservatoryEvent("barrio.action_card_click", "campaign", {
+                    actionId: "fundador-secondary-barrio",
+                    href: "/barrio",
+                    path: "/fundador",
+                  })
+                }
                 className="vu-focus inline-flex min-h-[3rem] items-center justify-center rounded-2xl border-2 border-[#0B2E59]/15 bg-white px-5 text-[14px] font-semibold text-[#0B2E59] active:scale-[0.99]"
               >
                 {copy.secondaryCta}

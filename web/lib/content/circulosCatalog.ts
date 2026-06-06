@@ -21,8 +21,7 @@ export type CircleItem = {
 
 export const CIRCULOS_HEADER = {
   title: "Círculos del barrio",
-  subtitle:
-    "Mesas en formación y círculos semilla del equipo — espacios para marcar interés sin membresía masiva.",
+  subtitle: "Mesas en formación — entrá, mirá la mesa y marcá interés.",
 } as const;
 
 export const CIRCLE_STATUS_LABEL: Record<CircleStatus, string> = {

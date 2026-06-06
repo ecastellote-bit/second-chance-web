@@ -49,9 +49,8 @@ export function EventosView() {
               imageSrc="/vu/evento-cafe-conexiones-vc.png"
             />
 
-            <p className="mb-6 max-w-2xl rounded-xl border border-[#E8EEF3] bg-white px-4 py-3 text-[13px] leading-relaxed text-[#6B7A8C]">
-              Primeras mesas tentativas Second Chance en distintas ciudades — estamos midiendo interés
-              antes de confirmar fecha y lugar. Marcá interés sin cupos ni asistentes fingidos.
+            <p className="mb-6 max-w-2xl text-[13px] leading-snug text-[#6B7A8C]">
+              Mesas tentativas Second Chance y convocatorias semilla — marcá interés, sin cupos fingidos.
             </p>
 
             <PublicCommunityRecentActivity

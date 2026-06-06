@@ -8,19 +8,17 @@ import {
 } from "@/lib/learning/founderCaseDraftClient";
 import { VuAtmosphereBand } from "@/components/ui/VuAtmosphereBand";
 import { FULL_FLOW_COPY } from "@/lib/content/fullFlowCopy";
-import { FOUNDER_FLOW_COPY } from "@/lib/content/founderFlowCopy";
 import {
   FullFlowIntroCard,
   FullFlowPrimaryLink,
   FullFlowShell,
 } from "@/components/full-flow/FullFlowShell";
 import { trackObservatoryEventOnce } from "@/lib/observatory/client";
-import { FounderReadingTrustNotice } from "@/components/founder/FounderReadingTrustNotice";
+import { FounderFullIntroCompact } from "@/components/founder/FounderFullIntroCompact";
 
 function FullFlowIntroContent() {
   const searchParams = useSearchParams();
   const isFounder = searchParams.get("founder") === "1";
-  const copy = isFounder ? FOUNDER_FLOW_COPY.fullIntro : FULL_FLOW_COPY.intro;
 
   useEffect(() => {
     activateFullFlowPreservation();
@@ -29,6 +27,12 @@ function FullFlowIntroContent() {
       founder: isFounder,
     });
   }, [isFounder]);
+
+  if (isFounder) {
+    return <FounderFullIntroCompact />;
+  }
+
+  const copy = FULL_FLOW_COPY.intro;
 
   return (
     <FullFlowShell variant="intro" maxWidth="lg" className="relative overflow-hidden">
@@ -58,18 +62,9 @@ function FullFlowIntroContent() {
           </ul>
         </FullFlowIntroCard>
 
-        {isFounder ? <FounderReadingTrustNotice prominent /> : null}
-
         <div className="flex flex-col gap-3 sm:flex-row">
-          <FullFlowPrimaryLink
-            href={isFounder ? "/full/step-1?founder=1" : "/full/step-1"}
-          >
-            {copy.primaryCta}
-          </FullFlowPrimaryLink>
-          <FullFlowPrimaryLink
-            href={isFounder ? "/fundador" : "/"}
-            variant="secondary"
-          >
+          <FullFlowPrimaryLink href="/full/step-1">{copy.primaryCta}</FullFlowPrimaryLink>
+          <FullFlowPrimaryLink href="/" variant="secondary">
             {copy.secondaryCta}
           </FullFlowPrimaryLink>
         </div>

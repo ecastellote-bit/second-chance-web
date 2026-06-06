@@ -272,10 +272,12 @@ export function FullFlowPrimaryLink({
   href,
   children,
   variant = "primary",
+  onClick,
 }: {
   href: string;
   children: ReactNode;
   variant?: "primary" | "secondary";
+  onClick?: () => void;
 }) {
   const cls =
     variant === "primary"
@@ -284,6 +286,7 @@ export function FullFlowPrimaryLink({
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={`vu-focus inline-flex min-h-[48px] flex-1 items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold ${cls}`}
     >
       {children}

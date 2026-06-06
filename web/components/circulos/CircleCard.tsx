@@ -55,7 +55,7 @@ export function CircleCard({ circle, compact }: { circle: CircleItem; compact?: 
           href={`/circulos/${circle.id}`}
           className="vu-focus mt-auto flex min-h-[44px] items-center justify-between rounded-2xl bg-[#0B2E59] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#081f3d] group-active:scale-[0.99]"
         >
-          {circle.interestCta ?? "Entrar"}
+          {circle.isTeamSeed ? "Entrar al círculo" : circle.interestCta ?? "Entrar"}
           <svg
             viewBox="0 0 24 24"
             className="h-5 w-5 transition-transform group-hover:translate-x-0.5"

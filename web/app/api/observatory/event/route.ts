@@ -8,6 +8,7 @@ import type { ObservatoryEventType } from "@/lib/observatory/types";
 
 const ALLOWED: ObservatoryEventType[] = [
   "funnel.fundador_view",
+  "funnel.barrio_view",
   "funnel.full_reading_intro",
   "funnel.full_step1_view",
   "funnel.full_step2_view",
@@ -26,6 +27,8 @@ const ALLOWED: ObservatoryEventType[] = [
   "diagnostic.case_archived",
   "learning.observation_stored",
   "learning.validated_case_stored",
+  "barrio.action_card_click",
+  "barrio.start_reading_click",
 ];
 
 export async function POST(request: Request) {

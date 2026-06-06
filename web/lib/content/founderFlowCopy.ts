@@ -35,6 +35,20 @@ export const FOUNDER_FLOW_COPY = {
     primaryCta: "Empezar mi lectura",
     secondaryCta: "Volver a la invitación",
   },
+  fullIntroCompact: {
+    eyebrow: "Lectura inicial",
+    title: "Empezá tu lectura",
+    subtitle: "Respondé con escenas reales. No hace falta escribir perfecto.",
+    trustChips: ["Sin costo", "Sin tarjeta", "7–10 min", "Privado"] as const,
+    primaryCta: "Comenzar ahora",
+    microcopy: "Sin tarjeta. Sin pago al final.",
+    steps: [
+      { title: "Contá tu historia", line: "Escenas reales, sin formato perfecto." },
+      { title: "Recibí una lectura", line: "Orientación clara para tu momento." },
+      { title: "Elegí cómo seguir", line: "Barrio, proyectos o pausa." },
+    ],
+    secondaryCta: "Volver atrás",
+  },
   memberBadge: {
     title: "Acceso fundador activo",
     body: "Completaste tu lectura inicial. Participás de la etapa fundadora durante seis meses sin costo y podés sembrar tu proyecto en la Comunidad.",
