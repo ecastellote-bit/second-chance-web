@@ -65,7 +65,7 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
   return (
     <main className="min-h-[100dvh] bg-[#F8FAFC] font-[family-name:var(--font-inter)] text-[#243647]">
       {/* ── Hero: primer viewport (deja asomar el barrio) ── */}
-      <section className="relative mx-auto flex min-h-[92dvh] max-w-lg flex-col">
+      <section className="relative mx-auto flex min-h-[86dvh] max-w-lg flex-col">
         <div className="absolute inset-0 overflow-hidden">
           <VuWarmImage
             src={FUNDADOR_HERO_ASSETS.src}
@@ -86,7 +86,7 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
           />
         </div>
 
-        <div className="relative z-10 flex flex-1 flex-col justify-end px-4 pb-3 pt-8">
+        <div className="relative z-10 flex flex-1 flex-col justify-end px-4 pb-2 pt-6">
           {previewMsg ? (
             <p
               className={[
@@ -98,7 +98,7 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
             </p>
           ) : null}
 
-          <div className="rounded-[28px] border border-white/60 bg-white/95 p-5 shadow-[0_12px_40px_rgba(11,46,89,0.14)] backdrop-blur-sm">
+          <div className="rounded-[28px] border border-white/60 bg-white/95 p-4 shadow-[0_12px_40px_rgba(11,46,89,0.14)] backdrop-blur-sm sm:p-5">
             <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#1A9BB0]">
               {copy.eyebrow}
             </p>
@@ -107,13 +107,13 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
             </h1>
             <p className="mt-2 text-[14px] leading-snug text-[#6B7A8C]">{copy.subtitle}</p>
 
-            <div className="mt-4 flex flex-wrap gap-1.5">
+            <div className="mt-3 flex flex-wrap gap-1.5">
               {copy.trustChips.map((chip) => (
                 <TrustChip key={chip} label={chip} />
               ))}
             </div>
 
-            <div className="mt-5 flex flex-col gap-2.5">
+            <div className="mt-4 flex flex-col gap-2">
               <Link
                 href="/full?founder=1"
                 className="vu-focus inline-flex min-h-[3.25rem] items-center justify-center rounded-2xl bg-[#0B2E59] px-5 text-[15px] font-bold text-white shadow-[0_6px_20px_rgba(11,46,89,0.28)] active:scale-[0.99]"
@@ -121,14 +121,14 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
                 {copy.primaryCta}
               </Link>
               <Link
-                href="/plaza"
+                href="/barrio"
                 className="vu-focus inline-flex min-h-[3rem] items-center justify-center rounded-2xl border-2 border-[#0B2E59]/15 bg-white px-5 text-[14px] font-semibold text-[#0B2E59] active:scale-[0.99]"
               >
                 {copy.secondaryCta}
               </Link>
             </div>
 
-            <p className="mt-3 text-center text-[12px] font-semibold leading-relaxed text-[#243647]">
+            <p className="mt-2.5 text-center text-[12px] font-medium leading-relaxed text-[#6B7A8C]">
               {copy.microcopy}
             </p>
           </div>

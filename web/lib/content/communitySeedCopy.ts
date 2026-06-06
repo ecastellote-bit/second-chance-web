@@ -2,6 +2,12 @@
 
 export const COMMUNITY_SEED_BADGE = "Espacio semilla";
 
+export const COMMUNITY_TEAM_SEED_BADGE = "Convocatoria semilla";
+
+export const COMMUNITY_TENTATIVE_EVENT_BADGE = "Primer encuentro tentativo";
+
+export const COMMUNITY_FORMATION_TABLE_BADGE = "Mesa en formación";
+
 export const COMMUNITY_SEED_FOOTNOTE =
   "Estamos sembrando este espacio con los primeros proyectos y conversaciones. Por ahora podés explorar ejemplos, guardar interés o presentar una idea propia.";
 

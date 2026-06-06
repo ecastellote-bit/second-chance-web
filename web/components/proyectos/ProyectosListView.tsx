@@ -16,7 +16,8 @@ import { MyFounderSeedBanner } from "@/components/proyectos/MyFounderSeedBanner"
 import { ProjectCover } from "@/components/proyectos/ProjectCover";
 import { CommunityMicroAction } from "@/components/community/CommunityMicroAction";
 import { resolveProjectCoverSrc } from "@/lib/public/projectSeedMedia";
-import { PROYECTOS_CATALOG, PROYECTOS_HEADER } from "@/lib/content/proyectosCatalog";
+import { PROYECTOS_CATALOG, PROYECTOS_HEADER, TEAM_PROJECTS_CATALOG } from "@/lib/content/proyectosCatalog";
+import { TeamProjectCard } from "@/components/proyectos/ProyectoStubView";
 
 type PublicSeedListItem = {
   seedId: string;
@@ -129,6 +130,23 @@ export function ProyectosListView() {
             <MyFounderSeedBanner />
 
             <PublicCommunityRecentActivity className="mb-6" limit={6} surface="projects" />
+
+            <section className="mb-6">
+              <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">
+                Convocatorias semilla del equipo
+              </p>
+              <p className="mb-4 max-w-2xl text-[13px] leading-relaxed text-[#6B7A8C]">
+                Propuestas iniciales de VocationUp y Second Chance — sin actividad fingida ni autores
+                externos inventados. Marcá interés para que el equipo sepa qué mesas abrir primero.
+              </p>
+              <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {TEAM_PROJECTS_CATALOG.map((project) => (
+                  <li key={project.id}>
+                    <TeamProjectCard project={project} />
+                  </li>
+                ))}
+              </ul>
+            </section>
 
             <section className="mb-6 rounded-[28px] bg-white p-5 shadow-[0_4px_16px_rgba(15,42,70,0.06)] ring-1 ring-[#E8EEF3]">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -250,10 +268,10 @@ export function ProyectosListView() {
             </Link>
 
             <Link
-              href="/proyectos/manos-que-transforman"
+              href="/proyectos/radio-second-chance"
               className="vu-focus mb-6 flex min-h-[44px] items-center justify-center gap-2 rounded-2xl border border-[#0B2E59]/20 px-4 text-sm font-semibold text-[#0B2E59]"
             >
-              Ver proyecto destacado del barrio
+              Ver convocatoria destacada del equipo
             </Link>
 
             <section className="mt-6">

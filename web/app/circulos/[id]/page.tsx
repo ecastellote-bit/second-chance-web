@@ -34,8 +34,13 @@ export default function CirculoDetailPage() {
       backHref="/circulos"
       backLabel="Círculos"
       image={circle.image}
+      fallbackImage={circle.fallbackImage}
       title={circle.title}
-      meta="Mesa temática en formación · espacio semilla"
+      meta={
+        circle.isTeamSeed
+          ? `${circle.seedBadge ?? "Mesa en formación"} · equipo VocationUp`
+          : "Mesa temática en formación · espacio semilla"
+      }
       badge={CIRCLE_STATUS_BADGE[circle.status]}
       footer={
         <div className="flex w-full max-w-md flex-col gap-2">

@@ -7,13 +7,13 @@ import {
   NeighborhoodActivityDetail,
 } from "@/components/neighborhood/NeighborhoodActivityDetail";
 import { CommunityMicroAction } from "@/components/community/CommunityMicroAction";
-import { EVENTOS_CATALOG } from "@/lib/content/eventosCatalog";
+import { getEventById } from "@/lib/content/eventosCatalog";
 import { COMMUNITY_SEED_INTERIOR_BODY } from "@/lib/content/communitySeedCopy";
 
 export default function EventoDetailPage() {
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : "";
-  const event = EVENTOS_CATALOG.find((e) => e.id === id);
+  const event = getEventById(id);
 
   if (!event) {
     return (
@@ -26,14 +26,23 @@ export default function EventoDetailPage() {
     );
   }
 
+  const meta = event.isTentative
+    ? `${event.modalityLabel} · ${event.duration ?? "90 minutos"}`
+    : `${event.date} · ${event.modalityLabel}`;
+
   return (
     <NeighborhoodActivityDetail
       backHref="/eventos"
       backLabel="Eventos"
       image={event.image}
+      fallbackImage={event.fallbackImage}
       title={event.title}
-      meta={`${event.date} · ${event.modalityLabel}`}
-      badge={EVENT_LABEL_BADGE[event.label]}
+      meta={meta}
+      badge={EVENT_LABEL_BADGE[event.label] ?? {
+        label: event.label,
+        bg: "rgba(26,155,176,0.2)",
+        text: "#0B2E59",
+      }}
       footer={
         <div className="flex w-full max-w-md flex-col gap-2">
           <CommunityMicroAction
@@ -42,21 +51,26 @@ export default function EventoDetailPage() {
             targetTitle={event.title}
             targetKind="event"
             variant="primary"
+            label={event.cta}
           />
-          <CommunityMicroAction
-            kind="formation_or_event"
-            targetId={event.id}
-            targetTitle={event.title}
-            targetKind="event"
-            notifySimilar
-          />
-          <CommunityMicroAction
-            kind="formation_or_event"
-            targetId={event.id}
-            targetTitle={event.title}
-            targetKind="event"
-            savedRoute
-          />
+          {!event.isTentative ? (
+            <>
+              <CommunityMicroAction
+                kind="formation_or_event"
+                targetId={event.id}
+                targetTitle={event.title}
+                targetKind="event"
+                notifySimilar
+              />
+              <CommunityMicroAction
+                kind="formation_or_event"
+                targetId={event.id}
+                targetTitle={event.title}
+                targetKind="event"
+                savedRoute
+              />
+            </>
+          ) : null}
           <Link
             href="/eventos"
             className="vu-focus inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-[#0B2E59] px-6 text-sm font-semibold text-white"
@@ -66,6 +80,33 @@ export default function EventoDetailPage() {
         </div>
       }
     >
+      {event.isTentative ? (
+        <>
+          <p className="mb-4 rounded-2xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-[13px] leading-relaxed text-amber-950">
+            {event.tentativeDisclaimer}
+          </p>
+          {event.city ? (
+            <p className="mb-2 text-[14px] text-[#243647]">
+              <strong>Ciudad:</strong> {event.city}
+            </p>
+          ) : null}
+          {event.zone ? (
+            <p className="mb-2 text-[14px] text-[#243647]">
+              <strong>Zona sugerida:</strong> {event.zone}
+            </p>
+          ) : null}
+          <p className="mb-2 text-[14px] text-[#243647]">
+            <strong>Fecha visible:</strong> {event.date}
+          </p>
+          {event.entryNote ? (
+            <p className="mb-4 text-[14px] text-[#243647]">
+              <strong>Entrada:</strong> {event.entryNote}
+            </p>
+          ) : null}
+        </>
+      ) : event.description ? (
+        <p className="mb-4 text-[15px] leading-relaxed text-[#243647]">{event.description}</p>
+      ) : null}
       <p>{COMMUNITY_SEED_INTERIOR_BODY}</p>
     </NeighborhoodActivityDetail>
   );

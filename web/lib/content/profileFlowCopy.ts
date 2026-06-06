@@ -6,15 +6,15 @@ export const PROFILE_FLOW_COPY = {
     ctaSignIn: "Ya tengo perfil",
   },
   crear: {
-    eyebrow: "Paso obligatorio",
+    eyebrow: "Antes de conectar",
     title: "Tu perfil en el barrio",
     subtitle:
-      "Subí tu foto de perfil (obligatoria) y contá quién sos hoy, qué buscás y qué podés aportar. Sin esto no podés sembrar proyectos ni interactuar con el neighborhood.",
+      "Subí tu foto de perfil (necesaria) y contá quién sos hoy, qué buscás y qué podés aportar. Sin esto no podés sembrar proyectos ni interactuar con el barrio.",
     submitCreate: "Crear perfil y continuar",
     submitEdit: "Guardar cambios",
   },
   fields: {
-    avatar: "Foto de perfil (obligatoria)",
+    avatar: "Foto de perfil (necesaria)",
     cover: "Foto de portada (opcional)",
     displayName: "Nombre o cómo querés que te llamen",
     headline: "En una línea: tu camino ahora",

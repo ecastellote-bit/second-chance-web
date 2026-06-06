@@ -6,6 +6,8 @@ import type { CircleItem } from "@/lib/content/circulosCatalog";
 import { COMMUNITY_SEED_BADGE } from "@/lib/content/communitySeedCopy";
 
 export function CircleCard({ circle, compact }: { circle: CircleItem; compact?: boolean }) {
+  const badge = circle.seedBadge ?? COMMUNITY_SEED_BADGE;
+
   return (
     <article
       className={[
@@ -17,6 +19,7 @@ export function CircleCard({ circle, compact }: { circle: CircleItem; compact?: 
       <div className="relative h-[140px] w-full shrink-0 sm:h-[152px]">
         <VuWarmImage
           src={circle.image}
+          fallbackSrc={circle.fallbackImage}
           alt=""
           fill
           className="object-cover"
@@ -30,7 +33,7 @@ export function CircleCard({ circle, compact }: { circle: CircleItem; compact?: 
           }}
         />
         <div className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#0B2E59] backdrop-blur-sm">
-          {COMMUNITY_SEED_BADGE}
+          {badge}
         </div>
       </div>
 
@@ -43,14 +46,16 @@ export function CircleCard({ circle, compact }: { circle: CircleItem; compact?: 
         </div>
 
         <p className="text-[12px] leading-relaxed text-[#6B7A8C]">
-          Espacio semilla para orientarte y marcar interés — sin membresía activa todavía.
+          {circle.isTeamSeed
+            ? "Mesa del equipo en formación — marcá interés sin membresía activa todavía."
+            : "Espacio semilla para orientarte y marcar interés — sin membresía activa todavía."}
         </p>
 
         <Link
           href={`/circulos/${circle.id}`}
           className="vu-focus mt-auto flex min-h-[44px] items-center justify-between rounded-2xl bg-[#0B2E59] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#081f3d] group-active:scale-[0.99]"
         >
-          Entrar
+          {circle.interestCta ?? "Entrar"}
           <svg
             viewBox="0 0 24 24"
             className="h-5 w-5 transition-transform group-hover:translate-x-0.5"

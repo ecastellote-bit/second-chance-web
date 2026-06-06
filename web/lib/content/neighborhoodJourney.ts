@@ -14,21 +14,21 @@ export const NEIGHBORHOOD_JOURNEY: NeighborhoodPath[] = [
   {
     id: "fundador",
     title: "Invitación fundadora",
-    description: "Oferta, requisito y entrada al cuestionario.",
+    description: "Primer paso para orientar tu recorrido.",
     route: "/fundador",
     phase: "diagnostic",
   },
   {
     id: "full",
-    title: "Cuestionario vocacional",
-    description: "Cinco pasos + purgatorio (followup) si el sistema lo pide.",
+    title: "Lectura inicial",
+    description: "Cinco estaciones para ordenar tu historia — y una pregunta más si hace falta.",
     route: "/full",
     phase: "diagnostic",
   },
   {
     id: "result",
     title: "Diagnóstico",
-    description: "Lectura personalizada y archivo del caso (miembro fundante).",
+    description: "Una lectura clara para volver a consultar (miembro fundante).",
     route: "/full/result",
     phase: "diagnostic",
     requiresFoundingMember: true,
@@ -36,7 +36,7 @@ export const NEIGHBORHOOD_JOURNEY: NeighborhoodPath[] = [
   {
     id: "perfil",
     title: "Perfil en VocationUp",
-    description: "Identidad en el barrio — obligatorio antes de proyectos e interacción con pares.",
+    description: "Identidad en el barrio — necesaria antes de proyectos e interacción con pares.",
     route: "/perfil/crear",
     phase: "diagnostic",
     requiresFoundingMember: true,
@@ -123,7 +123,7 @@ export const COMMUNITY_DOOR_HUBS: Record<
       {
         label: "Tu diagnóstico",
         route: "/full/result",
-        description: "Volver a la lectura archivada (si ya la completaste).",
+        description: "Volver a la lectura guardada en tu perfil (si ya la completaste).",
       },
       {
         label: "La plaza",

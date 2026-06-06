@@ -50,8 +50,8 @@ export function EventosView() {
             />
 
             <p className="mb-6 max-w-2xl rounded-xl border border-[#E8EEF3] bg-white px-4 py-3 text-[13px] leading-relaxed text-[#6B7A8C]">
-              Convocatorias semilla para orientarte. Marcá interés o pedí aviso — no prometemos cupos
-              ni beneficios que todavía no existen.
+              Primeras mesas tentativas Second Chance en distintas ciudades — estamos midiendo interés
+              antes de confirmar fecha y lugar. Marcá interés sin cupos ni asistentes fingidos.
             </p>
 
             <PublicCommunityRecentActivity

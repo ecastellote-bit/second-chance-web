@@ -7,10 +7,26 @@ import type { OpportunityEvent } from "@/lib/content/eventosCatalog";
 
 const LABEL_COLORS: Record<string, { bg: string; text: string }> = {
   Taller: { bg: "rgba(26,155,176,0.2)", text: "#0B2E59" },
-  Charla: { bg: "rgba(11,46,89,0.1)", text: "#0B2E59" },
+  Charla: { bg: "rgba(26,155,176,0.2)", text: "#0B2E59" },
   Networking: { bg: "rgba(198,217,45,0.35)", text: "#0B2E59" },
   Voluntariado: { bg: "rgba(26,155,176,0.15)", text: "#0B2E59" },
+  Ilustración: { bg: "rgba(11,46,89,0.08)", text: "#6B7A8C" },
+  "Convocatoria semilla": { bg: "rgba(26,155,176,0.2)", text: "#0B2E59" },
+  "Primer encuentro tentativo": { bg: "rgba(198,217,45,0.35)", text: "#0B2E59" },
 };
+
+function seedFootnote(event: OpportunityEvent): string {
+  if (event.isTentative && event.tentativeDisclaimer) {
+    return event.tentativeDisclaimer;
+  }
+  if (event.isTeamSeed && event.description) {
+    return event.description;
+  }
+  if (event.isTeamSeed) {
+    return "Convocatoria semilla del equipo — marcá interés sin cupo ni confirmación fingida.";
+  }
+  return "Ilustración del barrio · ejemplo para orientarte";
+}
 
 export function EventoOpportunityCard({ event }: { event: OpportunityEvent }) {
   const labelStyle = LABEL_COLORS[event.label] ?? LABEL_COLORS.Taller;
@@ -18,12 +34,18 @@ export function EventoOpportunityCard({ event }: { event: OpportunityEvent }) {
   return (
     <article className="group flex flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_4px_16px_rgba(15,42,70,0.08)] transition-shadow hover:shadow-[0_8px_24px_rgba(15,42,70,0.12)]">
       <div className="relative h-[148px] w-full shrink-0">
-        <VuWarmImage src={event.image} alt="" fill className="object-cover" sizes="360px" />
+        <VuWarmImage
+          src={event.image}
+          fallbackSrc={event.fallbackImage}
+          alt=""
+          fill
+          className="object-cover"
+          sizes="360px"
+        />
         <div
           className="absolute inset-0"
           style={{
-            background:
-              "linear-gradient(180deg, transparent 40%, rgba(11,46,89,0.5) 100%)",
+            background: "linear-gradient(180deg, transparent 40%, rgba(11,46,89,0.5) 100%)",
           }}
         />
         <span
@@ -52,7 +74,14 @@ export function EventoOpportunityCard({ event }: { event: OpportunityEvent }) {
           <span className="font-semibold text-[#1A9BB0]">{event.modalityLabel}</span>
         </div>
 
-        <p className="text-[12px] text-[#6B7A8C]">Convocatoria semilla · ejemplo para orientarte</p>
+        {event.city ? (
+          <p className="text-[12px] text-[#6B7A8C]">
+            {event.city}
+            {event.zone ? ` · ${event.zone}` : ""}
+          </p>
+        ) : null}
+
+        <p className="text-[12px] leading-relaxed text-[#6B7A8C]">{seedFootnote(event)}</p>
 
         <div className="mt-auto space-y-2">
           <CommunityMicroAction
@@ -61,6 +90,7 @@ export function EventoOpportunityCard({ event }: { event: OpportunityEvent }) {
             targetTitle={event.title}
             targetKind="event"
             variant="primary"
+            label={event.isTentative ? "Quiero recibir aviso" : undefined}
           />
           <Link
             href={`/eventos/${event.id}`}

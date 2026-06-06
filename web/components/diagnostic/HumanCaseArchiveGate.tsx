@@ -209,7 +209,7 @@ export function HumanCaseArchiveGate({
             href={perfilHref}
             className="mt-3 inline-block text-[13px] font-semibold text-[#1A9BB0] underline"
           >
-            Crear tu perfil en VocationUp (obligatorio para el barrio) →
+            Crear tu perfil en VocationUp (necesario para conectar en el barrio) →
           </a>
         </div>
       ) : state === "pending_verification" ? (

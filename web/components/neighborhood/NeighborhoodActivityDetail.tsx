@@ -14,6 +14,7 @@ type Props = {
   backHref: string;
   backLabel: string;
   image: string;
+  fallbackImage?: string;
   title: string;
   meta?: string;
   badge?: ActivityBadge;
@@ -29,6 +30,7 @@ export function NeighborhoodActivityDetail({
   backHref,
   backLabel,
   image,
+  fallbackImage,
   title,
   meta,
   badge,
@@ -40,6 +42,7 @@ export function NeighborhoodActivityDetail({
       <div className="relative h-[min(42vh,300px)] w-full shrink-0 overflow-hidden">
         <VuWarmImage
           src={image}
+          fallbackSrc={fallbackImage}
           alt=""
           fill
           priority
@@ -95,6 +98,18 @@ export const EVENT_LABEL_BADGE: Record<string, ActivityBadge> = {
   Charla: { label: "Charla", bg: "rgba(11,46,89,0.1)", text: "#0B2E59" },
   Networking: { label: "Networking", bg: "rgba(198,217,45,0.35)", text: "#0B2E59" },
   Voluntariado: { label: "Voluntariado", bg: "rgba(26,155,176,0.15)", text: "#0B2E59" },
+  Ilustración: { label: "Ilustración", bg: "rgba(11,46,89,0.08)", text: "#6B7A8C" },
+  "Convocatoria semilla": { label: "Convocatoria semilla", bg: "rgba(26,155,176,0.2)", text: "#0B2E59" },
+  "Primer encuentro tentativo": {
+    label: "Primer encuentro tentativo",
+    bg: "rgba(198,217,45,0.35)",
+    text: "#0B2E59",
+  },
+  "Propuesta inicial del equipo": {
+    label: "Propuesta inicial del equipo",
+    bg: "rgba(26,155,176,0.2)",
+    text: "#0B2E59",
+  },
 };
 
 export const CIRCLE_STATUS_BADGE: Record<string, ActivityBadge> = {
