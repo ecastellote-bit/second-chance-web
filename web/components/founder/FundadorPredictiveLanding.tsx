@@ -61,14 +61,11 @@ function BarrioHookCard({
 
 export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Props) {
   const copy = FUNDADOR_LANDING_COPY;
-  const secondaryHref = qualified || preview ? "/plaza" : "/barrio";
-  const secondaryLabel =
-    qualified || preview ? copy.qualifiedSecondaryCta : copy.secondaryCta;
 
   return (
     <main className="min-h-[100dvh] bg-[#F8FAFC] font-[family-name:var(--font-inter)] text-[#243647]">
-      {/* ── Hero: primer viewport ── */}
-      <section className="relative mx-auto flex min-h-[100dvh] max-w-lg flex-col">
+      {/* ── Hero: primer viewport (deja asomar el barrio) ── */}
+      <section className="relative mx-auto flex min-h-[92dvh] max-w-lg flex-col">
         <div className="absolute inset-0 overflow-hidden">
           <VuWarmImage
             src={FUNDADOR_HERO_ASSETS.src}
@@ -89,7 +86,7 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
           />
         </div>
 
-        <div className="relative z-10 flex flex-1 flex-col justify-end px-4 pb-5 pt-10">
+        <div className="relative z-10 flex flex-1 flex-col justify-end px-4 pb-3 pt-8">
           {previewMsg ? (
             <p
               className={[
@@ -124,14 +121,14 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
                 {copy.primaryCta}
               </Link>
               <Link
-                href={secondaryHref}
+                href="/plaza"
                 className="vu-focus inline-flex min-h-[3rem] items-center justify-center rounded-2xl border-2 border-[#0B2E59]/15 bg-white px-5 text-[14px] font-semibold text-[#0B2E59] active:scale-[0.99]"
               >
-                {secondaryLabel}
+                {copy.secondaryCta}
               </Link>
             </div>
 
-            <p className="mt-3 text-center text-[12px] font-medium leading-relaxed text-[#6B7A8C]">
+            <p className="mt-3 text-center text-[12px] font-semibold leading-relaxed text-[#243647]">
               {copy.microcopy}
             </p>
           </div>
@@ -139,7 +136,7 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
       </section>
 
       {/* ── Barrio hooks ── */}
-      <section className="mx-auto max-w-lg px-4 pb-8 pt-2">
+      <section className="relative z-10 mx-auto -mt-1 max-w-lg px-4 pb-8 pt-0">
         <h2 className="text-base font-bold text-[#0B2E59]">{copy.barrioSectionTitle}</h2>
         <div className="-mx-4 mt-3 flex gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {FUNDADOR_BARRIO_HOOKS.map((hook) => (

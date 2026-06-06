@@ -3,15 +3,14 @@ export const FUNDADOR_LANDING_COPY = {
   eyebrow: "VOCATIONUP · SECOND CHANCE",
   title: "Encontrá tu próximo movimiento",
   subtitle:
-    "Una lectura inicial para adultos que sienten que su trabajo o etapa actual ya no los representa.",
+    "Una lectura inicial para adultos que necesitan reordenar su camino y encontrar su próximo movimiento real.",
   trustChips: ["Sin costo", "Sin tarjeta", "7–10 min", "Privado"] as const,
   primaryCta: "Empezar mi lectura sin costo",
-  secondaryCta: "Ver proyectos y comunidad",
-  microcopy: "No te vamos a pedir tarjeta ni pago al final.",
+  secondaryCta: "Explorar la plaza",
+  microcopy: "Sin costo real. No te vamos a pedir tarjeta ni pago al final.",
   narrativeLine: "Empezá sin costo. Recibí tu lectura. Después decidís cómo seguir.",
   barrioSectionTitle: "También hay un barrio empezando a moverse",
   alreadyHaveReadingCta: "Ya tengo mi lectura",
-  qualifiedSecondaryCta: "Ir a tu plaza",
 } as const;
 
 export const FUNDADOR_BARRIO_HOOKS = [
@@ -33,19 +32,11 @@ export const FUNDADOR_BARRIO_HOOKS = [
   },
   {
     id: "activate",
-    title: "Oportunidades para activarte",
+    title: "Oportunidades activas",
     cta: "Explorar",
     href: "/eventos",
     image: "/vu/evento-emprende-proposito.png",
     fallbackImage: "/vu/evento-ideas-comunidad.png",
-  },
-  {
-    id: "circles",
-    title: "Círculos para conectar",
-    cta: "Ver círculos",
-    href: "/circulos",
-    image: "/vu/circulo-encuentros-presenciales.png",
-    fallbackImage: "/vu/circulo-creatividad-cotidiana.png",
   },
 ] as const;
 
