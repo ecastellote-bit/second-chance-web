@@ -370,7 +370,7 @@ export const TEAM_SEED_IMAGE_PATHS = {
 /**
  * Manifiesto de imágenes oficiales — orden de tanda = índice batchOrder.
  * Copiar cada archivo generado a targetPath bajo web/public/ (jpg o png; actualizar extensión en seed si hace falta).
- * Tanda 1 (ítems 1–9): ya cableada en seeds arriba. Tanda 2 (10–14): eventos regionales. #10 opcional: hero /fundador.
+ * Tanda 1 (ítems 1–10): proyectos, círculos, CABA y Tucumán. Tanda 2 (11–14): Córdoba, La Plata, Rosario, Santa Fe. Hero /fundador: pendiente, sin swap automático.
  */
 export const TEAM_SEED_IMAGE_MANIFEST = [
   {
@@ -467,13 +467,12 @@ export const TEAM_SEED_IMAGE_MANIFEST = [
   {
     batchOrder: 10,
     batch: 1 as const,
-    targetPath: `${BASE}/hero/fundador-primera-pantalla.jpg`,
-    kind: "hero" as const,
-    seedId: null,
-    title: "Hero opcional /fundador",
-    uiDescription: "Primera pantalla predictiva — reemplaza patio-vivo cuando se confirme.",
-    usedIn: ["/fundador FUNDADOR_HERO_ASSETS (manual swap)"],
-    optional: true,
+    targetPath: `${BASE}/events/mesa-second-chance-tucuman.jpg`,
+    kind: "event" as const,
+    seedId: "mesa-sc-tucuman",
+    title: "Primera Mesa Second Chance · Tucumán",
+    uiDescription: "Encuentro tentativo — mesa barrial en San Miguel de Tucumán.",
+    usedIn: ["/eventos", "/eventos/mesa-sc-tucuman"],
   },
   {
     batchOrder: 11,
@@ -522,12 +521,13 @@ export const TEAM_SEED_IMAGE_MANIFEST = [
   {
     batchOrder: 15,
     batch: 2 as const,
-    targetPath: `${BASE}/events/mesa-second-chance-tucuman.jpg`,
-    kind: "event" as const,
-    seedId: "mesa-sc-tucuman",
-    title: "Primera Mesa Second Chance · Tucumán",
-    uiDescription: "Encuentro tentativo — pendiente tanda 2.",
-    usedIn: ["/eventos", "/eventos/mesa-sc-tucuman"],
+    targetPath: `${BASE}/hero/fundador-primera-pantalla.jpg`,
+    kind: "hero" as const,
+    seedId: null,
+    title: "Hero opcional /fundador",
+    uiDescription: "Primera pantalla predictiva — pendiente tanda aparte; no reemplaza patio-vivo automáticamente.",
+    usedIn: ["/fundador FUNDADOR_HERO_ASSETS (manual swap futuro)"],
+    optional: true,
     pendingAsset: true,
   },
 ] as const;
