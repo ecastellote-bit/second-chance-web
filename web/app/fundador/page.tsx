@@ -8,10 +8,7 @@ import {
   isFounderCommunityPreviewActive,
 } from "@/lib/founder/communityPreviewBypass";
 import { isFoundingMemberQualified } from "@/lib/learning/foundationalMember";
-import {
-  buildFundadorViewPayload,
-  trackObservatoryEventOnce,
-} from "@/lib/observatory/client";
+import { trackFounderView } from "@/lib/founder/founderConversionTelemetry";
 
 function FundadorPageContent() {
   const searchParams = useSearchParams();
@@ -20,7 +17,7 @@ function FundadorPageContent() {
   const [previewMsg, setPreviewMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    trackObservatoryEventOnce("funnel.fundador_view", "campaign", buildFundadorViewPayload());
+    trackFounderView();
   }, []);
 
   useEffect(() => {

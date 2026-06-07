@@ -27,7 +27,24 @@ export type ObservatoryEventType =
   | "surface_interest_submitted"
   | "surface_interest_email_requested"
   | "surface_interest_email_submitted"
-  | "surface_interest_profile_invite_clicked";
+  | "surface_interest_profile_invite_clicked"
+  | "founder.view"
+  | "founder.primary_cta_click"
+  | "founder.secondary_cta_click"
+  | "founder.microgate_opened"
+  | "founder.microgate_option_selected"
+  | "founder.microgate_continue_click"
+  | "founder.microgate_secondary_click"
+  | "founder.sticky_nudge_shown"
+  | "founder.sticky_nudge_click"
+  | "founder.exit_modal_shown"
+  | "founder.exit_feedback_selected"
+  | "founder.exit_feedback_text_started"
+  | "founder.exit_feedback_submitted"
+  | "founder.exit_continue_click"
+  | "founder.scroll_25"
+  | "founder.scroll_50"
+  | "founder.scroll_75";
 
 export type ObservatoryEvent = {
   id: string;

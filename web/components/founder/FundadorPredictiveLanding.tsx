@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LiveActivityPanel } from "@/components/community/LiveActivityPanel";
+import { FounderExitModal } from "@/components/founder/FounderExitModal";
 import { FounderMicroGate } from "@/components/founder/FounderMicroGate";
 import { FounderStickyNudge } from "@/components/founder/FounderStickyNudge";
 import { VuWarmImage } from "@/components/ui/VuWarmImage";
@@ -15,6 +16,14 @@ import {
   FUNDADOR_BARRIO_HOOKS,
   FUNDADOR_HERO_ASSETS,
 } from "@/lib/content/fundadorLandingCopy";
+import {
+  trackFounderConversion,
+  trackFounderConversionOnce,
+} from "@/lib/founder/founderConversionTelemetry";
+import {
+  useFounderExitIntercept,
+  useFounderScrollDepth,
+} from "@/lib/founder/useFounderLandingEngagement";
 
 type Props = {
   qualified: boolean;
@@ -110,10 +119,12 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
   const [microgateStep, setMicrogateStep] = useState<"choose" | "bridge">("choose");
   const [selectedOption, setSelectedOption] = useState<FounderMicrogateOptionId | null>(null);
   const [showSticky, setShowSticky] = useState(false);
+  const [exitOpen, setExitOpen] = useState(false);
 
   const markAction = useCallback(() => {
     setHasRelevantAction(true);
     setShowSticky(false);
+    setExitOpen(false);
   }, []);
 
   const openMicrogate = useCallback(() => {
@@ -121,7 +132,21 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
     setMicrogateStep("choose");
     setSelectedOption(null);
     markAction();
+    trackFounderConversion("founder.microgate_opened");
   }, [markAction]);
+
+  useFounderScrollDepth(true);
+
+  useFounderExitIntercept({
+    enabled: !hasRelevantAction && !exitOpen && !microgateOpen,
+    onTrigger: () => setExitOpen(true),
+  });
+
+  useEffect(() => {
+    if (showSticky && !hasRelevantAction) {
+      trackFounderConversionOnce("founder.sticky_nudge_shown");
+    }
+  }, [showSticky, hasRelevantAction]);
 
   useEffect(() => {
     if (hasRelevantAction || showSticky) return;
@@ -153,6 +178,7 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
   function handleSelectOption(id: FounderMicrogateOptionId) {
     setSelectedOption(id);
     setMicrogateStep("bridge");
+    trackFounderConversion("founder.microgate_option_selected", { selectedOption: id });
   }
 
   function handleCloseMicrogate() {
@@ -229,14 +255,20 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
           <div className="mt-5 flex flex-col gap-2.5">
             <button
               type="button"
-              onClick={openMicrogate}
+              onClick={() => {
+                trackFounderConversion("founder.primary_cta_click");
+                openMicrogate();
+              }}
               className="vu-focus inline-flex min-h-[3.5rem] items-center justify-center rounded-2xl bg-[#C6D92D] px-5 text-[16px] font-extrabold text-[#0B2E59] shadow-[0_8px_32px_rgba(198,217,45,0.4)] active:scale-[0.98]"
             >
               {copy.primaryCta}
             </button>
             <Link
               href="/barrio"
-              onClick={markAction}
+              onClick={() => {
+                trackFounderConversion("founder.secondary_cta_click");
+                markAction();
+              }}
               className="vu-focus inline-flex min-h-[3rem] items-center justify-center rounded-2xl border-2 border-white/25 bg-white/8 px-5 text-[14px] font-semibold text-white backdrop-blur-sm active:scale-[0.98]"
             >
               {copy.secondaryCta}
@@ -300,17 +332,37 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
         selectedId={selectedOption}
         onClose={handleCloseMicrogate}
         onSelectOption={handleSelectOption}
-        onContinueReading={markAction}
-        onSecondaryBarrio={markAction}
+        onContinueReading={() => {
+          trackFounderConversion("founder.microgate_continue_click", {
+            selectedOption: selectedOption ?? "unknown",
+          });
+          markAction();
+        }}
+        onSecondaryBarrio={() => {
+          trackFounderConversion("founder.microgate_secondary_click", {
+            selectedOption: selectedOption ?? "unknown",
+          });
+          markAction();
+        }}
       />
 
       <FounderStickyNudge
         visible={showSticky && !hasRelevantAction && !microgateOpen}
-        onPrimary={openMicrogate}
+        onPrimary={() => {
+          trackFounderConversion("founder.sticky_nudge_click", { action: "primary" });
+          openMicrogate();
+        }}
         onSecondary={() => {
+          trackFounderConversion("founder.sticky_nudge_click", { action: "secondary" });
           markAction();
           router.push("/barrio");
         }}
+      />
+
+      <FounderExitModal
+        open={exitOpen && !hasRelevantAction}
+        onClose={() => setExitOpen(false)}
+        onTrySixty={openMicrogate}
       />
     </main>
   );

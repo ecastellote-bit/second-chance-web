@@ -50,3 +50,7 @@ next-env.d.ts
 # surface interest leads (PII — local dev only, never commit)
 /data/surface-interest-leads.jsonl
 /data/surface-interest-leads*.jsonl
+
+# founder exit feedback (PII — local dev only, never commit)
+/data/founder-exit-feedback.jsonl
+/data/founder-exit-feedback*.jsonl
