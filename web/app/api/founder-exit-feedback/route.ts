@@ -6,8 +6,12 @@ import {
   type FounderExitFeedbackOptionId,
 } from "@/lib/content/fundadorExitCopy";
 import {
+  resolveFounderExitSubmitMode,
+} from "@/lib/content/fundadorExitCopy";
+import {
   createFounderExitFeedback,
   FounderExitFeedbackStoreError,
+  getFounderExitFeedbackStoreMeta,
 } from "@/lib/learning/founderExitFeedback";
 
 export const dynamic = "force-dynamic";
@@ -24,10 +28,11 @@ export async function POST(req: Request) {
     }
 
     let body: {
-      selectedOption?: string;
+      selectedOption?: string | null;
       freeText?: string;
       sessionId?: string;
       path?: string;
+      exitTrigger?: string;
     };
     try {
       body = JSON.parse(rawBody) as typeof body;
@@ -35,12 +40,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "invalid_json" }, { status: 400 });
     }
 
-    const selectedOption = body.selectedOption?.trim() as FounderExitFeedbackOptionId;
+    const rawOption =
+      typeof body.selectedOption === "string" ? body.selectedOption.trim() : null;
+    const selectedOption =
+      rawOption && VALID_OPTIONS.has(rawOption as FounderExitFeedbackOptionId)
+        ? (rawOption as FounderExitFeedbackOptionId)
+        : null;
     const freeText =
       typeof body.freeText === "string" ? body.freeText.trim().slice(0, FOUNDER_EXIT_TEXT_MAX) : "";
 
-    if (!selectedOption || !VALID_OPTIONS.has(selectedOption)) {
-      return NextResponse.json({ ok: false, error: "invalid_option" }, { status: 400 });
+    if (!selectedOption && !freeText) {
+      return NextResponse.json({ ok: false, error: "empty_feedback" }, { status: 400 });
     }
 
     const record = await createFounderExitFeedback({
@@ -48,9 +58,16 @@ export async function POST(req: Request) {
       freeText: freeText || null,
       sessionId: typeof body.sessionId === "string" ? body.sessionId.trim().slice(0, 64) : null,
       path: typeof body.path === "string" ? body.path.trim().slice(0, 120) : null,
+      exitTrigger:
+        typeof body.exitTrigger === "string" ? body.exitTrigger.trim().slice(0, 40) : null,
     });
 
-    return NextResponse.json({ ok: true, feedbackId: record.feedbackId });
+    return NextResponse.json({
+      ok: true,
+      feedbackId: record.feedbackId,
+      submitMode: resolveFounderExitSubmitMode(selectedOption, freeText || null),
+      store: getFounderExitFeedbackStoreMeta(),
+    });
   } catch (error) {
     if (error instanceof FounderExitFeedbackStoreError) {
       return NextResponse.json(

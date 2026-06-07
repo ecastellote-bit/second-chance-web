@@ -7,19 +7,32 @@ import {
   FUNDADOR_EXIT_COPY,
   type FounderExitFeedbackOptionId,
 } from "@/lib/content/fundadorExitCopy";
+import type { FounderExitTrigger } from "@/lib/founder/useFounderLandingEngagement";
 import {
   getFounderSessionId,
   trackFounderConversion,
 } from "@/lib/founder/founderConversionTelemetry";
+import {
+  resolveFounderExitSubmitMode,
+} from "@/lib/content/fundadorExitCopy";
 
 type Props = {
   open: boolean;
+  exitTrigger?: FounderExitTrigger;
   onClose: () => void;
   onTrySixty: () => void;
   onLeaveAfterSubmit?: () => void;
+  onMarkAction?: () => void;
 };
 
-export function FounderExitModal({ open, onClose, onTrySixty, onLeaveAfterSubmit }: Props) {
+export function FounderExitModal({
+  open,
+  exitTrigger = "unknown_exit_attempt",
+  onClose,
+  onTrySixty,
+  onLeaveAfterSubmit,
+  onMarkAction,
+}: Props) {
   const [selected, setSelected] = useState<FounderExitFeedbackOptionId | null>(null);
   const [freeText, setFreeText] = useState("");
   const [textStarted, setTextStarted] = useState(false);
@@ -47,10 +60,12 @@ export function FounderExitModal({ open, onClose, onTrySixty, onLeaveAfterSubmit
   if (!open) return null;
 
   async function handleSubmitAndLeave() {
-    if (!selected) {
-      setError("Elegí una opción antes de enviar.");
+    const trimmedText = freeText.trim();
+    if (!selected && !trimmedText) {
+      setError(FUNDADOR_EXIT_COPY.emptyFeedbackError);
       return;
     }
+
     setSubmitting(true);
     setError("");
     try {
@@ -59,21 +74,25 @@ export function FounderExitModal({ open, onClose, onTrySixty, onLeaveAfterSubmit
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           selectedOption: selected,
-          freeText: freeText.trim() || null,
+          freeText: trimmedText || null,
           sessionId: getFounderSessionId(),
           path: "/fundador",
+          exitTrigger,
         }),
       });
-      const data = (await res.json()) as { ok?: boolean };
+      const data = (await res.json()) as { ok?: boolean; submitMode?: string };
+      const submitMode = resolveFounderExitSubmitMode(selected, trimmedText || null);
       trackFounderConversion("founder.exit_feedback_submitted", {
-        selectedOption: selected,
-        freeTextLength: freeText.trim().length,
+        selectedOption: selected ?? "none",
+        freeTextLength: trimmedText.length,
+        submitMode,
         success: res.ok && data.ok ? 1 : 0,
       });
       if (!res.ok || !data.ok) {
         setError("No pudimos guardar la señal. Podés salir igual.");
         return;
       }
+      onMarkAction?.();
       onLeaveAfterSubmit?.();
       onClose();
     } finally {
@@ -167,6 +186,7 @@ export function FounderExitModal({ open, onClose, onTrySixty, onLeaveAfterSubmit
               type="button"
               onClick={() => {
                 trackFounderConversion("founder.exit_continue_click", { action: "try_sixty" });
+                onMarkAction?.();
                 onTrySixty();
                 onClose();
               }}
@@ -175,9 +195,10 @@ export function FounderExitModal({ open, onClose, onTrySixty, onLeaveAfterSubmit
               {FUNDADOR_EXIT_COPY.trySixty}
             </button>
             <Link
-              href="/barrio"
+              href="/proyectos"
               onClick={() => {
                 trackFounderConversion("founder.exit_continue_click", { action: "see_projects" });
+                onMarkAction?.();
                 onClose();
               }}
               className="vu-focus inline-flex min-h-[44px] items-center justify-center rounded-xl border border-[#1A9BB0]/40 px-4 text-[14px] font-semibold text-[#1A9BB0]"

@@ -3,6 +3,25 @@
 import { useEffect, useRef } from "react";
 import { trackFounderConversionOnce } from "@/lib/founder/founderConversionTelemetry";
 
+export type FounderExitTrigger =
+  | "browser_back"
+  | "desktop_exit_intent"
+  | "external_navigation"
+  | "unknown_exit_attempt";
+
+const EXIT_MODAL_SESSION_KEY = "vu_founder_exit_modal_shown";
+const BACK_GUARD_STATE_KEY = "vu_founder_back_guard";
+
+export function isFounderExitModalShownThisSession(): boolean {
+  if (typeof window === "undefined") return false;
+  return sessionStorage.getItem(EXIT_MODAL_SESSION_KEY) === "1";
+}
+
+export function markFounderExitModalShownThisSession(): void {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(EXIT_MODAL_SESSION_KEY, "1");
+}
+
 export function useFounderScrollDepth(enabled: boolean): void {
   const sent = useRef({ p25: false, p50: false, p75: false });
 
@@ -17,21 +36,15 @@ export function useFounderScrollDepth(enabled: boolean): void {
 
       if (depth >= 0.25 && !sent.current.p25) {
         sent.current.p25 = true;
-        trackFounderConversionOnce("founder.scroll_25", {
-          scrollDepth: 25,
-        });
+        trackFounderConversionOnce("founder.scroll_25", { scrollDepth: 25 });
       }
       if (depth >= 0.5 && !sent.current.p50) {
         sent.current.p50 = true;
-        trackFounderConversionOnce("founder.scroll_50", {
-          scrollDepth: 50,
-        });
+        trackFounderConversionOnce("founder.scroll_50", { scrollDepth: 50 });
       }
       if (depth >= 0.75 && !sent.current.p75) {
         sent.current.p75 = true;
-        trackFounderConversionOnce("founder.scroll_75", {
-          scrollDepth: 75,
-        });
+        trackFounderConversionOnce("founder.scroll_75", { scrollDepth: 75 });
       }
     }
 
@@ -43,67 +56,45 @@ export function useFounderScrollDepth(enabled: boolean): void {
 
 type ExitInterceptOptions = {
   enabled: boolean;
-  onTrigger: () => void;
-  inactivityMs?: number;
-  scrollDepthTrigger?: number;
+  onTrigger: (exitTrigger: FounderExitTrigger) => void;
 };
 
-export function useFounderExitIntercept({
-  enabled,
-  onTrigger,
-  inactivityMs = 25000,
-  scrollDepthTrigger = 0.58,
-}: ExitInterceptOptions): void {
-  const triggered = useRef(false);
-  const lastActivity = useRef(Date.now());
+/** Exit modal sólo ante intento real de salida — nunca por scroll ni inactividad. */
+export function useFounderExitIntercept({ enabled, onTrigger }: ExitInterceptOptions): void {
+  const onTriggerRef = useRef(onTrigger);
+  onTriggerRef.current = onTrigger;
 
   useEffect(() => {
     if (!enabled) return;
+    if (isFounderExitModalShownThisSession()) return;
 
-    function maybeTrigger(reason: string) {
-      if (triggered.current) return;
-      triggered.current = true;
-      onTrigger();
-      trackFounderConversionOnce("founder.exit_modal_shown", { triggerReason: reason });
+    window.history.pushState({ [BACK_GUARD_STATE_KEY]: true }, "");
+
+    function handlePopState() {
+      if (isFounderExitModalShownThisSession()) return;
+      markFounderExitModalShownThisSession();
+      onTriggerRef.current("browser_back");
+      window.history.pushState({ [BACK_GUARD_STATE_KEY]: true }, "");
     }
 
-    function bumpActivity() {
-      lastActivity.current = Date.now();
-    }
-
-    function onScroll() {
-      bumpActivity();
-      const doc = document.documentElement;
-      const max = doc.scrollHeight - window.innerHeight;
-      if (max <= 0) return;
-      if (window.scrollY / max >= scrollDepthTrigger) {
-        maybeTrigger("scroll_depth");
+    function handleMouseOut(event: MouseEvent) {
+      if (window.innerWidth < 768) return;
+      if (event.clientY > 12) return;
+      const related = event.relatedTarget;
+      if (related && related instanceof Node && document.documentElement.contains(related)) {
+        return;
       }
+      if (isFounderExitModalShownThisSession()) return;
+      markFounderExitModalShownThisSession();
+      onTriggerRef.current("desktop_exit_intent");
     }
 
-    function onVisibility() {
-      if (document.visibilityState === "hidden") {
-        maybeTrigger("visibility_hidden");
-      }
-    }
-
-    const inactivityTimer = window.setInterval(() => {
-      if (Date.now() - lastActivity.current >= inactivityMs) {
-        maybeTrigger("inactivity");
-      }
-    }, 3000);
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("pointerdown", bumpActivity, { passive: true });
-    window.addEventListener("keydown", bumpActivity);
-    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("popstate", handlePopState);
+    document.addEventListener("mouseout", handleMouseOut);
 
     return () => {
-      window.clearInterval(inactivityTimer);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("pointerdown", bumpActivity);
-      window.removeEventListener("keydown", bumpActivity);
-      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("popstate", handlePopState);
+      document.removeEventListener("mouseout", handleMouseOut);
     };
-  }, [enabled, inactivityMs, onTrigger, scrollDepthTrigger]);
+  }, [enabled]);
 }

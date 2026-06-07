@@ -21,6 +21,7 @@ import {
   trackFounderConversionOnce,
 } from "@/lib/founder/founderConversionTelemetry";
 import {
+  type FounderExitTrigger,
   useFounderExitIntercept,
   useFounderScrollDepth,
 } from "@/lib/founder/useFounderLandingEngagement";
@@ -90,12 +91,23 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
   const [selectedOption, setSelectedOption] = useState<FounderMicrogateOptionId | null>(null);
   const [showSticky, setShowSticky] = useState(false);
   const [exitOpen, setExitOpen] = useState(false);
+  const [exitTrigger, setExitTrigger] = useState<FounderExitTrigger>("unknown_exit_attempt");
 
   const markAction = useCallback(() => {
     setHasRelevantAction(true);
     setShowSticky(false);
     setExitOpen(false);
   }, []);
+
+  const handleExitTrigger = useCallback(
+    (trigger: FounderExitTrigger) => {
+      if (hasRelevantAction) return;
+      setExitTrigger(trigger);
+      setExitOpen(true);
+      trackFounderConversion("founder.exit_modal_shown", { exitTrigger: trigger });
+    },
+    [hasRelevantAction],
+  );
 
   const openMicrogate = useCallback(() => {
     setMicrogateOpen(true);
@@ -109,7 +121,7 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
 
   useFounderExitIntercept({
     enabled: !hasRelevantAction && !exitOpen && !microgateOpen,
-    onTrigger: () => setExitOpen(true),
+    onTrigger: handleExitTrigger,
   });
 
   useEffect(() => {
@@ -148,6 +160,7 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
   function handleSelectOption(id: FounderMicrogateOptionId) {
     setSelectedOption(id);
     setMicrogateStep("bridge");
+    markAction();
     trackFounderConversion("founder.microgate_option_selected", { selectedOption: id });
   }
 
@@ -341,8 +354,13 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
 
       <FounderExitModal
         open={exitOpen && !hasRelevantAction}
+        exitTrigger={exitTrigger}
         onClose={() => setExitOpen(false)}
         onTrySixty={openMicrogate}
+        onMarkAction={markAction}
+        onLeaveAfterSubmit={() => {
+          if (typeof window !== "undefined") window.history.back();
+        }}
       />
     </main>
   );

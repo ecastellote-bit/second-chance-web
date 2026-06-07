@@ -13,7 +13,8 @@ export const FUNDADOR_EXIT_COPY = {
   title: "Antes de irte, marcá una señal.",
   subtitle: "¿Qué te faltó para dar el siguiente paso?",
   freeTextLabel: "¿Querés contarnos con tus palabras qué te frenó?",
-  freeTextPlaceholder: "Opcional — una línea alcanza.",
+  freeTextPlaceholder: "Escribí brevemente qué te hizo salir o qué no terminó de cerrar…",
+  emptyFeedbackError: "Marcá una opción o escribí una breve señal antes de enviar.",
   submitAndLeave: "Enviar y salir",
   trySixty: "Probar 60 segundos",
   seeProjects: "Ver proyectos",
@@ -30,3 +31,16 @@ export const FUNDADOR_EXIT_COPY = {
 
 export const FOUNDER_EXIT_TEXT_MAX = 500;
 export const FOUNDER_EXIT_BODY_MAX_BYTES = 4096;
+
+export type FounderExitSubmitMode = "option_only" | "text_only" | "option_and_text";
+
+export function resolveFounderExitSubmitMode(
+  selectedOption: FounderExitFeedbackOptionId | null,
+  freeText: string | null,
+): FounderExitSubmitMode {
+  const hasOption = Boolean(selectedOption);
+  const hasText = Boolean(freeText?.trim());
+  if (hasOption && hasText) return "option_and_text";
+  if (hasText) return "text_only";
+  return "option_only";
+}

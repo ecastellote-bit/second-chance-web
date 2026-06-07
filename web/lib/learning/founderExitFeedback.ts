@@ -1,21 +1,25 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { get, list, put } from "@vercel/blob";
+import { put } from "@vercel/blob";
 import {
   assertVercelBlobForProduction,
   isVercelBlobConfigured,
-  requiresVercelBlob,
 } from "@/lib/storage/vercelBlobEnv";
-import type { FounderExitFeedbackOptionId } from "@/lib/content/fundadorExitCopy";
+import type { FounderExitFeedbackOptionId, FounderExitSubmitMode } from "@/lib/content/fundadorExitCopy";
+import { resolveFounderExitSubmitMode } from "@/lib/content/fundadorExitCopy";
+
+export type { FounderExitSubmitMode };
 
 export type FounderExitFeedbackRecord = {
   recordType: "founder_exit_feedback";
   feedbackId: string;
-  selectedOption: FounderExitFeedbackOptionId;
+  selectedOption: FounderExitFeedbackOptionId | null;
+  submitMode: FounderExitSubmitMode;
   freeText?: string | null;
   freeTextLength: number;
   sessionId?: string | null;
   path?: string | null;
+  exitTrigger?: string | null;
   createdAt: string;
   status: "new" | "reviewed" | "archived";
 };
@@ -54,8 +58,11 @@ function assertStore(operation: string): void {
 function parseLine(raw: string): FounderExitFeedbackRecord | null {
   try {
     const parsed = JSON.parse(raw) as FounderExitFeedbackRecord;
-    if (!parsed?.feedbackId || !parsed?.selectedOption) return null;
+    if (!parsed?.feedbackId) return null;
     if (parsed.recordType && parsed.recordType !== "founder_exit_feedback") return null;
+    const hasOption = Boolean(parsed.selectedOption);
+    const hasText = (parsed.freeTextLength ?? 0) > 0 || Boolean(parsed.freeText?.trim());
+    if (!hasOption && !hasText) return null;
     return parsed;
   } catch {
     return null;
@@ -96,21 +103,25 @@ async function writeLocal(record: FounderExitFeedbackRecord): Promise<void> {
 }
 
 export async function createFounderExitFeedback(input: {
-  selectedOption: FounderExitFeedbackOptionId;
+  selectedOption?: FounderExitFeedbackOptionId | null;
   freeText?: string | null;
   sessionId?: string | null;
   path?: string | null;
+  exitTrigger?: string | null;
 }): Promise<FounderExitFeedbackRecord> {
   assertStore("create");
   const freeText = input.freeText?.trim().slice(0, 500) ?? null;
+  const selectedOption = input.selectedOption ?? null;
   const record: FounderExitFeedbackRecord = {
     recordType: "founder_exit_feedback",
     feedbackId: `fef_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
-    selectedOption: input.selectedOption,
+    selectedOption,
+    submitMode: resolveFounderExitSubmitMode(selectedOption, freeText),
     freeText: freeText || null,
     freeTextLength: freeText?.length ?? 0,
     sessionId: input.sessionId ?? null,
     path: input.path ?? null,
+    exitTrigger: input.exitTrigger ?? null,
     createdAt: new Date().toISOString(),
     status: "new",
   };
@@ -122,4 +133,17 @@ export async function createFounderExitFeedback(input: {
   }
 
   return record;
+}
+
+export function getFounderExitFeedbackStoreMeta(): {
+  backend: "blob" | "local_jsonl";
+  durable: boolean;
+  blobConfigured: boolean;
+} {
+  const blobConfigured = isVercelBlobConfigured();
+  return {
+    backend: blobConfigured ? "blob" : "local_jsonl",
+    durable: blobConfigured,
+    blobConfigured,
+  };
 }
