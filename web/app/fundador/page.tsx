@@ -37,11 +37,16 @@ function FundadorPageContent() {
     }
   }, [searchParams]);
 
+  const debugFounderExit =
+    process.env.NODE_ENV === "development" &&
+    searchParams.get("debugFounderExit") === "1";
+
   return (
     <FundadorPredictiveLanding
       qualified={qualified}
       preview={preview}
       previewMsg={previewMsg}
+      debugFounderExit={debugFounderExit}
     />
   );
 }

@@ -22,14 +22,18 @@ import {
 } from "@/lib/founder/founderConversionTelemetry";
 import {
   type FounderExitTrigger,
+  isFounderExitModalShownThisSession,
+  markFounderExitModalShownThisSession,
   useFounderExitIntercept,
   useFounderScrollDepth,
 } from "@/lib/founder/useFounderLandingEngagement";
+import { FounderExitDebugOverlay } from "@/components/founder/FounderExitDebugOverlay";
 
 type Props = {
   qualified: boolean;
   preview: boolean;
   previewMsg: string | null;
+  debugFounderExit?: boolean;
 };
 
 function HeroChip({ label }: { label: string }) {
@@ -80,7 +84,12 @@ function BarrioHookCard({
   );
 }
 
-export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Props) {
+export function FundadorPredictiveLanding({
+  qualified,
+  preview,
+  previewMsg,
+  debugFounderExit = false,
+}: Props) {
   const copy = FUNDADOR_HERO_COPY;
   const router = useRouter();
   const barrioSectionRef = useRef<HTMLElement>(null);
@@ -92,6 +101,11 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
   const [showSticky, setShowSticky] = useState(false);
   const [exitOpen, setExitOpen] = useState(false);
   const [exitTrigger, setExitTrigger] = useState<FounderExitTrigger>("unknown_exit_attempt");
+  const fundadorGuardUrlRef = useRef("/fundador");
+
+  useEffect(() => {
+    fundadorGuardUrlRef.current = `${window.location.pathname}${window.location.search}`;
+  }, []);
 
   const markAction = useCallback(() => {
     setHasRelevantAction(true);
@@ -102,12 +116,26 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
   const handleExitTrigger = useCallback(
     (trigger: FounderExitTrigger) => {
       if (hasRelevantAction) return;
+      if (isFounderExitModalShownThisSession()) return;
+      markFounderExitModalShownThisSession();
       setExitTrigger(trigger);
       setExitOpen(true);
       trackFounderConversion("founder.exit_modal_shown", { exitTrigger: trigger });
+      if (debugFounderExit) {
+        console.debug("[founder-exit] exit modal opened", { exitTrigger: trigger });
+      }
     },
-    [hasRelevantAction],
+    [hasRelevantAction, debugFounderExit],
   );
+
+  const getShouldIntercept = useCallback(
+    () => !hasRelevantAction && !exitOpen && !microgateOpen,
+    [hasRelevantAction, exitOpen, microgateOpen],
+  );
+
+  const restoreFundadorRoute = useCallback(() => {
+    router.replace(fundadorGuardUrlRef.current);
+  }, [router]);
 
   const openMicrogate = useCallback(() => {
     setMicrogateOpen(true);
@@ -119,9 +147,12 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
 
   useFounderScrollDepth(true);
 
-  useFounderExitIntercept({
-    enabled: !hasRelevantAction && !exitOpen && !microgateOpen,
+  const exitDebugSnapshot = useFounderExitIntercept({
+    getShouldIntercept,
     onTrigger: handleExitTrigger,
+    onRestoreRoute: restoreFundadorRoute,
+    debug: debugFounderExit,
+    debugHasRelevantAction: hasRelevantAction,
   });
 
   useEffect(() => {
@@ -362,6 +393,8 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
           if (typeof window !== "undefined") window.history.back();
         }}
       />
+
+      {debugFounderExit ? <FounderExitDebugOverlay snapshot={exitDebugSnapshot} /> : null}
     </main>
   );
 }
