@@ -92,7 +92,9 @@ export function FounderExitModal({
         setError("No pudimos guardar la señal. Podés salir igual.");
         return;
       }
-      onMarkAction?.();
+      if (exitTrigger !== "soft_feedback_nudge") {
+        onMarkAction?.();
+      }
       onLeaveAfterSubmit?.();
       onClose();
     } finally {

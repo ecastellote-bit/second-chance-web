@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { LiveActivityPanel } from "@/components/community/LiveActivityPanel";
 import { FounderExitModal } from "@/components/founder/FounderExitModal";
 import { FounderMicroGate } from "@/components/founder/FounderMicroGate";
+import { FounderSoftFeedbackNudge } from "@/components/founder/FounderSoftFeedbackNudge";
 import { FounderStickyNudge } from "@/components/founder/FounderStickyNudge";
 import { VuWarmImage } from "@/components/ui/VuWarmImage";
 import {
@@ -28,6 +29,11 @@ import {
   useFounderScrollDepth,
 } from "@/lib/founder/useFounderLandingEngagement";
 import { FounderExitDebugOverlay } from "@/components/founder/FounderExitDebugOverlay";
+import {
+  markSoftFeedbackNudgeDoneThisSession,
+  useFounderSoftFeedbackNudge,
+  type SoftFeedbackNudgeReason,
+} from "@/lib/founder/useFounderSoftFeedbackNudge";
 
 type Props = {
   qualified: boolean;
@@ -93,12 +99,14 @@ export function FundadorPredictiveLanding({
   const copy = FUNDADOR_HERO_COPY;
   const router = useRouter();
   const barrioSectionRef = useRef<HTMLElement>(null);
+  const activityBlockRef = useRef<HTMLDivElement>(null);
 
   const [hasRelevantAction, setHasRelevantAction] = useState(false);
   const [microgateOpen, setMicrogateOpen] = useState(false);
   const [microgateStep, setMicrogateStep] = useState<"choose" | "bridge">("choose");
   const [selectedOption, setSelectedOption] = useState<FounderMicrogateOptionId | null>(null);
   const [showSticky, setShowSticky] = useState(false);
+  const [showSoftFeedback, setShowSoftFeedback] = useState(false);
   const [exitOpen, setExitOpen] = useState(false);
   const [exitTrigger, setExitTrigger] = useState<FounderExitTrigger>("unknown_exit_attempt");
   const fundadorGuardUrlRef = useRef("/fundador");
@@ -110,10 +118,11 @@ export function FundadorPredictiveLanding({
   const markAction = useCallback(() => {
     setHasRelevantAction(true);
     setShowSticky(false);
+    setShowSoftFeedback(false);
     setExitOpen(false);
   }, []);
 
-  const handleExitTrigger = useCallback(
+  const handleAutoExitTrigger = useCallback(
     (trigger: FounderExitTrigger) => {
       if (hasRelevantAction) return;
       if (isFounderExitModalShownThisSession()) return;
@@ -122,11 +131,27 @@ export function FundadorPredictiveLanding({
       setExitOpen(true);
       trackFounderConversion("founder.exit_modal_shown", { exitTrigger: trigger });
       if (debugFounderExit) {
-        console.debug("[founder-exit] exit modal opened", { exitTrigger: trigger });
+        console.debug("[founder-exit] auto exit modal opened", { exitTrigger: trigger });
       }
     },
     [hasRelevantAction, debugFounderExit],
   );
+
+  const openExitFromSoftNudge = useCallback(() => {
+    setShowSoftFeedback(false);
+    setExitTrigger("soft_feedback_nudge");
+    setExitOpen(true);
+    trackFounderConversion("founder.soft_feedback_nudge_click", { action: "feedback" });
+    trackFounderConversion("founder.exit_feedback_modal_shown", {
+      exitTrigger: "soft_feedback_nudge",
+    });
+  }, []);
+
+  const handleSoftNudgeEligible = useCallback((reason: SoftFeedbackNudgeReason) => {
+    markSoftFeedbackNudgeDoneThisSession();
+    setShowSoftFeedback(true);
+    trackFounderConversionOnce("founder.soft_feedback_nudge_shown", { reason });
+  }, []);
 
   const getShouldIntercept = useCallback(
     () => !hasRelevantAction && !exitOpen && !microgateOpen,
@@ -149,10 +174,17 @@ export function FundadorPredictiveLanding({
 
   const exitDebugSnapshot = useFounderExitIntercept({
     getShouldIntercept,
-    onTrigger: handleExitTrigger,
+    onTrigger: handleAutoExitTrigger,
     onRestoreRoute: restoreFundadorRoute,
     debug: debugFounderExit,
     debugHasRelevantAction: hasRelevantAction,
+  });
+
+  useFounderSoftFeedbackNudge({
+    enabled: !hasRelevantAction && !showSoftFeedback && !exitOpen && !microgateOpen,
+    barrioSectionRef,
+    activityBlockRef,
+    onEligible: handleSoftNudgeEligible,
   });
 
   useEffect(() => {
@@ -317,10 +349,25 @@ export function FundadorPredictiveLanding({
           ))}
         </div>
 
-        <p className="mb-2 mt-5 text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">
-          {copy.activitySectionTitle}
-        </p>
-        <LiveActivityPanel variant="full" />
+        <FounderSoftFeedbackNudge
+          visible={showSoftFeedback && !hasRelevantAction && !microgateOpen}
+          onFeedback={openExitFromSoftNudge}
+          onTrySixty={() => {
+            trackFounderConversion("founder.soft_feedback_nudge_click", { action: "try_sixty" });
+            openMicrogate();
+          }}
+          onDismiss={() => {
+            setShowSoftFeedback(false);
+            trackFounderConversion("founder.soft_feedback_nudge_dismissed");
+          }}
+        />
+
+        <div ref={activityBlockRef}>
+          <p className="mb-2 mt-5 text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">
+            {copy.activitySectionTitle}
+          </p>
+          <LiveActivityPanel variant="full" />
+        </div>
       </section>
 
       <footer className="relative z-10 mx-auto max-w-lg border-t border-white/8 px-4 py-8 pb-28">
@@ -390,7 +437,10 @@ export function FundadorPredictiveLanding({
         onTrySixty={openMicrogate}
         onMarkAction={markAction}
         onLeaveAfterSubmit={() => {
-          if (typeof window !== "undefined") window.history.back();
+          if (typeof window === "undefined") return;
+          if (exitTrigger === "browser_back" || exitTrigger === "desktop_exit_intent") {
+            window.history.back();
+          }
         }}
       />
 

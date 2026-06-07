@@ -7,6 +7,7 @@ export type FounderExitTrigger =
   | "browser_back"
   | "desktop_exit_intent"
   | "external_navigation"
+  | "soft_feedback_nudge"
   | "unknown_exit_attempt";
 
 const EXIT_MODAL_SESSION_KEY = "vu_founder_exit_modal_shown";
