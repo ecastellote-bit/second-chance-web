@@ -10,12 +10,6 @@ export const FUNDADOR_HERO_COPY = {
   trustChips: ["SIN COSTO", "SIN TARJETA", "60 SEG INICIAL", "PRIVADO"] as const,
   barrioSectionTitle: "Ya hay un barrio empezando a moverse",
   activitySectionTitle: "Actividad fundadora en movimiento",
-  architectureTitle: "Una puerta, no un contenido",
-  architectureLines: [
-    "Lectura inicial orientadora",
-    "Proyectos y mesas semilla",
-    "Comunidad en formación",
-  ] as const,
   alreadyHaveReadingCta: "Ya tengo mi lectura",
 } as const;
 

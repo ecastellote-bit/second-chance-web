@@ -79,36 +79,6 @@ function BarrioHookCard({
   );
 }
 
-function ArchitectureStrip() {
-  const copy = FUNDADOR_HERO_COPY;
-  return (
-    <section className="relative overflow-hidden rounded-2xl border border-[#0B2E59]/10 bg-white p-4 shadow-[0_4px_20px_rgba(11,46,89,0.08)]">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage:
-            "linear-gradient(#0B2E59 1px, transparent 1px), linear-gradient(90deg, #0B2E59 1px, transparent 1px)",
-          backgroundSize: "20px 20px",
-        }}
-        aria-hidden
-      />
-      <p className="relative text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">
-        {copy.architectureTitle}
-      </p>
-      <ul className="relative mt-3 flex flex-col gap-2">
-        {copy.architectureLines.map((line, i) => (
-          <li key={line} className="flex items-center gap-3">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#0B2E59] text-[11px] font-bold text-[#C6D92D]">
-              {i + 1}
-            </span>
-            <span className="text-[13px] font-semibold text-[#0B2E59]">{line}</span>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
 export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Props) {
   const copy = FUNDADOR_HERO_COPY;
   const router = useRouter();
@@ -208,7 +178,7 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
             alt=""
             fill
             priority
-            className="object-cover scale-105"
+            className="object-cover brightness-[1.08] contrast-[1.02] saturate-[1.05]"
             style={{ objectPosition: FUNDADOR_HERO_ASSETS.objectPosition }}
             sizes="100vw"
           />
@@ -216,10 +186,18 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(180deg, rgba(7,16,24,0.35) 0%, rgba(11,46,89,0.72) 42%, rgba(7,16,24,0.96) 88%, #071018 100%)",
+                "linear-gradient(180deg, rgba(7,16,24,0.12) 0%, rgba(11,46,89,0.48) 36%, rgba(7,16,24,0.78) 72%, #071018 100%)",
             }}
           />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_20%,rgba(26,155,176,0.18),transparent_55%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_18%,rgba(26,155,176,0.14),transparent_58%)]" />
+          <div
+            className="absolute inset-x-0 bottom-0 h-[55%]"
+            style={{
+              background:
+                "linear-gradient(to top, rgba(7,16,24,0.92) 0%, rgba(7,16,24,0.45) 55%, transparent 100%)",
+            }}
+            aria-hidden
+          />
         </div>
 
         <div className="relative z-10 flex flex-1 flex-col justify-end px-4 pb-8 pt-10">
@@ -237,10 +215,16 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#1A9BB0]">
             {copy.eyebrow}
           </p>
-          <h1 className="mt-3 text-[2rem] font-extrabold leading-[1.06] tracking-tight text-white sm:text-[2.25rem]">
+          <h1
+            className="mt-3 text-[2rem] font-extrabold leading-[1.06] tracking-tight text-white sm:text-[2.25rem]"
+            style={{ textShadow: "0 2px 16px rgba(0,0,0,0.45)" }}
+          >
             {copy.title}
           </h1>
-          <p className="mt-3 max-w-[20rem] text-[15px] font-medium leading-snug text-white/88 sm:text-[16px]">
+          <p
+            className="mt-3 max-w-[20rem] text-[15px] font-medium leading-snug text-white/92 sm:text-[16px]"
+            style={{ textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}
+          >
             {copy.subtitle}
           </p>
 
@@ -280,12 +264,8 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
       {/* ── Barrio + vida ── */}
       <section
         ref={barrioSectionRef}
-        className="relative z-10 mx-auto max-w-lg px-4 pb-6 pt-2"
+        className="relative z-10 mx-auto max-w-lg px-4 pb-6 pt-0"
       >
-        <div className="mb-4">
-          <ArchitectureStrip />
-        </div>
-
         <h2 className="text-[15px] font-bold text-white/95">{copy.barrioSectionTitle}</h2>
         <div className="-mx-4 mt-3 flex gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {FUNDADOR_BARRIO_HOOKS.map((hook) => (
