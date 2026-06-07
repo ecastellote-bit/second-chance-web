@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
 import { PlazaDiagnosisPrompt } from "@/components/founder/DiagnosisFirstBanner";
-import { PlazaLivingPanel } from "@/components/plaza/PlazaLivingPanel";
+import { LiveActivityPanel } from "@/components/community/LiveActivityPanel";
 import {
   PLAZA_HEADER,
   PLAZA_HUB,
@@ -223,7 +223,7 @@ export function PlazaInicialView({ showEntradaLink, onOpenEntrada }: PlazaInicia
           <div className="mb-3 sm:hidden">
             <PlazaDiagnosisPrompt />
           </div>
-          <PlazaLivingPanel compact />
+          <LiveActivityPanel variant="compact" />
         </div>
       </div>
 

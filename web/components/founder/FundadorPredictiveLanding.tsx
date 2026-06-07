@@ -7,6 +7,7 @@ import {
   FUNDADOR_LANDING_COPY,
 } from "@/lib/content/fundadorLandingCopy";
 import { VuWarmImage } from "@/components/ui/VuWarmImage";
+import { LiveActivityPanel } from "@/components/community/LiveActivityPanel";
 import { trackObservatoryEvent } from "@/lib/observatory/client";
 
 type Props = {
@@ -151,7 +152,7 @@ export function FundadorPredictiveLanding({ qualified, preview, previewMsg }: Pr
             <BarrioHookCard key={hook.id} {...hook} />
           ))}
         </div>
-        <p className="mt-4 text-[13px] leading-relaxed text-[#6B7A8C]">{copy.narrativeLine}</p>
+        <LiveActivityPanel variant="full" className="mt-4" />
       </section>
 
       {/* ── Pie mínimo ── */}
