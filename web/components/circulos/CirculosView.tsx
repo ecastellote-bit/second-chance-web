@@ -5,7 +5,9 @@ import { CircleCard } from "@/components/circulos/CircleCard";
 import { CirculosLeftNav } from "@/components/circulos/CirculosLeftNav";
 import { CirculosMobileStrip, CirculosRightPanel } from "@/components/circulos/CirculosRightPanel";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
+import { QuickInterestCapture } from "@/components/community/QuickInterestCapture";
 import { CIRCULOS_CATALOG, CIRCULOS_HEADER, SUGERIDOS_IDS } from "@/lib/content/circulosCatalog";
+import { CIRCULOS_INTEREST } from "@/lib/content/surfaceInterestCopy";
 
 export function CirculosView() {
   const teamCircles = CIRCULOS_CATALOG.filter((c) => c.isTeamSeed);
@@ -56,6 +58,8 @@ export function CirculosView() {
                   <CircleCard key={circle.id} circle={circle} />
                 ))}
               </div>
+
+              <QuickInterestCapture {...CIRCULOS_INTEREST} className="my-6" />
 
               {otherCircles.length > 0 ? (
                 <>

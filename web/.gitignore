@@ -46,3 +46,7 @@ next-env.d.ts
 
 # batch runner reports
 /reports/
+
+# surface interest leads (PII — local dev only, never commit)
+/data/surface-interest-leads.jsonl
+/data/surface-interest-leads*.jsonl

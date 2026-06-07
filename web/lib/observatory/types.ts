@@ -22,7 +22,12 @@ export type ObservatoryEventType =
   | "learning.observation_stored"
   | "learning.validated_case_stored"
   | "barrio.action_card_click"
-  | "barrio.start_reading_click";
+  | "barrio.start_reading_click"
+  | "surface_interest_started"
+  | "surface_interest_submitted"
+  | "surface_interest_email_requested"
+  | "surface_interest_email_submitted"
+  | "surface_interest_profile_invite_clicked";
 
 export type ObservatoryEvent = {
   id: string;

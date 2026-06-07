@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { NeighborhoodHero } from "@/components/community/NeighborhoodHero";
-import { PublicCommunityRecentActivity } from "@/components/community/PublicCommunityRecentActivity";
+import { QuickInterestCapture } from "@/components/community/QuickInterestCapture";
+import { EVENTOS_INTEREST } from "@/lib/content/surfaceInterestCopy";
 import { CirculosLeftNav } from "@/components/circulos/CirculosLeftNav";
 import { EventoOpportunityCard } from "@/components/eventos/EventoOpportunityCard";
 import { EventosUpcomingStrip } from "@/components/eventos/EventosUpcomingStrip";
@@ -42,23 +42,15 @@ export function EventosView() {
 
         <main className="min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto w-full max-w-6xl px-4 py-5 pb-6 lg:px-8 lg:py-8">
-            <NeighborhoodHero
-              eyebrow="Calendario del barrio"
-              title={EVENTOS_HEADER.title}
-              subtitle={EVENTOS_HEADER.subtitle}
-              imageSrc="/vu/evento-cafe-conexiones-vc.png"
-            />
+            <header className="mb-4 max-w-2xl">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">
+                Calendario del barrio
+              </p>
+              <h1 className="mt-1 text-[1.5rem] font-bold text-[#0B2E59]">{EVENTOS_HEADER.title}</h1>
+              <p className="mt-1 text-[14px] leading-snug text-[#6B7A8C]">{EVENTOS_HEADER.subtitle}</p>
+            </header>
 
-            <p className="mb-6 max-w-2xl text-[13px] leading-snug text-[#6B7A8C]">
-              Mesas tentativas Second Chance y convocatorias semilla — marcá interés, sin cupos fingidos.
-            </p>
-
-            <PublicCommunityRecentActivity
-              className="mb-6"
-              limit={4}
-              surface="events"
-              showRulesLink={false}
-            />
+            <QuickInterestCapture {...EVENTOS_INTEREST} className="mb-6" />
 
             <div
               className="mb-6 flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory"

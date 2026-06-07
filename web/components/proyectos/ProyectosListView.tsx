@@ -9,7 +9,8 @@ import { FoundingMemberBadge } from "@/components/founder/FoundingMemberBadge";
 import { isFounderCommunityPreviewActive } from "@/lib/founder/communityPreviewBypass";
 import { ensureFoundingMemberAccess } from "@/lib/learning/ensureFoundingMemberAccess";
 import { isFoundingMemberQualified } from "@/lib/learning/foundationalMember";
-import { DiagnosisFirstBanner } from "@/components/founder/DiagnosisFirstBanner";
+import { QuickInterestCapture } from "@/components/community/QuickInterestCapture";
+import { PROYECTOS_INTEREST } from "@/lib/content/surfaceInterestCopy";
 import { PublicCommunityRecentActivity } from "@/components/community/PublicCommunityRecentActivity";
 import { PublicInitialsAvatar } from "@/components/community/PublicInitialsAvatar";
 import { MyFounderSeedBanner } from "@/components/proyectos/MyFounderSeedBanner";
@@ -125,8 +126,6 @@ export function ProyectosListView() {
 
             <FoundingMemberBadge />
 
-            <DiagnosisFirstBanner variant="light" className="mb-6" />
-
             <MyFounderSeedBanner />
 
             <PublicCommunityRecentActivity className="mb-6" limit={6} surface="projects" />
@@ -146,6 +145,8 @@ export function ProyectosListView() {
                 ))}
               </ul>
             </section>
+
+            <QuickInterestCapture {...PROYECTOS_INTEREST} className="mb-6" />
 
             <section className="mb-6 rounded-[28px] bg-white p-5 shadow-[0_4px_16px_rgba(15,42,70,0.06)] ring-1 ring-[#E8EEF3]">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
