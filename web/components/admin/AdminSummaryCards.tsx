@@ -15,8 +15,10 @@ const CARDS: CardDef[] = [
   { key: "adminPostsDraft", label: "Anuncios borrador", accent: "#6B7A8C" },
   { key: "projectSignalsActive", label: "Señales activas", accent: "#1A9BB0" },
   { key: "formationNew", label: "Formación nuevas", accent: "#0B2E59" },
-  { key: "surfaceInterestNew", label: "Intereses email", accent: "#DC2626" },
-  { key: "exitFeedbackNew", label: "Feedback salida", accent: "#B45309" },
+  { key: "surfaceInterestNew", label: "Intereses pendientes", accent: "#DC2626" },
+  { key: "exitFeedbackNew", label: "Feedback pendiente", accent: "#B45309" },
+  { key: "userInboxNeedsReply", label: "Para responder", accent: "#C6D92D" },
+  { key: "userInboxArchived", label: "Inbox archivado", accent: "#9AA8B8" },
   { key: "notificationsPending", label: "Notif. pendientes", accent: "#6B7A8C" },
   { key: "notificationsFailed", label: "Notif. con error", accent: "#DC2626" },
 ];
@@ -30,7 +32,8 @@ export function AdminSummaryCards({ counts }: { counts: ModerationSummaryCounts 
           value > 0 &&
           (card.key === "reportsNew" ||
             card.key === "notificationsFailed" ||
-            card.key === "surfaceInterestNew");
+            card.key === "surfaceInterestNew" ||
+            card.key === "exitFeedbackNew");
         return (
           <div
             key={card.key}

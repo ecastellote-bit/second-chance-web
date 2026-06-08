@@ -9,6 +9,7 @@ import {
   listSurfaceInterestLeads,
   SurfaceInterestLeadStoreError,
 } from "@/lib/learning/surfaceInterestLeads";
+import { countUserInboxStatuses } from "@/lib/admin/userInboxCounts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,6 +32,7 @@ export async function GET(req: Request) {
         surfaceLeads: surfaceLeads.length,
         exitFeedback: exitFeedback.length,
       },
+      counts: countUserInboxStatuses(surfaceLeads, exitFeedback),
       stores: {
         surfaceInterest: getSurfaceInterestLeadStoreMeta(),
         exitFeedback: getFounderExitFeedbackStoreMeta(),

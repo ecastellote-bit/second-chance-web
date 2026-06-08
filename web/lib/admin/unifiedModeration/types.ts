@@ -52,6 +52,8 @@ export type ModerationSummaryCounts = {
   notificationsFailed: number;
   surfaceInterestNew: number;
   exitFeedbackNew: number;
+  userInboxNeedsReply: number;
+  userInboxArchived: number;
 };
 
 export type ModerationStoreAlert = {

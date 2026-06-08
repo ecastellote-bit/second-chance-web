@@ -7,6 +7,10 @@ import {
 } from "@/lib/storage/vercelBlobEnv";
 import type { FounderExitFeedbackOptionId, FounderExitSubmitMode } from "@/lib/content/fundadorExitCopy";
 import { resolveFounderExitSubmitMode } from "@/lib/content/fundadorExitCopy";
+import {
+  normalizeUserInboxAdminStatus,
+  type UserInboxAdminStatus,
+} from "@/lib/admin/userInboxTypes";
 
 export type { FounderExitSubmitMode };
 
@@ -21,7 +25,8 @@ export type FounderExitFeedbackRecord = {
   path?: string | null;
   exitTrigger?: string | null;
   createdAt: string;
-  status: "new" | "reviewed" | "archived";
+  updatedAt?: string | null;
+  status: UserInboxAdminStatus;
 };
 
 export class FounderExitFeedbackStoreError extends Error {
@@ -63,7 +68,10 @@ function parseLine(raw: string): FounderExitFeedbackRecord | null {
     const hasOption = Boolean(parsed.selectedOption);
     const hasText = (parsed.freeTextLength ?? 0) > 0 || Boolean(parsed.freeText?.trim());
     if (!hasOption && !hasText) return null;
-    return parsed;
+    return {
+      ...parsed,
+      status: normalizeUserInboxAdminStatus(parsed.status),
+    };
   } catch {
     return null;
   }
@@ -191,4 +199,27 @@ export async function listFounderExitFeedback(): Promise<FounderExitFeedbackReco
     return records.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
   return readAllFromLocal();
+}
+
+export async function updateFounderExitFeedbackStatus(
+  feedbackId: string,
+  status: UserInboxAdminStatus,
+): Promise<FounderExitFeedbackRecord | null> {
+  assertStore("update_status");
+  const all = await listFounderExitFeedback();
+  const existing = all.find((item) => item.feedbackId === feedbackId);
+  if (!existing) return null;
+
+  const updated: FounderExitFeedbackRecord = {
+    ...existing,
+    status,
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (isVercelBlobConfigured()) {
+    await writeBlob(updated);
+  } else {
+    await writeLocal(updated);
+  }
+  return updated;
 }

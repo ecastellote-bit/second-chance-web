@@ -11,7 +11,12 @@ import { listFounderProjectGuidedContributions } from "@/lib/learning/founderPro
 import { listFounderProjectSignals } from "@/lib/learning/founderProjectSignals";
 import { listNotificationEvents } from "@/lib/learning/notificationEvents";
 import { listSurfaceInterestLeads } from "@/lib/learning/surfaceInterestLeads";
+import { countUserInboxStatuses } from "@/lib/admin/userInboxCounts";
 import { SURFACE_TYPE_LABEL } from "@/lib/admin/userInboxLabels";
+import {
+  isUserInboxAttentionStatus,
+  userInboxStatusLabel,
+} from "@/lib/admin/userInboxTypes";
 import { KIND_LABEL, PANEL_HREFS, reportReasonLabel } from "./labels";
 import type {
   ModerationInboxItem,
@@ -156,6 +161,8 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
     getFounderProjectSeedStoreStatus(),
   ]);
 
+  const inboxCounts = countUserInboxStatuses(surfaceLeads, exitFeedback);
+
   const counts: ModerationSummaryCounts = {
     seedsPendingReview: seeds.filter((s) => s.status === "pending_review").length,
     contributionsPendingReview: contributions.filter((c) => c.status === "pending_review")
@@ -173,8 +180,10 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
     formationNew: formations.filter((f) => f.status === "new").length,
     notificationsPending: notifications.filter((n) => n.status === "pending").length,
     notificationsFailed: notifications.filter((n) => n.status === "failed").length,
-    surfaceInterestNew: surfaceLeads.filter((l) => l.status === "new").length,
-    exitFeedbackNew: exitFeedback.filter((f) => f.status === "new").length,
+    surfaceInterestNew: surfaceLeads.filter((l) => isUserInboxAttentionStatus(l.status)).length,
+    exitFeedbackNew: exitFeedback.filter((f) => isUserInboxAttentionStatus(f.status)).length,
+    userInboxNeedsReply: inboxCounts.needsReply,
+    userInboxArchived: inboxCounts.archived + inboxCounts.hidden,
   };
 
   const storeAlert: ModerationStoreAlert = {
@@ -187,15 +196,15 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
 
   const items: ModerationInboxItem[] = [];
 
-  for (const lead of surfaceLeads.filter((x) => x.status === "new")) {
+  for (const lead of surfaceLeads.filter((x) => isUserInboxAttentionStatus(x.status))) {
     items.push({
       id: lead.leadId,
       kind: "surface_interest",
-      priority: 8,
+      priority: lead.status === "needs_reply" ? 6 : 8,
       title: `Interés · ${SURFACE_TYPE_LABEL[lead.surfaceType] ?? lead.surfaceType}`,
       excerpt: excerpt(`${lead.email} — ${lead.text}`),
       status: lead.status,
-      statusLabel: "Nuevo",
+      statusLabel: userInboxStatusLabel(lead.status),
       createdAt: lead.createdAt,
       relatedLabel: lead.path ?? undefined,
       panelHref: PANEL_HREFS.userInbox,
@@ -204,16 +213,16 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
     });
   }
 
-  for (const fb of exitFeedback.filter((x) => x.status === "new")) {
+  for (const fb of exitFeedback.filter((x) => isUserInboxAttentionStatus(x.status))) {
     const body = fb.freeText?.trim() || fb.selectedOption || "";
     items.push({
       id: fb.feedbackId,
       kind: "exit_feedback",
-      priority: 12,
+      priority: fb.status === "needs_reply" ? 10 : 12,
       title: "Feedback de salida /fundador",
       excerpt: excerpt(body || `Modo: ${fb.submitMode}`),
       status: fb.status,
-      statusLabel: "Nuevo",
+      statusLabel: userInboxStatusLabel(fb.status),
       createdAt: fb.createdAt,
       relatedLabel: fb.exitTrigger ?? undefined,
       panelHref: PANEL_HREFS.userInbox,

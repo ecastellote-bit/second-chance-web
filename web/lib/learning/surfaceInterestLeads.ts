@@ -7,6 +7,12 @@ import {
   requiresVercelBlob,
 } from "@/lib/storage/vercelBlobEnv";
 import { SURFACE_INTEREST_TEXT_MAX } from "@/lib/community/surfaceInterestLimits";
+import {
+  normalizeUserInboxAdminStatus,
+  type UserInboxAdminStatus,
+} from "@/lib/admin/userInboxTypes";
+
+export type { UserInboxAdminStatus as SurfaceInterestLeadStatus };
 
 export type SurfaceIntentType =
   | "formacion"
@@ -15,8 +21,6 @@ export type SurfaceIntentType =
   | "eventos"
   | "conexiones"
   | "oportunidades";
-
-export type SurfaceInterestLeadStatus = "new" | "reviewed" | "archived";
 
 export type SurfaceInterestLead = {
   recordType: "surface_interest_lead";
@@ -29,7 +33,8 @@ export type SurfaceInterestLead = {
   path?: string | null;
   actionMode?: string | null;
   createdAt: string;
-  status: SurfaceInterestLeadStatus;
+  updatedAt?: string | null;
+  status: UserInboxAdminStatus;
 };
 
 export type SurfaceInterestLeadStoreMeta = {
@@ -85,8 +90,7 @@ function normalizeLead(raw: SurfaceInterestLead): SurfaceInterestLead {
   return {
     ...raw,
     recordType: "surface_interest_lead",
-    status:
-      raw.status === "reviewed" || raw.status === "archived" ? raw.status : "new",
+    status: normalizeUserInboxAdminStatus(raw.status),
   };
 }
 
@@ -200,4 +204,28 @@ export async function listSurfaceInterestLeads(): Promise<SurfaceInterestLead[]>
     return leads.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
   return readAllLeadsFromLocal();
+}
+
+export async function updateSurfaceInterestLeadStatus(
+  leadId: string,
+  status: UserInboxAdminStatus,
+): Promise<SurfaceInterestLead | null> {
+  assertSurfaceInterestLeadDurableStore("update_status");
+  const all = await listSurfaceInterestLeads();
+  const existing = all.find((item) => item.leadId === leadId);
+  if (!existing) return null;
+
+  const updated: SurfaceInterestLead = {
+    ...existing,
+    status,
+    updatedAt: new Date().toISOString(),
+  };
+
+  const meta = getSurfaceInterestLeadStoreMeta();
+  if (meta.backend === "blob") {
+    await writeLeadToBlob(updated);
+  } else {
+    await writeLeadToLocal(updated);
+  }
+  return updated;
 }
