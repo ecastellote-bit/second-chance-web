@@ -18,6 +18,7 @@ export const PANEL_HREFS = {
   projectSignals: "/admin/founder-project-signals",
   formation: "/admin/formation-suggestions",
   notifications: "/admin/notification-events",
+  userInbox: "/admin/user-inbox",
 } as const;
 
 export const KIND_LABEL: Record<string, string> = {
@@ -29,4 +30,6 @@ export const KIND_LABEL: Record<string, string> = {
   project_signal: "Señal a proyecto",
   formation: "Sugerencia formación",
   notification: "Evento notificación",
+  surface_interest: "Interés con email",
+  exit_feedback: "Feedback de salida",
 };

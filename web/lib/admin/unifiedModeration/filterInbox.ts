@@ -16,8 +16,12 @@ export function filterInboxItems(
     signals: "project_signal",
     formation: "formation",
     notifications: "notification",
+    inbox: "surface_interest",
   };
   const kind = kindMap[filter];
+  if (filter === "inbox") {
+    return items.filter((i) => i.kind === "surface_interest" || i.kind === "exit_feedback");
+  }
   if (!kind) return items;
   return items.filter((i) => i.kind === kind);
 }

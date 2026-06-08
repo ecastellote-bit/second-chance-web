@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { put } from "@vercel/blob";
+import { get, list, put } from "@vercel/blob";
 import {
   assertVercelBlobForProduction,
   isVercelBlobConfigured,
@@ -78,6 +78,32 @@ async function writeBlob(record: FounderExitFeedbackRecord): Promise<void> {
   });
 }
 
+async function readRecordFromBlobPath(pathname: string): Promise<FounderExitFeedbackRecord | null> {
+  try {
+    const result = await get(pathname, { access: "private" });
+    if (!result || result.statusCode !== 200 || !result.stream) return null;
+    const raw = await new Response(result.stream).text();
+    return parseLine(raw);
+  } catch {
+    return null;
+  }
+}
+
+async function readAllFromLocal(): Promise<FounderExitFeedbackRecord[]> {
+  const filePath = localPath();
+  try {
+    const raw = await readFile(filePath, "utf8");
+    const byId = new Map<string, FounderExitFeedbackRecord>();
+    for (const line of raw.trim().split("\n").filter(Boolean)) {
+      const parsed = parseLine(line);
+      if (parsed) byId.set(parsed.feedbackId, parsed);
+    }
+    return [...byId.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  } catch {
+    return [];
+  }
+}
+
 async function writeLocal(record: FounderExitFeedbackRecord): Promise<void> {
   const filePath = localPath();
   await mkdir(path.dirname(filePath), { recursive: true });
@@ -146,4 +172,23 @@ export function getFounderExitFeedbackStoreMeta(): {
     durable: blobConfigured,
     blobConfigured,
   };
+}
+
+export async function listFounderExitFeedback(): Promise<FounderExitFeedbackRecord[]> {
+  if (isVercelBlobConfigured()) {
+    const records: FounderExitFeedbackRecord[] = [];
+    let cursor: string | undefined;
+    do {
+      const page = await list({ prefix: `${BLOB_PREFIX}/`, limit: 1000, cursor });
+      for (const blob of page.blobs) {
+        const match = blob.pathname.match(/founder-exit-feedback\/(.+)\.json$/);
+        if (!match?.[1]) continue;
+        const record = await readRecordFromBlobPath(blob.pathname);
+        if (record) records.push(record);
+      }
+      cursor = page.hasMore ? page.cursor : undefined;
+    } while (cursor);
+    return records.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }
+  return readAllFromLocal();
 }

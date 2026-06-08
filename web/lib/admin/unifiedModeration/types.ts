@@ -6,7 +6,9 @@ export type ModerationQueueKind =
   | "admin_post"
   | "project_signal"
   | "formation"
-  | "notification";
+  | "notification"
+  | "surface_interest"
+  | "exit_feedback";
 
 export type ModerationQuickAction = {
   id: string;
@@ -48,6 +50,8 @@ export type ModerationSummaryCounts = {
   formationNew: number;
   notificationsPending: number;
   notificationsFailed: number;
+  surfaceInterestNew: number;
+  exitFeedbackNew: number;
 };
 
 export type ModerationStoreAlert = {

@@ -2,6 +2,7 @@ import { listCircleSignals } from "@/lib/learning/circleSignals";
 import { listCommunityAdminPosts } from "@/lib/learning/communityAdminPosts";
 import { listCommunityReports } from "@/lib/learning/communityReports";
 import { listFormationSuggestions } from "@/lib/learning/formationSuggestions";
+import { listFounderExitFeedback } from "@/lib/learning/founderExitFeedback";
 import {
   getFounderProjectSeedStoreStatus,
   listFounderProjectSeeds,
@@ -9,6 +10,8 @@ import {
 import { listFounderProjectGuidedContributions } from "@/lib/learning/founderProjectGuidedContributions";
 import { listFounderProjectSignals } from "@/lib/learning/founderProjectSignals";
 import { listNotificationEvents } from "@/lib/learning/notificationEvents";
+import { listSurfaceInterestLeads } from "@/lib/learning/surfaceInterestLeads";
+import { SURFACE_TYPE_LABEL } from "@/lib/admin/userInboxLabels";
 import { KIND_LABEL, PANEL_HREFS, reportReasonLabel } from "./labels";
 import type {
   ModerationInboxItem,
@@ -136,6 +139,8 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
     projectSignals,
     formations,
     notifications,
+    surfaceLeads,
+    exitFeedback,
     storeStatus,
   ] = await Promise.all([
     listFounderProjectSeeds({ limit: 300 }),
@@ -146,6 +151,8 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
     listFounderProjectSignals({ limit: 300 }),
     listFormationSuggestions({ limit: 200 }),
     listNotificationEvents({ limit: 300 }),
+    listSurfaceInterestLeads(),
+    listFounderExitFeedback(),
     getFounderProjectSeedStoreStatus(),
   ]);
 
@@ -166,6 +173,8 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
     formationNew: formations.filter((f) => f.status === "new").length,
     notificationsPending: notifications.filter((n) => n.status === "pending").length,
     notificationsFailed: notifications.filter((n) => n.status === "failed").length,
+    surfaceInterestNew: surfaceLeads.filter((l) => l.status === "new").length,
+    exitFeedbackNew: exitFeedback.filter((f) => f.status === "new").length,
   };
 
   const storeAlert: ModerationStoreAlert = {
@@ -177,6 +186,41 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
   };
 
   const items: ModerationInboxItem[] = [];
+
+  for (const lead of surfaceLeads.filter((x) => x.status === "new")) {
+    items.push({
+      id: lead.leadId,
+      kind: "surface_interest",
+      priority: 8,
+      title: `Interés · ${SURFACE_TYPE_LABEL[lead.surfaceType] ?? lead.surfaceType}`,
+      excerpt: excerpt(`${lead.email} — ${lead.text}`),
+      status: lead.status,
+      statusLabel: "Nuevo",
+      createdAt: lead.createdAt,
+      relatedLabel: lead.path ?? undefined,
+      panelHref: PANEL_HREFS.userInbox,
+      actions: [],
+      meta: { email: lead.email, surfaceType: lead.surfaceType },
+    });
+  }
+
+  for (const fb of exitFeedback.filter((x) => x.status === "new")) {
+    const body = fb.freeText?.trim() || fb.selectedOption || "";
+    items.push({
+      id: fb.feedbackId,
+      kind: "exit_feedback",
+      priority: 12,
+      title: "Feedback de salida /fundador",
+      excerpt: excerpt(body || `Modo: ${fb.submitMode}`),
+      status: fb.status,
+      statusLabel: "Nuevo",
+      createdAt: fb.createdAt,
+      relatedLabel: fb.exitTrigger ?? undefined,
+      panelHref: PANEL_HREFS.userInbox,
+      actions: [],
+      meta: { exitTrigger: fb.exitTrigger ?? undefined },
+    });
+  }
 
   for (const r of reports.filter((x) => x.status === "new")) {
     items.push({
@@ -367,6 +411,7 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
       { label: "Señales proyecto", href: PANEL_HREFS.projectSignals },
       { label: "Formación", href: PANEL_HREFS.formation },
       { label: "Notificaciones", href: PANEL_HREFS.notifications },
+      { label: "Señales email / feedback", href: PANEL_HREFS.userInbox },
     ],
   };
 }

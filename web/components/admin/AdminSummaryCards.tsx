@@ -15,6 +15,8 @@ const CARDS: CardDef[] = [
   { key: "adminPostsDraft", label: "Anuncios borrador", accent: "#6B7A8C" },
   { key: "projectSignalsActive", label: "Señales activas", accent: "#1A9BB0" },
   { key: "formationNew", label: "Formación nuevas", accent: "#0B2E59" },
+  { key: "surfaceInterestNew", label: "Intereses email", accent: "#DC2626" },
+  { key: "exitFeedbackNew", label: "Feedback salida", accent: "#B45309" },
   { key: "notificationsPending", label: "Notif. pendientes", accent: "#6B7A8C" },
   { key: "notificationsFailed", label: "Notif. con error", accent: "#DC2626" },
 ];
@@ -24,7 +26,11 @@ export function AdminSummaryCards({ counts }: { counts: ModerationSummaryCounts 
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
       {CARDS.map((card) => {
         const value = counts[card.key];
-        const hot = value > 0 && (card.key === "reportsNew" || card.key === "notificationsFailed");
+        const hot =
+          value > 0 &&
+          (card.key === "reportsNew" ||
+            card.key === "notificationsFailed" ||
+            card.key === "surfaceInterestNew");
         return (
           <div
             key={card.key}

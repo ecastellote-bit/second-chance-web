@@ -19,6 +19,7 @@ const FILTERS: { id: string; label: string }[] = [
   { id: "announcements", label: "Anuncios" },
   { id: "signals", label: "Señales" },
   { id: "formation", label: "Formación" },
+  { id: "inbox", label: "Señales email" },
   { id: "notifications", label: "Notificaciones" },
 ];
 
@@ -188,6 +189,9 @@ export function UnifiedAdminDashboard() {
                 </Link>
                 <Link href="/admin/observatorio" className="text-[#6B7A8C] underline">
                   Observatorio
+                </Link>
+                <Link href="/admin/user-inbox" className="font-semibold text-[#DC2626] underline">
+                  Señales recibidas (email + feedback)
                 </Link>
               </div>
             </section>
