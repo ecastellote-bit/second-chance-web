@@ -22,6 +22,7 @@ type Options = {
   barrioSectionRef: RefObject<HTMLElement | null>;
   activityBlockRef: RefObject<HTMLDivElement | null>;
   onEligible: (reason: SoftFeedbackNudgeReason) => void;
+  showAfterMs?: number;
 };
 
 /** Dispara una sola vez por sesión cuando hay tiempo sin acción o el usuario llegó al contenido inferior. */
@@ -30,6 +31,7 @@ export function useFounderSoftFeedbackNudge({
   barrioSectionRef,
   activityBlockRef,
   onEligible,
+  showAfterMs = SHOW_AFTER_MS,
 }: Options): void {
   const firedRef = useRef(false);
   const enabledRef = useRef(enabled);
@@ -49,7 +51,7 @@ export function useFounderSoftFeedbackNudge({
       onEligibleRef.current(reason);
     }
 
-    const timer = window.setTimeout(() => fire("time"), SHOW_AFTER_MS);
+    const timer = window.setTimeout(() => fire("time"), showAfterMs);
 
     function onScroll() {
       if (firedRef.current || !enabledRef.current) return;
@@ -68,15 +70,6 @@ export function useFounderSoftFeedbackNudge({
         const rect = activity.getBoundingClientRect();
         if (rect.top < window.innerHeight * 0.88 && rect.bottom > 0) {
           fire("content_reached");
-          return;
-        }
-      }
-
-      const barrio = barrioSectionRef.current;
-      if (barrio) {
-        const rect = barrio.getBoundingClientRect();
-        if (rect.top < window.innerHeight * 0.35 && rect.bottom < window.innerHeight * 1.05) {
-          fire("content_reached");
         }
       }
     }
@@ -88,5 +81,5 @@ export function useFounderSoftFeedbackNudge({
       window.clearTimeout(timer);
       window.removeEventListener("scroll", onScroll);
     };
-  }, [enabled, barrioSectionRef, activityBlockRef]);
+  }, [enabled, barrioSectionRef, activityBlockRef, showAfterMs]);
 }

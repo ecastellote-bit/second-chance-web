@@ -65,7 +65,7 @@ export function FounderMicroGate({
           {step === "choose" ? (
             <>
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#C6D92D]">
-                60 segundos · primer paso
+                Tu lectura inicial · primer paso
               </p>
               <h2
                 id="founder-microgate-title"

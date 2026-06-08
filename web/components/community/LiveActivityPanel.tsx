@@ -13,6 +13,8 @@ type Variant = "full" | "compact";
 type Props = {
   variant?: Variant;
   className?: string;
+  /** Oculta timestamps tipo "hace 1 min" — útil en /fundador para evitar falsa precisión. */
+  showTimestamps?: boolean;
 };
 
 function BlinkDot() {
@@ -30,11 +32,13 @@ function ActivityRowView({
   actionLabel,
   compact,
   entering,
+  showTimestamps = true,
 }: {
   row: LiveActivityRow;
   actionLabel: string;
   compact: boolean;
   entering?: boolean;
+  showTimestamps?: boolean;
 }) {
   return (
     <div
@@ -49,13 +53,22 @@ function ActivityRowView({
       </span>
       <span className="shrink-0 text-[#C6D92D]/90">{actionLabel}</span>
       <span className="shrink-0 font-semibold text-white">{row.initials}</span>
-      <span className="hidden min-w-0 truncate text-white/55 sm:inline">{row.when}</span>
-      <span className="min-w-0 flex-1 truncate text-right text-[#1A9BB0]/85">{row.location}</span>
+      {showTimestamps ? (
+        <span className="hidden min-w-0 truncate text-white/55 sm:inline">{row.when}</span>
+      ) : null}
+      <span className="min-w-0 flex-1 truncate text-right text-[#1A9BB0]/85">
+        {showTimestamps ? "— " : ""}
+        {row.location}
+      </span>
     </div>
   );
 }
 
-export function LiveActivityPanel({ variant = "full", className = "" }: Props) {
+export function LiveActivityPanel({
+  variant = "full",
+  className = "",
+  showTimestamps = true,
+}: Props) {
   const compact = variant === "compact";
   const visibleCount = compact ? 2 : 3;
   const copy = compact ? LIVE_ACTIVITY_COPY.compact : LIVE_ACTIVITY_COPY.full;
@@ -221,6 +234,7 @@ export function LiveActivityPanel({ variant = "full", className = "" }: Props) {
                 actionLabel={copy.actionLabel}
                 compact={compact}
                 entering={row.id === enteringId}
+                showTimestamps={showTimestamps}
               />
             ))}
           </div>

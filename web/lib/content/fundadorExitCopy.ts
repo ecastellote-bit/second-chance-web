@@ -16,7 +16,7 @@ export const FUNDADOR_EXIT_COPY = {
   freeTextPlaceholder: "Escribí brevemente qué te hizo salir o qué no terminó de cerrar…",
   emptyFeedbackError: "Marcá una opción o escribí una breve señal antes de enviar.",
   submitAndLeave: "Enviar y salir",
-  trySixty: "Probar 60 segundos",
+  trySixty: "Hacer mi lectura inicial",
   seeProjects: "Ver proyectos",
   options: [
     { id: "unclear" as const, label: "No entendí bien de qué se trata" },

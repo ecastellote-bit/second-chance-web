@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { FundadorPredictiveLanding } from "@/components/founder/FundadorPredictiveLanding";
+import { FundadorCommunityLanding } from "@/components/founder/FundadorCommunityLanding";
 import {
   activateFounderCommunityPreview,
   isFounderCommunityPreviewActive,
@@ -42,7 +42,7 @@ function FundadorPageContent() {
     searchParams.get("debugFounderExit") === "1";
 
   return (
-    <FundadorPredictiveLanding
+    <FundadorCommunityLanding
       qualified={qualified}
       preview={preview}
       previewMsg={previewMsg}
