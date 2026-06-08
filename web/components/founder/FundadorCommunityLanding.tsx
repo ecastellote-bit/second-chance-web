@@ -218,8 +218,12 @@ export function FundadorCommunityLanding({
         </div>
 
         <div className="relative z-10 flex min-h-[92dvh] flex-col px-4 pb-6 pt-8">
-          <p className="text-[11px] font-semibold tracking-wide text-white/75">
-            VocationUp <span className="text-white/50">by Second Chance</span>
+          <p
+            className="text-[13px] font-bold tracking-[0.04em] text-white sm:text-[14px]"
+            style={{ textShadow: "0 1px 12px rgba(7,16,24,0.55)" }}
+          >
+            VocationUp{" "}
+            <span className="font-semibold text-[#C6D92D]/95">by Second Chance</span>
           </p>
 
           {previewMsg ? (
@@ -353,8 +357,10 @@ export function FundadorCommunityLanding({
             visible={showSoftFeedback && !hasRelevantAction && !microgateOpen}
             onFeedback={openExitFromSoftNudge}
             onTrySixty={() => {
-              trackFounderConversion("founder.soft_feedback_nudge_click", { action: "try_sixty" });
-              openMicrogate();
+              trackFounderConversion("founder.soft_feedback_nudge_click", { action: "plaza" });
+              markAction();
+              setShowSoftFeedback(false);
+              router.push("/plaza");
             }}
             onDismiss={() => {
               setShowSoftFeedback(false);
