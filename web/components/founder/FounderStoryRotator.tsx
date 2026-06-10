@@ -28,7 +28,7 @@ type StoryCardProps = {
 
 function StoryCard({ story, opaque }: StoryCardProps) {
   return (
-    <article className="relative min-h-[16rem] overflow-hidden rounded-2xl border border-white/10 bg-[#0B2E59]/40 shadow-[0_8px_28px_rgba(0,0,0,0.28)] sm:min-h-[17rem]">
+    <article className="relative min-h-[17rem] overflow-hidden rounded-2xl border border-white/10 bg-[#0B2E59]/40 shadow-[0_8px_28px_rgba(0,0,0,0.28)] sm:min-h-[18rem]">
       <div
         className={[
           "absolute inset-0 transition-opacity duration-700 ease-in-out",
@@ -44,13 +44,13 @@ function StoryCard({ story, opaque }: StoryCardProps) {
           className="object-cover object-[center_10%]"
           sizes="34vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#071018] from-[38%] via-[#071018]/58 via-[52%] to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 px-3.5 pb-3 pt-5">
-          <p className="text-[14px] font-bold leading-tight text-white">{story.name}</p>
-          <p className="mt-1 text-[12px] font-semibold leading-snug text-[#C6D92D]/95">
+        <div className="absolute inset-0 bg-gradient-to-t from-[#071018] from-[42%] via-[#071018]/72 via-[58%] to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 px-3 pb-3.5 pt-6">
+          <p className="text-[13px] font-bold leading-tight text-white">{story.name}</p>
+          <p className="mt-1 text-[11px] font-semibold leading-snug text-[#C6D92D]/95">
             {story.beforeToday}
           </p>
-          <p className="mt-2 text-[12px] leading-relaxed text-white/88 line-clamp-3">
+          <p className="mt-2 text-[11px] leading-[1.45] text-white/92">
             &ldquo;{story.quote}&rdquo;
           </p>
         </div>
@@ -62,7 +62,7 @@ function StoryCard({ story, opaque }: StoryCardProps) {
 type Props = {
   stories: FounderSeedStory[];
   title: string;
-  disclaimer: string;
+  disclaimer?: string;
 };
 
 function initialSlots(total: number): SlotState[] {
@@ -122,9 +122,11 @@ export function FounderStoryRotator({ stories, title, disclaimer }: Props) {
     <section className="px-4 py-6" aria-label={title}>
       <div className="mx-auto max-w-lg">
         <h2 className="text-[17px] font-bold leading-snug text-white">{title}</h2>
-        <p className="mt-1 text-[11px] leading-relaxed text-white/45">{disclaimer}</p>
+        {disclaimer ? (
+          <p className="mt-1 text-[11px] leading-relaxed text-white/45">{disclaimer}</p>
+        ) : null}
 
-        <div className="mt-4 grid grid-cols-3 gap-2.5 sm:gap-3">
+        <div className={`grid grid-cols-3 gap-2.5 sm:gap-3 ${disclaimer ? "mt-4" : "mt-3"}`}>
           {slots.map((slot, index) => {
             const story = stories[slot.storyIndex]!;
             return (

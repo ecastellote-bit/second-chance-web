@@ -12,6 +12,7 @@ export const FUNDADOR_V2_HERO = {
   title: "Hay algo en vos que sigue latiendo.",
   subtitle: "Sólo estaba esperando un lugar para volver a vivir.",
   microcopy: "Mirá qué se está moviendo y elegí por dónde empezar.",
+  gratuityLine: "Con calma: durante este tiempo, todo el recorrido es gratuito.",
   image: fundadorIncomingAsset("WhatsApp Image 2026-06-08 at 6.06.21 PM.jpeg"),
   fallbackImage: "/vu/patio-vivo-escena-coral.jpeg",
   objectPosition: "center 22%",
@@ -90,7 +91,7 @@ export const FUNDADOR_V2_STORIES: FounderSeedStory[] = [
     id: "martina",
     name: "Martina V.",
     beforeToday: "Ex bancaria · hoy pianista",
-    quote: "Durante años fui el chaleco antibalas de todos. Ahora redescubrí mi momento.",
+    quote: "Durante años estuve para todos. Acá volví a escucharme.",
     image: fundadorIncomingAsset(STORY_FILES[1]),
     fallbackImage: "/vu/perfil-maria-sol.png",
   },
@@ -98,7 +99,7 @@ export const FUNDADOR_V2_STORIES: FounderSeedStory[] = [
     id: "laura",
     name: "Laura C.",
     beforeToday: "Administrativa · hoy creadora textil",
-    quote: "Tenía una idea guardada. Acá encontré un lugar para hacerla vivir.",
+    quote: "Tenía una idea guardada. Acá encontré con quién moverla.",
     image: fundadorIncomingAsset(STORY_FILES[3]),
     fallbackImage: "/vu/perfil-maria-sol.png",
   },
@@ -106,7 +107,7 @@ export const FUNDADOR_V2_STORIES: FounderSeedStory[] = [
     id: "sergio",
     name: "Sergio R.",
     beforeToday: "Ex administrativo · hoy impulsor radial",
-    quote: "Pensé que ya era tarde. Acá encontré con quién volver a moverme.",
+    quote: "Pensé que era tarde. Acá empecé de nuevo.",
     image: fundadorIncomingAsset(STORY_FILES[0]),
     fallbackImage: "/vu/puerta-conectar-otros.png",
   },
@@ -114,7 +115,7 @@ export const FUNDADOR_V2_STORIES: FounderSeedStory[] = [
     id: "elena",
     name: "Elena M.",
     beforeToday: "Docente · hoy facilitadora comunitaria",
-    quote: "Quería volver a sentir que lo mío importaba fuera del aula.",
+    quote: "Quería volver a sentir algo mío. Acá encontré una puerta.",
     image: fundadorIncomingAsset(STORY_FILES[7]),
     fallbackImage: "/vu/perfil-maria-sol.png",
   },
@@ -122,7 +123,7 @@ export const FUNDADOR_V2_STORIES: FounderSeedStory[] = [
     id: "carlos",
     name: "Carlos D.",
     beforeToday: "Comercio · hoy mentor de proyectos",
-    quote: "No buscaba un plan perfecto. Buscaba gente con la que empezar.",
+    quote: "No buscaba un plan perfecto. Buscaba empezar.",
     image: fundadorIncomingAsset(STORY_FILES[2]),
     fallbackImage: "/vu/puerta-conectar-otros.png",
   },
@@ -130,7 +131,7 @@ export const FUNDADOR_V2_STORIES: FounderSeedStory[] = [
     id: "patricia",
     name: "Patricia L.",
     beforeToday: "Salud · hoy artesana en red",
-    quote: "Me costaba decir en voz alta lo que quería retomar. Acá pude.",
+    quote: "Me animé a mirar lo que había dejado dormido.",
     image: fundadorIncomingAsset(STORY_FILES[6]),
     fallbackImage: "/vu/perfil-maria-sol.png",
   },
@@ -138,7 +139,7 @@ export const FUNDADOR_V2_STORIES: FounderSeedStory[] = [
     id: "andres",
     name: "Andrés G.",
     beforeToday: "Logística · hoy organizador de encuentros",
-    quote: "Sentía que mi experiencia valía, pero no sabía dónde ponerla.",
+    quote: "Volví a conectar con algo que todavía estaba vivo.",
     image: fundadorIncomingAsset(STORY_FILES[4]),
     fallbackImage: "/vu/puerta-conectar-otros.png",
   },
@@ -146,7 +147,7 @@ export const FUNDADOR_V2_STORIES: FounderSeedStory[] = [
     id: "silvia",
     name: "Silvia N.",
     beforeToday: "Oficina · hoy impulsora de círculos",
-    quote: "Necesitaba un espacio donde no me sintieran exagerada por querer más.",
+    quote: "Encontré un lugar para ordenar lo que venía sintiendo.",
     image: fundadorIncomingAsset(STORY_FILES[5]),
     fallbackImage: "/vu/perfil-maria-sol.png",
   },
@@ -154,7 +155,7 @@ export const FUNDADOR_V2_STORIES: FounderSeedStory[] = [
     id: "roberto",
     name: "Roberto F.",
     beforeToday: "Industria · hoy co-creador de radio",
-    quote: "Volví a sentir que había algo mío esperando, no apurado ni tarde.",
+    quote: "No estaba perdido. Estaba postergado.",
     image: fundadorIncomingAsset(STORY_FILES[8]),
     fallbackImage: "/vu/puerta-conectar-otros.png",
   },
@@ -162,7 +163,6 @@ export const FUNDADOR_V2_STORIES: FounderSeedStory[] = [
 
 export const FUNDADOR_V2_STORIES_SECTION = {
   title: "Historias que empiezan a moverse",
-  disclaimer: "Historias inspiracionales semilla",
 } as const;
 
 export const FUNDADOR_V2_ECOSYSTEM = {
@@ -200,7 +200,6 @@ export const FUNDADOR_V2_ECOSYSTEM = {
 } as const;
 
 export const FUNDADOR_V2_GUARANTEES = [
-  { id: "free", label: "Gratis" },
   { id: "nocard", label: "Sin tarjeta" },
   { id: "private", label: "Privado" },
 ] as const;

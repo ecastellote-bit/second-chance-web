@@ -98,7 +98,7 @@ export function FundadorCommunityLanding({
 }: Props) {
   const router = useRouter();
   const emotionalRef = useRef<HTMLElement>(null);
-  const activityBlockRef = useRef<HTMLDivElement>(null);
+  const footerNudgeRef = useRef<HTMLDivElement>(null);
 
   const [hasRelevantAction, setHasRelevantAction] = useState(false);
   const [microgateOpen, setMicrogateOpen] = useState(false);
@@ -176,10 +176,11 @@ export function FundadorCommunityLanding({
 
   useFounderSoftFeedbackNudge({
     enabled: !hasRelevantAction && !showSoftFeedback && !exitOpen && !microgateOpen,
-    barrioSectionRef: activityBlockRef,
-    activityBlockRef,
+    barrioSectionRef: footerNudgeRef,
+    activityBlockRef: footerNudgeRef,
     onEligible: handleSoftNudgeEligible,
     showAfterMs: 35_000,
+    scrollDepthThreshold: 0.9,
   });
 
   function scrollToEmotional() {
@@ -248,8 +249,11 @@ export function FundadorCommunityLanding({
             <p className="mt-3 max-w-[20rem] text-[14px] leading-relaxed text-white/78">
               {FUNDADOR_V2_HERO.microcopy}
             </p>
+            <p className="mt-3 max-w-[20rem] text-[13px] leading-relaxed text-white/72">
+              {FUNDADOR_V2_HERO.gratuityLine}
+            </p>
 
-            <div className="mt-6 flex flex-col gap-3">
+            <div className="mt-5 flex flex-col gap-3">
               <button
                 type="button"
                 onClick={() => {
@@ -325,7 +329,6 @@ export function FundadorCommunityLanding({
       <FounderStoryRotator
         stories={FUNDADOR_V2_STORIES}
         title={FUNDADOR_V2_STORIES_SECTION.title}
-        disclaimer={FUNDADOR_V2_STORIES_SECTION.disclaimer}
       />
 
       {/* ── Puertas del ecosistema ── */}
@@ -352,8 +355,16 @@ export function FundadorCommunityLanding({
 
       {/* ── Actividad fundadora ── */}
       <section className="px-4 py-5">
-        <div ref={activityBlockRef} className="mx-auto max-w-lg">
+        <div className="mx-auto max-w-lg">
+          <LiveActivityPanel variant="full" showTimestamps={false} />
+        </div>
+      </section>
+
+      {/* ── Salida amable + garantías discretas ── */}
+      <footer className="mx-auto max-w-lg border-t border-white/8 px-4 py-6 pb-10">
+        <div ref={footerNudgeRef} className="mx-auto max-w-lg">
           <FounderSoftFeedbackNudge
+            variant="footer"
             visible={showSoftFeedback && !hasRelevantAction && !microgateOpen}
             onFeedback={openExitFromSoftNudge}
             onTrySixty={() => {
@@ -367,13 +378,9 @@ export function FundadorCommunityLanding({
               trackFounderConversion("founder.soft_feedback_nudge_dismissed");
             }}
           />
-          <LiveActivityPanel variant="full" showTimestamps={false} />
         </div>
-      </section>
 
-      {/* ── Garantías + footer ── */}
-      <footer className="mx-auto max-w-lg border-t border-white/8 px-4 py-8 pb-10">
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[12px] font-medium text-white/55">
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] font-normal text-white/38">
           {FUNDADOR_V2_GUARANTEES.map((item, index) => (
             <span key={item.id} className="flex items-center gap-4">
               {index > 0 ? <span className="hidden text-white/25 sm:inline">|</span> : null}
