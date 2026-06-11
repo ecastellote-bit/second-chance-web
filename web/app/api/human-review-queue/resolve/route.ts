@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAdminApiAuth } from "@/lib/security/requireAdminApiAuth";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
@@ -7,6 +8,9 @@ const QUEUE_DIR = path.join(process.cwd(), "data", "human-review");
 const QUEUE_FILE = path.join(QUEUE_DIR, "pending-reviews.jsonl");
 
 export async function POST(req: NextRequest) {
+  const authError = requireAdminApiAuth(req);
+  if (authError) return authError;
+
   try {
     const body = await req.json();
     const { caseId, resolution, note, convertToLearnedCase } = body as {

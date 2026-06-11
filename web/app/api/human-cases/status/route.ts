@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { requireAdminApiAuth } from "@/lib/security/requireAdminApiAuth";
 import { getDurableStoreStatus } from "@/lib/learning/humanCaseDurableStore";
 import { listHumanCaseBundles } from "@/lib/learning/humanCaseDurableStore";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const authError = requireAdminApiAuth(req);
+  if (authError) return authError;
+
   const status = getDurableStoreStatus();
 
   let caseCount = 0;

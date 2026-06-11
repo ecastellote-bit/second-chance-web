@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { requireAdminApiAuth } from "@/lib/security/requireAdminApiAuth";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -42,7 +44,10 @@ function extractInputText(payload: HumanCasePayload): string {
   return parts.join(" ");
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
+  const authError = requireAdminApiAuth(req);
+  if (authError) return authError;
+
   try {
     const url = new URL(req.url);
     const status = url.searchParams.get("status");

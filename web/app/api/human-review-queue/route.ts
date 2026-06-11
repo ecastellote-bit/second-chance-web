@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { requireAdminApiAuth } from "@/lib/security/requireAdminApiAuth";
 import { mkdir, appendFile, readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
@@ -44,7 +46,10 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const authError = requireAdminApiAuth(req);
+  if (authError) return authError;
+
   try {
     await ensureDir();
 

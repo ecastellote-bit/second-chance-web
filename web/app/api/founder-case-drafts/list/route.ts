@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { requireAdminApiAuth } from "@/lib/security/requireAdminApiAuth";
 import {
   FounderCaseDraftStoreError,
   getFounderCaseDraftStoreStatus,
@@ -19,7 +21,10 @@ const VALID_STATUSES = new Set<FounderCaseDraftStatus>([
   "archived_minimal",
 ]);
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
+  const authError = requireAdminApiAuth(req);
+  if (authError) return authError;
+
   try {
     const url = new URL(req.url);
     const statusParam = url.searchParams.get("status")?.trim();
