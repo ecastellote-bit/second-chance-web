@@ -4,11 +4,24 @@ import {
   TEAM_TENTATIVE_EVENTS,
 } from "./teamFounderSeeds";
 
+export type BarrioTrustChip = {
+  label: string;
+  href: string;
+};
+
+export const BARRIO_TRUST_CHIPS: BarrioTrustChip[] = [
+  { label: "Proyectos", href: "/proyectos" },
+  { label: "Ideas", href: "/proyectos/sembrar" },
+  { label: "Formación", href: "/formacion" },
+  { label: "Círculos", href: "/circulos" },
+  { label: "Eventos", href: "/eventos" },
+];
+
 export const BARRIO_PREDICTIVE_COPY = {
   eyebrow: "VOCATIONUP · SECOND CHANCE",
   title: "Entrá al barrio",
-  subtitle: "Proyectos, círculos, encuentros y oportunidades para empezar a moverte.",
-  chips: ["Proyectos", "Círculos", "Eventos", "Ideas"] as const,
+  subtitle:
+    "Proyectos, formación, círculos, encuentros e ideas para empezar a moverte.",
   primaryCta: "Hacer mi lectura sin costo",
   secondaryCta: "Explorar ahora",
   liveSectionTitle: "Ya hay mesas empezando a moverse",
@@ -33,6 +46,24 @@ export const BARRIO_ACTION_CARDS: BarrioActionCard[] = [
     href: "/proyectos",
     image: "/vu/seeds/projects/radio-second-chance.jpg",
     fallbackImage: "/vu/proyecto-manos-transforman.png",
+  },
+  {
+    id: "sembrar",
+    title: "Sembrar mi idea",
+    line: "Dejá una primera semilla para revisión del equipo.",
+    cta: "Sembrar",
+    href: "/proyectos/sembrar",
+    image: "/vu/mesa-ideas-compartidas.jpeg",
+    fallbackImage: "/vu/proyecto-huerta-compartida.png",
+  },
+  {
+    id: "formacion",
+    title: "Explorar formación",
+    line: "Primeras rutas para aprender, practicar y volver a moverte.",
+    cta: "Ver formación",
+    href: "/formacion",
+    image: "/vu/aprender-acompanado-taller.jpeg",
+    fallbackImage: "/vu/seeds/projects/oficios-que-ensenan.jpg",
   },
   {
     id: "circulos",
@@ -60,15 +91,6 @@ export const BARRIO_ACTION_CARDS: BarrioActionCard[] = [
     href: "/eventos",
     image: "/vu/evento-emprende-proposito.png",
     fallbackImage: "/vu/evento-ideas-comunidad.png",
-  },
-  {
-    id: "sembrar",
-    title: "Sembrar mi idea",
-    line: "Dejá una primera semilla para revisión del equipo.",
-    cta: "Sembrar",
-    href: "/proyectos/sembrar",
-    image: "/vu/mesa-ideas-compartidas.jpeg",
-    fallbackImage: "/vu/proyecto-huerta-compartida.png",
   },
   {
     id: "lectura",

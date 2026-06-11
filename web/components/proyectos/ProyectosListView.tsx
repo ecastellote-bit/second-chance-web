@@ -128,6 +128,23 @@ export function ProyectosListView() {
 
             <MyFounderSeedBanner />
 
+            <Link
+              href={canSembrar ? "/proyectos/sembrar" : "/fundador"}
+              className="vu-focus mb-6 flex min-h-[52px] items-center justify-between gap-3 rounded-[24px] bg-[#0B2E59] px-5 py-4 text-white shadow-[0_4px_16px_rgba(15,42,70,0.12)] active:scale-[0.99]"
+            >
+              <div className="min-w-0 text-left">
+                <p className="text-[15px] font-bold">Sembrar mi idea</p>
+                <p className="mt-0.5 text-[12px] leading-snug text-white/85">
+                  {canSembrar
+                    ? "Dejá una primera semilla para revisión del equipo."
+                    : "Ser fundador para sembrar tu proyecto en el barrio."}
+                </p>
+              </div>
+              <span className="shrink-0 text-[13px] font-bold text-[#C6D92D]">Sembrar →</span>
+            </Link>
+
+            <QuickInterestCapture {...PROYECTOS_INTEREST} className="mb-6" />
+
             <PublicCommunityRecentActivity className="mb-6" limit={6} surface="projects" />
 
             <section className="mb-6">
@@ -145,8 +162,6 @@ export function ProyectosListView() {
                 ))}
               </ul>
             </section>
-
-            <QuickInterestCapture {...PROYECTOS_INTEREST} className="mb-6" />
 
             <section className="mb-6 rounded-[28px] bg-white p-5 shadow-[0_4px_16px_rgba(15,42,70,0.06)] ring-1 ring-[#E8EEF3]">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -259,13 +274,6 @@ export function ProyectosListView() {
                 </ul>
               )}
             </section>
-
-            <Link
-              href={canSembrar ? "/proyectos/sembrar" : "/fundador"}
-              className="vu-focus mb-3 flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-[#0B2E59] px-4 text-sm font-bold text-white shadow-[0_4px_16px_rgba(15,42,70,0.12)]"
-            >
-              {canSembrar ? "Sembrar mi proyecto (fundador)" : "Ser fundador y sembrar"}
-            </Link>
 
             <Link
               href="/proyectos/radio-second-chance"

@@ -18,6 +18,8 @@ import {
 export function EventosView() {
   const [activeFilter, setActiveFilter] = useState<EventFilterId>("todas");
   const events = useMemo(() => filterEvents(activeFilter), [activeFilter]);
+  const previewEvents = events.slice(0, 2);
+  const moreEvents = events.slice(2);
 
   return (
     <div className="flex min-h-[100dvh] flex-col font-[family-name:var(--font-inter)] bg-[#F8FAFC] text-[#243647] lg:flex-row">
@@ -50,8 +52,6 @@ export function EventosView() {
               <p className="mt-1 text-[14px] leading-snug text-[#6B7A8C]">{EVENTOS_HEADER.subtitle}</p>
             </header>
 
-            <QuickInterestCapture {...EVENTOS_INTEREST} className="mb-6" />
-
             <div
               className="mb-6 flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory"
               role="tablist"
@@ -79,17 +79,27 @@ export function EventosView() {
               })}
             </div>
 
+            {previewEvents.length > 0 ? (
+              <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {previewEvents.map((event) => (
+                  <EventoOpportunityCard key={event.id} event={event} />
+                ))}
+              </div>
+            ) : null}
+
+            <QuickInterestCapture {...EVENTOS_INTEREST} className="mb-6" />
+
             {events.length === 0 ? (
               <p className="rounded-[24px] bg-white px-6 py-10 text-center text-sm text-[#6B7A8C] shadow-[0_4px_16px_rgba(15,42,70,0.06)]">
                 Por ahora no hay eventos con este filtro. Probá otra categoría del barrio.
               </p>
-            ) : (
+            ) : moreEvents.length > 0 ? (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {events.map((event) => (
+                {moreEvents.map((event) => (
                   <EventoOpportunityCard key={event.id} event={event} />
                 ))}
               </div>
-            )}
+            ) : null}
 
             <p className="mt-8 text-center text-xs leading-relaxed text-[#6B7A8C] lg:text-left">
               Un calendario de vecinos — no una agenda corporativa.

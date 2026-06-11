@@ -18,8 +18,8 @@ export type SurfaceInterestConfig = {
 
 export const FORMACION_INTEREST: SurfaceInterestConfig = {
   intentType: "formacion",
-  title: "¿En qué te gustaría formarte?",
-  subtitle: "Contanos en una línea — sin perfil, sin inscripción.",
+  title: "¿Qué te gustaría aprender o practicar?",
+  subtitle: "Sugerí una formación en una línea — sin perfil, sin inscripción.",
   placeholder:
     "Ej.: comunicación digital, oficios prácticos, ventas, radio, carpintería, organización de proyectos…",
   primaryCta: "Enviar interés",
@@ -42,6 +42,7 @@ export const FORMACION_INTEREST: SurfaceInterestConfig = {
 export const PROYECTOS_INTEREST: SurfaceInterestConfig = {
   intentType: "proyectos",
   title: "¿Qué proyecto te gustaría impulsar o a cuál te sumarías?",
+  subtitle: "Dejá una señal o sembrá tu idea si ya sos fundador.",
   placeholder: "Ej.: radio comunitaria, taller de oficios, app local, emprendimiento social…",
   primaryCta: "Enviar interés",
   footnote: "No necesitás perfil para dejar esta señal.",
@@ -61,6 +62,7 @@ export const PROYECTOS_INTEREST: SurfaceInterestConfig = {
 export const CIRCULOS_INTEREST: SurfaceInterestConfig = {
   intentType: "circulos",
   title: "¿Sobre qué te gustaría encontrarte con otras personas?",
+  subtitle: "Proponé un círculo o dejá una señal — no hace falta crear uno ahora.",
   placeholder: "Ej.: reinicio profesional, escritura, tecnología con ritmo humano, impacto local…",
   primaryCta: "Enviar interés",
   footnote: "No necesitás perfil para proponer un círculo o sumarte.",
@@ -79,7 +81,8 @@ export const CIRCULOS_INTEREST: SurfaceInterestConfig = {
 
 export const EVENTOS_INTEREST: SurfaceInterestConfig = {
   intentType: "eventos",
-  title: "¿En qué ciudad te gustaría participar de un encuentro?",
+  title: "¿Qué encuentro te gustaría ver en el barrio?",
+  subtitle: "Proponé un encuentro o dejá una señal — sin crear evento todavía.",
   placeholder: "Ej.: Córdoba, mesa presencial, charla sobre reinicio, café de conexiones…",
   primaryCta: "Enviar interés",
   footnote: "No necesitás perfil para sugerir un encuentro.",
@@ -105,10 +108,10 @@ export const FORMACION_ROUTE_CARDS = [
   {
     id: "f1",
     title: "Comunicación digital",
-    line: "Para proyectos comunitarios y presencia en red.",
+    line: "Radio comunitaria y presencia en red — ejemplo vivo del barrio.",
     image: "/vu/seeds/projects/radio-second-chance.jpg",
     fallback: "/vu/proyecto-radio-barrial.png",
-    href: "/eventos",
+    href: "/proyectos/radio-second-chance",
   },
   {
     id: "f2",
@@ -116,7 +119,7 @@ export const FORMACION_ROUTE_CARDS = [
     line: "Talleres cortos con acompañamiento entre pares.",
     image: "/vu/seeds/projects/oficios-que-ensenan.jpg",
     fallback: "/vu/proyecto-manos-transforman.png",
-    href: "/eventos",
+    href: "/eventos/carpinteria-primeros-proyectos",
   },
   {
     id: "f3",
@@ -132,6 +135,6 @@ export const FORMACION_ROUTE_CARDS = [
     line: "Ordenar experiencias y próximos movimientos posibles.",
     image: "/vu/seeds/projects/reinicio-laboral-adulto.jpg",
     fallback: "/vu/circulo-reinicio-40.png",
-    href: "/circulos",
+    href: "/circulos/empezar-de-nuevo",
   },
 ] as const;

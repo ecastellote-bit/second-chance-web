@@ -6,6 +6,7 @@ import {
   BARRIO_ACTION_CARDS,
   BARRIO_LIVE_PREVIEWS,
   BARRIO_PREDICTIVE_COPY,
+  BARRIO_TRUST_CHIPS,
 } from "@/lib/content/barrioPredictiveCopy";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
 import { VuWarmImage } from "@/components/ui/VuWarmImage";
@@ -13,11 +14,14 @@ import { trackObservatoryEvent, trackObservatoryEventOnce } from "@/lib/observat
 
 const copy = BARRIO_PREDICTIVE_COPY;
 
-function TrustChip({ label }: { label: string }) {
+function TrustChip({ label, href }: { label: string; href: string }) {
   return (
-    <span className="inline-flex rounded-full border border-[#1A9BB0]/25 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#0B2E59]">
+    <Link
+      href={href}
+      className="vu-focus inline-flex rounded-full border border-[#1A9BB0]/25 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#0B2E59] active:scale-[0.98]"
+    >
       {label}
-    </span>
+    </Link>
   );
 }
 
@@ -122,8 +126,8 @@ export function BarrioPredictivePlaza() {
         <h1 className="mt-1.5 text-[1.5rem] font-extrabold leading-tight text-[#0B2E59]">{copy.title}</h1>
         <p className="mt-1.5 text-[14px] leading-snug text-[#6B7A8C]">{copy.subtitle}</p>
         <div className="mt-3 flex flex-wrap gap-1.5">
-          {copy.chips.map((chip) => (
-            <TrustChip key={chip} label={chip} />
+          {BARRIO_TRUST_CHIPS.map((chip) => (
+            <TrustChip key={chip.label} label={chip.label} href={chip.href} />
           ))}
         </div>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">

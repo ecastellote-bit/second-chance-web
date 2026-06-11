@@ -121,7 +121,9 @@ export function FormacionView() {
             </section>
 
             {/* Bloque principal — acción inmediata */}
-            <QuickInterestCapture {...FORMACION_INTEREST} className="mb-6" />
+            <div id="interes-formacion" className="scroll-mt-4">
+              <QuickInterestCapture {...FORMACION_INTEREST} className="mb-6" />
+            </div>
 
             {/* Tarjetas predictivas */}
             <p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">

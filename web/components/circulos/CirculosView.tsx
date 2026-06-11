@@ -12,6 +12,8 @@ import { CIRCULOS_INTEREST } from "@/lib/content/surfaceInterestCopy";
 export function CirculosView() {
   const teamCircles = CIRCULOS_CATALOG.filter((c) => c.isTeamSeed);
   const otherCircles = CIRCULOS_CATALOG.filter((c) => !c.isTeamSeed);
+  const previewCircles = teamCircles.slice(0, 2);
+  const moreCircles = [...teamCircles.slice(2), ...otherCircles];
 
   return (
     <div className="flex min-h-[100dvh] flex-col font-[family-name:var(--font-inter)] bg-[#F8FAFC] text-[#243647] lg:flex-row">
@@ -53,21 +55,23 @@ export function CirculosView() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
-                {teamCircles.map((circle) => (
-                  <CircleCard key={circle.id} circle={circle} />
-                ))}
-              </div>
+              {previewCircles.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
+                  {previewCircles.map((circle) => (
+                    <CircleCard key={circle.id} circle={circle} />
+                  ))}
+                </div>
+              ) : null}
 
               <QuickInterestCapture {...CIRCULOS_INTEREST} className="my-6" />
 
-              {otherCircles.length > 0 ? (
+              {moreCircles.length > 0 ? (
                 <>
-                  <p className="mb-3 mt-8 text-[11px] font-bold uppercase tracking-wider text-[#6B7A8C]">
+                  <p className="mb-3 mt-2 text-[11px] font-bold uppercase tracking-wider text-[#6B7A8C]">
                     Más espacios del barrio
                   </p>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
-                    {otherCircles.map((circle) => (
+                    {moreCircles.map((circle) => (
                       <CircleCard key={circle.id} circle={circle} />
                     ))}
                   </div>
