@@ -8,6 +8,7 @@ const ATTENTION_KINDS = new Set<ModerationQueueKind>([
   "report",
   "circle_signal",
   "formation",
+  "human_review",
 ]);
 
 export function filterInboxItems(

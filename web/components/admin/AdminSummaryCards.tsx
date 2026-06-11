@@ -7,6 +7,7 @@ type CardDef = {
 };
 
 const CARDS: CardDef[] = [
+  { key: "humanReviewPending", label: "Revisión humana", accent: "#DC2626" },
   { key: "reportsNew", label: "Reportes nuevos", accent: "#DC2626" },
   { key: "seedsPendingReview", label: "Semillas en revisión", accent: "#0B2E59" },
   { key: "contributionsPendingReview", label: "Aportes pendientes", accent: "#1A9BB0" },
@@ -31,6 +32,7 @@ export function AdminSummaryCards({ counts }: { counts: ModerationSummaryCounts 
         const hot =
           value > 0 &&
           (card.key === "reportsNew" ||
+            card.key === "humanReviewPending" ||
             card.key === "notificationsFailed" ||
             card.key === "surfaceInterestNew" ||
             card.key === "exitFeedbackNew");

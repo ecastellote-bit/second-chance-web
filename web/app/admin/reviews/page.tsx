@@ -1,6 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { adminFetchWithTimeout } from "@/lib/admin/adminFetch";
+
+const FETCH_TIMEOUT_MS = 8000;
+
+function loadErrorMessage(err: unknown): string {
+  if (err instanceof DOMException && err.name === "AbortError") {
+    return "La carga tardó demasiado. Reintentá en unos segundos.";
+  }
+  if (err instanceof Error) return err.message;
+  return "No se pudo cargar la cola de revisión.";
+}
 
 type ReviewCase = {
   caseId: string;
@@ -61,24 +73,67 @@ function formatDate(isoDate: string) {
 export default function ReviewsDashboard() {
   const [cases, setCases] = useState<ReviewCase[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [stats, setStats] = useState({ total: 0, pending: 0 });
   const [expandedCase, setExpandedCase] = useState<string | null>(null);
 
   const fetchCases = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
-      const res = await fetch("/api/human-review-queue");
-      const data: QueueResponse = await res.json();
-      if (data.ok) {
-        setCases(data.cases);
-        setStats({ total: data.total, pending: data.pending });
+      const res = await adminFetchWithTimeout("/api/human-review-queue", {
+        timeoutMs: FETCH_TIMEOUT_MS,
+      });
+      const data = (await res.json()) as QueueResponse & {
+        error?: string;
+        message?: string;
+      };
+      if (!res.ok) {
+        if (res.status === 401) {
+          throw new Error(
+            "Sesión admin requerida. Volvé a entrar por /admin con tu credencial.",
+          );
+        }
+        throw new Error(data.message ?? data.error ?? `Error ${res.status}`);
       }
-    } catch {
-      // silent fail
+      if (!data.ok) {
+        throw new Error("No se pudo cargar la cola de revisión.");
+      }
+      setCases(data.cases ?? []);
+      setStats({ total: data.total ?? 0, pending: data.pending ?? 0 });
+    } catch (err) {
+      setError(loadErrorMessage(err));
     } finally {
       setLoading(false);
     }
   }, []);
+
+  async function resolveCase(
+    caseId: string,
+    resolution: "resolved" | "dismissed",
+    convertToLearnedCase?: boolean,
+  ) {
+    setError("");
+    try {
+      const res = await adminFetchWithTimeout("/api/human-review-queue/resolve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        timeoutMs: FETCH_TIMEOUT_MS,
+        body: JSON.stringify({
+          caseId,
+          resolution,
+          ...(convertToLearnedCase ? { convertToLearnedCase: true } : {}),
+        }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string; message?: string };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.message ?? data.error ?? "No se pudo actualizar el caso");
+      }
+      await fetchCases();
+    } catch (err) {
+      setError(loadErrorMessage(err));
+    }
+  }
 
   useEffect(() => {
     fetchCases();
@@ -104,6 +159,19 @@ export default function ReviewsDashboard() {
           </button>
         </div>
 
+        {error ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+            <p>{error}</p>
+            <button
+              type="button"
+              onClick={() => void fetchCases()}
+              className="vu-focus mt-2 font-semibold text-red-800 underline"
+            >
+              Reintentar
+            </button>
+          </div>
+        ) : null}
+
         {/* STATS */}
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-white border border-neutral-200 rounded-xl p-4 text-center">
@@ -122,14 +190,22 @@ export default function ReviewsDashboard() {
           </div>
         </div>
 
+        {loading && cases.length === 0 && !error ? (
+          <p className="text-sm text-neutral-500">Cargando cola de revisión…</p>
+        ) : null}
+
         {/* CASE LIST */}
-        {cases.length === 0 && !loading && (
-          <div className="bg-white border border-neutral-200 rounded-xl p-8 text-center">
-            <p className="text-neutral-500">
-              No hay casos pendientes de revisión.
+        {cases.length === 0 && !loading && !error ? (
+          <div className="rounded-xl border border-neutral-200 bg-white p-8 text-center">
+            <p className="font-medium text-neutral-700">No hay casos pendientes de revisión.</p>
+            <p className="mt-2 text-sm text-neutral-500">
+              Cuando el sistema escale un caso, aparecerá acá para resolverlo manualmente.
             </p>
+            <Link href="/admin" className="mt-4 inline-block text-sm font-semibold text-[#1A9BB0] underline">
+              Volver al tablero admin
+            </Link>
           </div>
-        )}
+        ) : null}
 
         <div className="space-y-4">
           {cases.map((reviewCase) => (
@@ -261,50 +337,24 @@ export default function ReviewsDashboard() {
                   {/* Actions */}
                   <div className="flex gap-3 pt-2">
                     <button
-                      onClick={async () => {
-                        await fetch("/api/human-review-queue/resolve", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            caseId: reviewCase.caseId,
-                            resolution: "resolved",
-                          }),
-                        });
-                        fetchCases();
-                      }}
+                      type="button"
+                      onClick={() => void resolveCase(reviewCase.caseId, "resolved")}
                       className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700"
                     >
                       Resolver
                     </button>
                     <button
-                      onClick={async () => {
-                        await fetch("/api/human-review-queue/resolve", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            caseId: reviewCase.caseId,
-                            resolution: "dismissed",
-                          }),
-                        });
-                        fetchCases();
-                      }}
+                      type="button"
+                      onClick={() => void resolveCase(reviewCase.caseId, "dismissed")}
                       className="px-4 py-2 border border-neutral-300 rounded-lg text-sm hover:bg-neutral-50"
                     >
                       Descartar
                     </button>
                     <button
-                      onClick={async () => {
-                        await fetch("/api/human-review-queue/resolve", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            caseId: reviewCase.caseId,
-                            resolution: "resolved",
-                            convertToLearnedCase: true,
-                          }),
-                        });
-                        fetchCases();
-                      }}
+                      type="button"
+                      onClick={() =>
+                        void resolveCase(reviewCase.caseId, "resolved", true)
+                      }
                       className="px-4 py-2 border border-neutral-300 rounded-lg text-sm hover:bg-neutral-50"
                     >
                       Convertir en learnedCase

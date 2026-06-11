@@ -12,6 +12,7 @@ import { listFounderProjectSignals } from "@/lib/learning/founderProjectSignals"
 import { listNotificationEvents } from "@/lib/learning/notificationEvents";
 import { listSurfaceInterestLeads } from "@/lib/learning/surfaceInterestLeads";
 import { maskAdminEmail } from "@/lib/admin/adminSessionCache";
+import { readPendingHumanReviews } from "@/lib/admin/readPendingHumanReviews";
 import { countUserInboxStatuses } from "@/lib/admin/userInboxCounts";
 import { SURFACE_TYPE_LABEL } from "@/lib/admin/userInboxLabels";
 import {
@@ -216,6 +217,7 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
     surfaceLeads,
     exitFeedback,
     storeStatus,
+    humanReviews,
   ] = await Promise.all([
     listFounderProjectSeeds({ limit: 300 }),
     listFounderProjectGuidedContributions({ limit: 300 }),
@@ -228,6 +230,7 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
     listSurfaceInterestLeads(),
     listFounderExitFeedback(),
     getFounderProjectSeedStoreStatus(),
+    readPendingHumanReviews(),
   ]);
 
   const inboxCounts = countUserInboxStatuses(surfaceLeads, exitFeedback);
@@ -253,6 +256,7 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
     exitFeedbackNew: exitFeedback.filter((f) => isUserInboxAttentionStatus(f.status)).length,
     userInboxNeedsReply: inboxCounts.needsReply,
     userInboxArchived: inboxCounts.archived + inboxCounts.hidden,
+    humanReviewPending: humanReviews.length,
   };
 
   const storeAlert: ModerationStoreAlert = {
@@ -283,13 +287,14 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
   }
 
   for (const fb of exitFeedback.filter((x) => isUserInboxAttentionStatus(x.status))) {
-    const body = fb.freeText?.trim() || fb.selectedOption || "";
     items.push({
       id: fb.feedbackId,
       kind: "exit_feedback",
       priority: fb.status === "needs_reply" ? 1 : 4,
       title: "Feedback de salida /fundador",
-      excerpt: excerpt(body || `Modo: ${fb.submitMode}`),
+      excerpt: excerpt(
+        `Feedback registrado${fb.exitTrigger ? ` · ${fb.exitTrigger}` : ""} — ver inbox`,
+      ),
       status: fb.status,
       statusLabel: userInboxStatusLabel(fb.status),
       createdAt: fb.createdAt,
@@ -316,7 +321,13 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
       risk: "report",
       actions: [
         { id: "reviewed", label: "Revisado", variant: "primary", payload: { status: "reviewed" } },
-        { id: "dismissed", label: "Descartar", variant: "secondary", payload: { status: "dismissed" } },
+        {
+          id: "dismissed",
+          label: "Descartar",
+          variant: "secondary",
+          payload: { status: "dismissed" },
+          requiresConfirm: true,
+        },
         {
           id: "action_taken",
           label: "Acción tomada",
@@ -325,6 +336,34 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
         },
       ],
       meta: { targetType: r.targetType, targetId: r.targetId },
+    });
+  }
+
+  for (const review of humanReviews) {
+    const urgency = review.triggerResult?.urgency ?? "low";
+    const reasonCount = review.triggerResult?.reasons?.length ?? 0;
+    items.push({
+      id: review.caseId ?? review.queuedAt,
+      kind: "human_review",
+      priority: 17,
+      title: `Revisión humana · urgencia ${urgency}`,
+      excerpt: excerpt(
+        `${reasonCount} señal(es) de escalado — abrí el panel para ver el detalle completo.`,
+      ),
+      status: "pending",
+      statusLabel: "Pendiente",
+      createdAt: review.queuedAt,
+      panelHref: "/admin/reviews",
+      actions: [
+        {
+          id: "open_reviews",
+          label: "Ver en revisión",
+          variant: "primary",
+          payload: {},
+          requiresPanel: true,
+        },
+      ],
+      meta: { urgency },
     });
   }
 

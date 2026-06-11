@@ -162,7 +162,9 @@ export function AdminEntityCard({
         >
           {item.kind === "surface_interest" || item.kind === "exit_feedback"
             ? "Ver en inbox"
-            : "Ver detalle"}
+            : item.kind === "human_review"
+              ? "Ver en revisión"
+              : "Ver detalle"}
         </Link>
       </div>
     </article>

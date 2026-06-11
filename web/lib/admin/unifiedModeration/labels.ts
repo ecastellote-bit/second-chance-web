@@ -32,4 +32,5 @@ export const KIND_LABEL: Record<string, string> = {
   notification: "Evento notificación",
   surface_interest: "Interés con email",
   exit_feedback: "Feedback de salida",
+  human_review: "Revisión humana (diagnóstico)",
 };

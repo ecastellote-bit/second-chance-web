@@ -8,7 +8,8 @@ export type ModerationQueueKind =
   | "formation"
   | "notification"
   | "surface_interest"
-  | "exit_feedback";
+  | "exit_feedback"
+  | "human_review";
 
 export type ModerationQuickAction = {
   id: string;
@@ -58,6 +59,7 @@ export type ModerationSummaryCounts = {
   exitFeedbackNew: number;
   userInboxNeedsReply: number;
   userInboxArchived: number;
+  humanReviewPending: number;
 };
 
 export type ModerationStoreAlert = {
