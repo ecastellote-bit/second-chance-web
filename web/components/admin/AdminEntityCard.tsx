@@ -42,6 +42,12 @@ export function AdminEntityCard({
       setShowApprove(true);
       return;
     }
+    if (
+      action.requiresConfirm &&
+      !window.confirm(`¿Confirmás esta acción?\n\n${action.label}`)
+    ) {
+      return;
+    }
     setBusy(action.id);
     setError("");
     try {
@@ -85,7 +91,10 @@ export function AdminEntityCard({
       </div>
 
       <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">{item.excerpt}</p>
-      <p className="mt-1 text-[11px] text-[#9AA8B8]">{dateLabel}</p>
+      <p className="mt-1 text-[11px] text-[#9AA8B8]">
+        {dateLabel}
+        {item.relatedLabel ? ` · ${item.relatedLabel}` : ""}
+      </p>
 
       {item.relatedHref ? (
         <Link
@@ -151,7 +160,9 @@ export function AdminEntityCard({
           href={item.panelHref}
           className="vu-focus min-h-[40px] rounded-xl border border-dashed border-[#1A9BB0]/40 px-3 py-2 text-xs font-semibold text-[#1A9BB0]"
         >
-          Panel completo
+          {item.kind === "surface_interest" || item.kind === "exit_feedback"
+            ? "Ver en inbox"
+            : "Ver detalle"}
         </Link>
       </div>
     </article>

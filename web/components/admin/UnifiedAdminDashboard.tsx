@@ -5,9 +5,17 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminEntityCard } from "@/components/admin/AdminEntityCard";
 import { AdminSummaryCards } from "@/components/admin/AdminSummaryCards";
 import { CampaignPulsePanel } from "@/components/admin/CampaignPulsePanel";
+import { adminFetchWithTimeout } from "@/lib/admin/adminFetch";
+import {
+  readAdminSessionCache,
+  sanitizeDashboardForSessionCache,
+  writeAdminSessionCache,
+} from "@/lib/admin/adminSessionCache";
 import { filterInboxItems } from "@/lib/admin/unifiedModeration/filterInbox";
-import { adminFetch } from "@/lib/admin/adminFetch";
 import type { UnifiedModerationDashboard } from "@/lib/admin/unifiedModeration/types";
+
+const DASHBOARD_CACHE_KEY = "vu_admin_dashboard";
+const DASHBOARD_TIMEOUT_MS = 12000;
 
 const FILTERS: { id: string; label: string }[] = [
   { id: "attention", label: "Requiere atención" },
@@ -24,16 +32,29 @@ const FILTERS: { id: string; label: string }[] = [
 ];
 
 export function UnifiedAdminDashboard() {
-  const [dashboard, setDashboard] = useState<UnifiedModerationDashboard | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [dashboard, setDashboard] = useState<UnifiedModerationDashboard | null>(() => {
+    return readAdminSessionCache<UnifiedModerationDashboard>(DASHBOARD_CACHE_KEY)?.data ?? null;
+  });
+  const [loading, setLoading] = useState(() => !dashboard);
   const [error, setError] = useState("");
+  const [stale, setStale] = useState(false);
   const [filter, setFilter] = useState("attention");
 
   const load = useCallback(async () => {
-    setLoading(true);
+    const cached = readAdminSessionCache<UnifiedModerationDashboard>(DASHBOARD_CACHE_KEY);
+    if (cached?.data) {
+      setDashboard(cached.data);
+      setStale(false);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     setError("");
+
     try {
-      const res = await adminFetch("/api/admin/unified-moderation/dashboard");
+      const res = await adminFetchWithTimeout("/api/admin/unified-moderation/dashboard", {
+        timeoutMs: DASHBOARD_TIMEOUT_MS,
+      });
       const data = (await res.json()) as {
         ok?: boolean;
         dashboard?: UnifiedModerationDashboard;
@@ -43,8 +64,19 @@ export function UnifiedAdminDashboard() {
         throw new Error(data.error ?? "No se pudo cargar el tablero");
       }
       setDashboard(data.dashboard);
+      setStale(false);
+      writeAdminSessionCache(
+        DASHBOARD_CACHE_KEY,
+        sanitizeDashboardForSessionCache(data.dashboard),
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error");
+      const message = err instanceof Error ? err.message : "Error";
+      if (cached?.data) {
+        setStale(true);
+        setError("No pudimos refrescar la cola. Mostramos la última lectura disponible.");
+      } else {
+        setError(message);
+      }
     } finally {
       setLoading(false);
     }
@@ -58,6 +90,8 @@ export function UnifiedAdminDashboard() {
     if (!dashboard) return [];
     return filterInboxItems(dashboard.items, filter);
   }, [dashboard, filter]);
+
+  const showDashboard = Boolean(dashboard);
 
   return (
     <main className="min-h-[100dvh] bg-[#F8FAFC] font-[family-name:var(--font-inter)] text-[#243647]">
@@ -108,16 +142,24 @@ export function UnifiedAdminDashboard() {
         </div>
 
         {error ? (
-          <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          <p className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
             {error}
           </p>
         ) : null}
 
-        {loading || !dashboard ? (
+        {stale && showDashboard ? (
+          <p className="mb-4 text-[12px] font-medium text-[#6B7A8C]">
+            Última lectura de colas disponible · actualizá cuando puedas.
+          </p>
+        ) : null}
+
+        {loading && !showDashboard ? (
           <p className="text-sm text-[#6B7A8C]">Cargando colas de moderación…</p>
-        ) : (
+        ) : null}
+
+        {showDashboard ? (
           <>
-            <AdminSummaryCards counts={dashboard.counts} />
+            <AdminSummaryCards counts={dashboard!.counts} />
 
             <div className="mt-6 flex flex-wrap items-center gap-2">
               {FILTERS.map((f) => (
@@ -145,18 +187,41 @@ export function UnifiedAdminDashboard() {
             </div>
 
             <section className="mt-6">
-              <h2 className="text-[13px] font-bold uppercase tracking-wide text-[#6B7A8C]">
-                Cola operativa
-                {filter === "attention" ? " · requiere atención" : ""}
+              <h2 className="text-[13px] font-bold uppercase tracking-wide text-[#0B2E59]">
+                {filter === "attention" ? "Requiere atención" : "Cola operativa"}
                 <span className="ml-2 font-normal normal-case text-[#9AA8B8]">
                   ({filteredItems.length} ítems)
                 </span>
               </h2>
+              {filter === "attention" ? (
+                <p className="mt-1 text-[12px] text-[#6B7A8C]">
+                  Señales con email, semillas, aportes, reportes e ideas — ordenadas por prioridad.
+                </p>
+              ) : null}
 
               {filteredItems.length === 0 ? (
-                <p className="mt-4 rounded-2xl border border-[#E8EEF3] bg-white p-6 text-center text-sm text-[#6B7A8C]">
-                  No hay ítems en esta vista. Probá otro filtro o actualizá.
-                </p>
+                <div className="mt-4 rounded-2xl border border-[#E8EEF3] bg-white p-6 text-center text-sm text-[#6B7A8C]">
+                  <p className="font-semibold text-[#0B2E59]">
+                    No hay señales pendientes ahora.
+                  </p>
+                  <p className="mt-2">
+                    Podés revisar el inbox, el observatorio o las colas históricas.
+                  </p>
+                  <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
+                    <Link href="/admin/user-inbox" className="font-semibold text-[#1A9BB0] underline">
+                      Inbox de señales
+                    </Link>
+                    <Link href="/admin/casos-humanos" className="font-semibold text-[#6B7A8C] underline">
+                      Casos humanos
+                    </Link>
+                    <Link href="/admin/reviews" className="font-semibold text-[#6B7A8C] underline">
+                      Revisión humana
+                    </Link>
+                    <Link href="/admin/observatorio" className="font-semibold text-[#6B7A8C] underline">
+                      Observatorio
+                    </Link>
+                  </div>
+                </div>
               ) : (
                 <ul className="mt-4 flex flex-col gap-3">
                   {filteredItems.map((item) => (
@@ -175,7 +240,7 @@ export function UnifiedAdminDashboard() {
                 falta.
               </p>
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
-                {dashboard.deepLinks.map((link) => (
+                {dashboard!.deepLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
@@ -197,10 +262,11 @@ export function UnifiedAdminDashboard() {
             </section>
 
             <p className="mt-6 text-center text-[10px] text-[#9AA8B8]">
-              Actualizado {new Date(dashboard.generatedAt).toLocaleString("es-AR")}
+              Actualizado {new Date(dashboard!.generatedAt).toLocaleString("es-AR")}
+              {loading ? " · refrescando…" : ""}
             </p>
           </>
-        )}
+        ) : null}
       </div>
     </main>
   );

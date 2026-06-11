@@ -3,8 +3,15 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { CampaignFunnelDropoff } from "@/components/admin/CampaignFunnelDropoff";
-import { adminFetch } from "@/lib/admin/adminFetch";
+import { adminFetchWithTimeout } from "@/lib/admin/adminFetch";
+import {
+  readAdminSessionCache,
+  writeAdminSessionCache,
+} from "@/lib/admin/adminSessionCache";
 import type { ObservatoryReport } from "@/lib/observatory/types";
+
+const PULSE_CACHE_KEY = "vu_admin_pulse_7d";
+const PULSE_TIMEOUT_MS = 7000;
 
 function PulseCard({ label, value }: { label: string; value: number }) {
   return (
@@ -21,25 +28,44 @@ function PulseCard({ label, value }: { label: string; value: number }) {
 }
 
 export function CampaignPulsePanel({ compact = false }: { compact?: boolean }) {
-  const [report, setReport] = useState<ObservatoryReport | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [report, setReport] = useState<ObservatoryReport | null>(() => {
+    return readAdminSessionCache<ObservatoryReport>(PULSE_CACHE_KEY)?.data ?? null;
+  });
+  const [loading, setLoading] = useState(() => !report);
   const [unavailable, setUnavailable] = useState(false);
+  const [stale, setStale] = useState(false);
 
   const load = useCallback(async () => {
-    setLoading(true);
+    const cached = readAdminSessionCache<ObservatoryReport>(PULSE_CACHE_KEY);
+    if (cached?.data) {
+      setReport(cached.data);
+      setStale(false);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     setUnavailable(false);
+
     try {
-      const res = await adminFetch("/api/admin/observatory/report?period=7d");
+      const res = await adminFetchWithTimeout(
+        "/api/admin/observatory/report?period=7d",
+        { timeoutMs: PULSE_TIMEOUT_MS },
+      );
       const data = (await res.json()) as { ok?: boolean; report?: ObservatoryReport };
       if (!res.ok || !data.ok || !data.report) {
         setUnavailable(true);
-        setReport(null);
+        if (!cached?.data) setReport(null);
+        else setStale(true);
         return;
       }
       setReport(data.report);
+      setStale(false);
+      setUnavailable(false);
+      writeAdminSessionCache(PULSE_CACHE_KEY, data.report);
     } catch {
       setUnavailable(true);
-      setReport(null);
+      if (!cached?.data) setReport(null);
+      else setStale(true);
     } finally {
       setLoading(false);
     }
@@ -69,7 +95,7 @@ export function CampaignPulsePanel({ compact = false }: { compact?: boolean }) {
             onClick={() => void load()}
             className="vu-focus rounded-full border border-[#E8EEF3] bg-white px-3 py-1 text-xs font-semibold text-[#1A9BB0]"
           >
-            Actualizar
+            Reintentar
           </button>
           <Link
             href="/admin/observatorio"
@@ -80,14 +106,36 @@ export function CampaignPulsePanel({ compact = false }: { compact?: boolean }) {
         </div>
       </div>
 
-      {loading ? (
-        <p className="mt-4 text-sm text-[#6B7A8C]">Cargando pulso…</p>
-      ) : unavailable ? (
-        <p className="mt-4 text-sm text-[#6B7A8C]">
-          Pulso no disponible en este momento. Probá actualizar en unos segundos.
+      {stale ? (
+        <p className="mt-3 text-[11px] font-medium text-amber-800">
+          Última lectura disponible · no pudimos refrescar el pulso ahora.
         </p>
+      ) : null}
+
+      {loading && !campaign ? (
+        <p className="mt-4 text-sm text-[#6B7A8C]">Cargando pulso…</p>
+      ) : unavailable && !campaign ? (
+        <div className="mt-4 space-y-2 text-sm text-[#6B7A8C]">
+          <p>No pudimos cargar el pulso ahora. Podés seguir moderando.</p>
+          <p>
+            <button
+              type="button"
+              onClick={() => void load()}
+              className="vu-focus font-semibold text-[#1A9BB0] underline"
+            >
+              Reintentar
+            </button>
+            {" · "}
+            <Link href="/admin/observatorio" className="font-semibold text-[#1A9BB0] underline">
+              Ir al observatorio
+            </Link>
+          </p>
+        </div>
       ) : campaign ? (
         <>
+          {loading ? (
+            <p className="mt-3 text-[11px] text-[#9AA8B8]">Actualizando pulso…</p>
+          ) : null}
           {compact ? (
             <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
               <PulseCard label="Visitas fundador" value={campaign.fundadorViews} />

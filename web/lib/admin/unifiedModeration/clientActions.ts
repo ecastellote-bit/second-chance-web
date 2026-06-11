@@ -1,3 +1,4 @@
+import { adminFetch } from "@/lib/admin/adminFetch";
 import type { ModerationInboxItem, ModerationQuickAction } from "./types";
 
 function patchUrl(item: ModerationInboxItem): string {
@@ -23,6 +24,12 @@ function patchUrl(item: ModerationInboxItem): string {
   }
 }
 
+function userInboxKind(item: ModerationInboxItem): "surface_interest" | "exit_feedback" {
+  if (item.kind === "surface_interest") return "surface_interest";
+  if (item.kind === "exit_feedback") return "exit_feedback";
+  throw new Error("not_user_inbox");
+}
+
 export async function runModerationQuickAction(
   item: ModerationInboxItem,
   action: ModerationQuickAction,
@@ -30,6 +37,27 @@ export async function runModerationQuickAction(
 ): Promise<void> {
   if (action.requiresPanel) {
     window.location.href = item.panelHref;
+    return;
+  }
+
+  if (action.isUserInboxAction) {
+    const adminStatus = action.payload.adminStatus;
+    if (typeof adminStatus !== "string") {
+      throw new Error("Estado de inbox inválido");
+    }
+    const res = await adminFetch("/api/admin/user-inbox/action", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        kind: userInboxKind(item),
+        itemId: item.id,
+        adminStatus,
+      }),
+    });
+    const data = (await res.json()) as { ok?: boolean; error?: string; message?: string };
+    if (!res.ok || !data.ok) {
+      throw new Error(data.message ?? data.error ?? "No se pudo actualizar el inbox");
+    }
     return;
   }
 
@@ -42,7 +70,7 @@ export async function runModerationQuickAction(
     body.publicText = text;
   }
 
-  const res = await fetch(patchUrl(item), {
+  const res = await adminFetch(patchUrl(item), {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

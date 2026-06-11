@@ -20,6 +20,10 @@ export type ModerationQuickAction = {
   requiresPanel?: boolean;
   /** circle_idea approve needs publicText */
   needsPublicText?: boolean;
+  /** POST /api/admin/user-inbox/action */
+  isUserInboxAction?: boolean;
+  /** Pedir confirmación liviana antes de ejecutar (visibilidad pública) */
+  requiresConfirm?: boolean;
 };
 
 export type ModerationInboxItem = {

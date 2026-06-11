@@ -11,6 +11,7 @@ import { listFounderProjectGuidedContributions } from "@/lib/learning/founderPro
 import { listFounderProjectSignals } from "@/lib/learning/founderProjectSignals";
 import { listNotificationEvents } from "@/lib/learning/notificationEvents";
 import { listSurfaceInterestLeads } from "@/lib/learning/surfaceInterestLeads";
+import { maskAdminEmail } from "@/lib/admin/adminSessionCache";
 import { countUserInboxStatuses } from "@/lib/admin/userInboxCounts";
 import { SURFACE_TYPE_LABEL } from "@/lib/admin/userInboxLabels";
 import {
@@ -49,16 +50,58 @@ function reportTargetHref(targetType: string, targetId: string): string | undefi
   }
 }
 
+const USER_INBOX_ACTIONS: ModerationQuickAction[] = [
+  {
+    id: "needs_reply",
+    label: "Para responder",
+    variant: "lime",
+    payload: { adminStatus: "needs_reply" },
+    isUserInboxAction: true,
+  },
+  {
+    id: "reviewed",
+    label: "Revisado",
+    variant: "primary",
+    payload: { adminStatus: "reviewed" },
+    isUserInboxAction: true,
+  },
+  {
+    id: "archived",
+    label: "Archivar",
+    variant: "secondary",
+    payload: { adminStatus: "archived" },
+    isUserInboxAction: true,
+  },
+];
+
 function seedActions(status: string): ModerationQuickAction[] {
   if (status === "pending_review") {
     return [
-      { id: "publish", label: "Publicar", variant: "primary", payload: { status: "published" } },
-      { id: "hide", label: "Ocultar", variant: "secondary", payload: { status: "hidden" } },
+      {
+        id: "publish",
+        label: "Publicar",
+        variant: "primary",
+        payload: { status: "published" },
+        requiresConfirm: true,
+      },
+      {
+        id: "hide",
+        label: "Ocultar",
+        variant: "secondary",
+        payload: { status: "hidden" },
+        requiresConfirm: true,
+      },
     ];
   }
   if (status === "published") {
     return [
-      { id: "hide", label: "Ocultar", variant: "secondary", payload: { status: "hidden" } },
+      {
+        id: "hide",
+        label: "Ocultar",
+        variant: "secondary",
+        payload: { status: "hidden" },
+        requiresConfirm: true,
+      },
       {
         id: "review",
         label: "Volver a revisión",
@@ -74,6 +117,7 @@ function seedActions(status: string): ModerationQuickAction[] {
         label: "Publicar",
         variant: "primary",
         payload: { status: "published" },
+        requiresConfirm: true,
       },
       {
         id: "review",
@@ -89,14 +133,38 @@ function seedActions(status: string): ModerationQuickAction[] {
 function contributionActions(status: string): ModerationQuickAction[] {
   if (status === "pending_review") {
     return [
-      { id: "visible", label: "Hacer visible", variant: "primary", payload: { status: "visible" } },
-      { id: "hidden", label: "Ocultar", variant: "secondary", payload: { status: "hidden" } },
+      {
+        id: "visible",
+        label: "Hacer visible",
+        variant: "primary",
+        payload: { status: "visible" },
+        requiresConfirm: true,
+      },
+      {
+        id: "hidden",
+        label: "Ocultar",
+        variant: "secondary",
+        payload: { status: "hidden" },
+        requiresConfirm: true,
+      },
       { id: "flagged", label: "Flaggear", variant: "danger", payload: { status: "flagged" } },
     ];
   }
   return [
-    { id: "visible", label: "Visible", variant: "primary", payload: { status: "visible" } },
-    { id: "hidden", label: "Ocultar", variant: "secondary", payload: { status: "hidden" } },
+    {
+      id: "visible",
+      label: "Visible",
+      variant: "primary",
+      payload: { status: "visible" },
+      requiresConfirm: true,
+    },
+    {
+      id: "hidden",
+      label: "Ocultar",
+      variant: "secondary",
+      payload: { status: "hidden" },
+      requiresConfirm: true,
+    },
     { id: "flagged", label: "Flaggear", variant: "danger", payload: { status: "flagged" } },
     { id: "archived", label: "Archivar", variant: "secondary", payload: { status: "archived" } },
   ];
@@ -123,6 +191,7 @@ function circleSignalActions(
       label: "Ocultar visibilidad",
       variant: "secondary",
       payload: { action: "hide_visibility" },
+      requiresConfirm: true,
     });
   }
   if (status === "active") {
@@ -200,16 +269,16 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
     items.push({
       id: lead.leadId,
       kind: "surface_interest",
-      priority: lead.status === "needs_reply" ? 6 : 8,
+      priority: lead.status === "needs_reply" ? 2 : 5,
       title: `Interés · ${SURFACE_TYPE_LABEL[lead.surfaceType] ?? lead.surfaceType}`,
-      excerpt: excerpt(`${lead.email} — ${lead.text}`),
+      excerpt: excerpt(`${maskAdminEmail(lead.email)} — ${lead.text}`),
       status: lead.status,
       statusLabel: userInboxStatusLabel(lead.status),
       createdAt: lead.createdAt,
       relatedLabel: lead.path ?? undefined,
       panelHref: PANEL_HREFS.userInbox,
-      actions: [],
-      meta: { email: lead.email, surfaceType: lead.surfaceType },
+      actions: USER_INBOX_ACTIONS,
+      meta: { surfaceType: lead.surfaceType },
     });
   }
 
@@ -218,7 +287,7 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
     items.push({
       id: fb.feedbackId,
       kind: "exit_feedback",
-      priority: fb.status === "needs_reply" ? 10 : 12,
+      priority: fb.status === "needs_reply" ? 1 : 4,
       title: "Feedback de salida /fundador",
       excerpt: excerpt(body || `Modo: ${fb.submitMode}`),
       status: fb.status,
@@ -226,7 +295,7 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
       createdAt: fb.createdAt,
       relatedLabel: fb.exitTrigger ?? undefined,
       panelHref: PANEL_HREFS.userInbox,
-      actions: [],
+      actions: USER_INBOX_ACTIONS,
       meta: { exitTrigger: fb.exitTrigger ?? undefined },
     });
   }
@@ -235,7 +304,7 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
     items.push({
       id: r.reportId,
       kind: "report",
-      priority: 10,
+      priority: 15,
       title: `Reporte · ${reportReasonLabel(r.reason)}`,
       excerpt: excerpt(r.details ?? `Origen: ${r.targetType}`),
       status: r.status,
@@ -334,6 +403,7 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
           label: "Publicar",
           variant: "primary",
           payload: { status: "published" },
+          requiresConfirm: true,
         },
         {
           id: "panel",
@@ -421,6 +491,7 @@ export async function loadUnifiedModerationDashboard(): Promise<UnifiedModeratio
       { label: "Formación", href: PANEL_HREFS.formation },
       { label: "Notificaciones", href: PANEL_HREFS.notifications },
       { label: "Señales email / feedback", href: PANEL_HREFS.userInbox },
+      { label: "Revisión humana (diagnóstico)", href: "/admin/reviews" },
     ],
   };
 }

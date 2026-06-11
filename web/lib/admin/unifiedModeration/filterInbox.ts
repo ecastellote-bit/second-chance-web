@@ -1,10 +1,23 @@
-import type { ModerationInboxItem } from "./types";
+import type { ModerationInboxItem, ModerationQueueKind } from "./types";
+
+const ATTENTION_KINDS = new Set<ModerationQueueKind>([
+  "surface_interest",
+  "exit_feedback",
+  "seed",
+  "contribution",
+  "report",
+  "circle_signal",
+  "formation",
+]);
 
 export function filterInboxItems(
   items: ModerationInboxItem[],
   filter: string,
 ): ModerationInboxItem[] {
-  if (filter === "attention" || filter === "all") {
+  if (filter === "attention") {
+    return items.filter((i) => ATTENTION_KINDS.has(i.kind));
+  }
+  if (filter === "all") {
     return items;
   }
   const kindMap: Record<string, ModerationInboxItem["kind"]> = {
