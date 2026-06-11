@@ -18,12 +18,15 @@ type Props = {
   returnTo?: string;
   /** inline: tarjeta dentro de la página; page: pantalla centrada */
   mode?: "inline" | "page";
+  /** Aviso humano opcional antes del copy del gate (p. ej. sembrar proyecto) */
+  gateHint?: string;
 };
 
 export function CommunityActionGate({
   children,
   returnTo,
   mode = "inline",
+  gateHint,
 }: Props) {
   const pathname = usePathname();
   const [ready, setReady] = useState(false);
@@ -79,6 +82,11 @@ export function CommunityActionGate({
     const copy = COMMUNITY_ACTION_GATE_COPY;
     const card = (
       <div className="space-y-3 text-center">
+        {gateHint ? (
+          <p className="rounded-xl border border-[#C6D92D]/35 bg-[#F4F9E0] px-4 py-3 text-[13px] leading-relaxed text-[#243647]">
+            {gateHint}
+          </p>
+        ) : null}
         <h2 className="text-base font-bold text-[#0B2E59]">{copy.title}</h2>
         <p className="text-sm leading-relaxed text-[#6B7A8C]">{copy.body}</p>
         <div className="flex flex-col gap-2 pt-1">

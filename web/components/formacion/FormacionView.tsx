@@ -29,22 +29,34 @@ function RouteCard({
   line,
   image,
   fallback,
+  href,
 }: {
   title: string;
   line: string;
   image: string;
   fallback: string;
+  href: string;
 }) {
   return (
-    <div className="flex gap-3 overflow-hidden rounded-2xl border border-[#E8EEF3] bg-white p-3 shadow-[0_4px_14px_rgba(15,42,70,0.06)]">
+    <Link
+      href={href}
+      className="vu-focus group flex gap-3 overflow-hidden rounded-2xl border border-[#E8EEF3] bg-white p-3 shadow-[0_4px_14px_rgba(15,42,70,0.06)] transition-transform active:scale-[0.99]"
+    >
       <div className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-xl bg-[#E8EEF3]">
-        <VuWarmImage src={image} fallbackSrc={fallback} alt="" fill className="object-cover" sizes="72px" />
+        <VuWarmImage
+          src={image}
+          fallbackSrc={fallback}
+          alt=""
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          sizes="72px"
+        />
       </div>
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
         <p className="text-[14px] font-bold leading-snug text-[#0B2E59]">{title}</p>
         <p className="text-[12px] leading-snug text-[#6B7A8C] line-clamp-2">{line}</p>
       </div>
-    </div>
+    </Link>
   );
 }
 

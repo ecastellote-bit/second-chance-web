@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { shouldShowStaffDiagnosticInternals } from "@/lib/public/showStaffDiagnosticInternals";
@@ -925,7 +926,41 @@ function ResultPageInner() {
   }, [result]);
 
   if (!result) {
-    return <div>No hay resultado disponible</div>;
+    return (
+      <main className="flex min-h-[100dvh] flex-col items-center justify-center bg-[#F8FAFC] px-6 py-10 font-[family-name:var(--font-inter)]">
+        <div className="w-full max-w-md space-y-5 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">
+            Tu lectura
+          </p>
+          <h1 className="text-[1.35rem] font-bold leading-snug text-[#0B2E59]">
+            No encontramos una lectura abierta en este dispositivo
+          </h1>
+          <p className="text-[15px] leading-relaxed text-[#6B7A8C]">
+            Podés empezar una nueva, recuperar una lectura guardada o volver a la plaza.
+          </p>
+          <div className="flex flex-col gap-3 pt-2">
+            <Link
+              href="/full?founder=1"
+              className="vu-focus inline-flex min-h-[3rem] w-full items-center justify-center rounded-2xl bg-[#0B2E59] px-4 text-[15px] font-semibold text-white active:scale-[0.99]"
+            >
+              Empezar mi lectura inicial
+            </Link>
+            <Link
+              href="/full/result/recuperar"
+              className="vu-focus inline-flex min-h-[3rem] w-full items-center justify-center rounded-2xl border border-[#0B2E59]/20 bg-white px-4 text-[15px] font-semibold text-[#0B2E59] active:scale-[0.99]"
+            >
+              Recuperar una lectura guardada
+            </Link>
+            <Link
+              href="/plaza"
+              className="vu-focus inline-flex min-h-[3rem] w-full items-center justify-center rounded-2xl border border-[#E8EEF3] bg-white px-4 text-[15px] font-semibold text-[#1A9BB0] active:scale-[0.99]"
+            >
+              Volver a la plaza
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   const rawResult = result as unknown as ResultForView;

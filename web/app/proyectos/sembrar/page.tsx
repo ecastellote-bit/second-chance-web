@@ -140,9 +140,16 @@ function SembrarForm() {
   );
 }
 
+const SEMBRAR_PROFILE_GATE_HINT =
+  "Para sembrar una idea necesitamos un perfil mínimo, así podemos cuidarla y seguir la conversación. Te toma un minuto y después volvés a tu idea.";
+
 export default function SembrarProyectoPage() {
   return (
-    <CommunityActionGate mode="page" returnTo="/proyectos">
+    <CommunityActionGate
+      mode="page"
+      returnTo="/proyectos/sembrar"
+      gateHint={SEMBRAR_PROFILE_GATE_HINT}
+    >
       <FoundingMemberGate>
         <SembrarForm />
       </FoundingMemberGate>

@@ -116,7 +116,42 @@ export function PlazaPostActivacionView({
   }, [activationPathId]);
 
   if (!path) {
-    return null;
+    return (
+      <main className="flex min-h-[100dvh] flex-col items-center justify-center bg-[#F8FAFC] px-6 py-10 font-[family-name:var(--font-inter)]">
+        <div className="w-full max-w-md space-y-5 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">
+            Tu plaza
+          </p>
+          <h1 className="text-[1.35rem] font-bold leading-snug text-[#0B2E59]">
+            No encontramos esa activación
+          </h1>
+          <p className="text-[15px] leading-relaxed text-[#6B7A8C]">
+            Podés volver a la plaza o iniciar una nueva activación.
+          </p>
+          <div className="flex flex-col gap-3 pt-2">
+            <Link
+              href="/plaza"
+              className="vu-focus inline-flex min-h-[3rem] w-full items-center justify-center rounded-2xl bg-[#0B2E59] px-4 text-[15px] font-semibold text-white active:scale-[0.99]"
+            >
+              Ir a la plaza
+            </Link>
+            <Link
+              href="/activacion"
+              className="vu-focus inline-flex min-h-[3rem] w-full items-center justify-center rounded-2xl border border-[#0B2E59]/20 bg-white px-4 text-[15px] font-semibold text-[#0B2E59] active:scale-[0.99]"
+            >
+              Empezar activación
+            </Link>
+            <Link
+              href="/full?founder=1"
+              className="vu-focus inline-flex min-h-[3rem] w-full items-center justify-center rounded-2xl border border-[#E8EEF3] bg-white px-4 text-[15px] font-semibold text-[#1A9BB0] active:scale-[0.99]"
+            >
+              Hacer lectura inicial
+            </Link>
+          </div>
+        </div>
+        <VuBottomNav active="plaza" />
+      </main>
+    );
   }
 
   return (

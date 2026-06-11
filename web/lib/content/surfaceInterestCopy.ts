@@ -108,6 +108,7 @@ export const FORMACION_ROUTE_CARDS = [
     line: "Para proyectos comunitarios y presencia en red.",
     image: "/vu/seeds/projects/radio-second-chance.jpg",
     fallback: "/vu/proyecto-radio-barrial.png",
+    href: "/eventos",
   },
   {
     id: "f2",
@@ -115,6 +116,7 @@ export const FORMACION_ROUTE_CARDS = [
     line: "Talleres cortos con acompañamiento entre pares.",
     image: "/vu/seeds/projects/oficios-que-ensenan.jpg",
     fallback: "/vu/proyecto-manos-transforman.png",
+    href: "/eventos",
   },
   {
     id: "f3",
@@ -122,6 +124,7 @@ export const FORMACION_ROUTE_CARDS = [
     line: "Para quienes están armando su primer movimiento.",
     image: "/vu/seeds/projects/banco-ideas-dormidas.jpg",
     fallback: "/vu/mesa-ideas-compartidas.jpeg",
+    href: "/proyectos",
   },
   {
     id: "f4",
@@ -129,5 +132,6 @@ export const FORMACION_ROUTE_CARDS = [
     line: "Ordenar experiencias y próximos movimientos posibles.",
     image: "/vu/seeds/projects/reinicio-laboral-adulto.jpg",
     fallback: "/vu/circulo-reinicio-40.png",
+    href: "/circulos",
   },
 ] as const;
