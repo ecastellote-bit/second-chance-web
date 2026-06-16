@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { get, list, put } from "@vercel/blob";
+import { readBlobRecordsParallel } from "@/lib/storage/blobParallelRead";
 import {
   assertVercelBlobForProduction,
   isVercelBlobConfigured,
@@ -184,18 +185,19 @@ export function getFounderExitFeedbackStoreMeta(): {
 
 export async function listFounderExitFeedback(): Promise<FounderExitFeedbackRecord[]> {
   if (isVercelBlobConfigured()) {
-    const records: FounderExitFeedbackRecord[] = [];
+    const pathnames: string[] = [];
     let cursor: string | undefined;
     do {
       const page = await list({ prefix: `${BLOB_PREFIX}/`, limit: 1000, cursor });
       for (const blob of page.blobs) {
-        const match = blob.pathname.match(/founder-exit-feedback\/(.+)\.json$/);
-        if (!match?.[1]) continue;
-        const record = await readRecordFromBlobPath(blob.pathname);
-        if (record) records.push(record);
+        if (/founder-exit-feedback\/(.+)\.json$/.test(blob.pathname)) {
+          pathnames.push(blob.pathname);
+        }
       }
       cursor = page.hasMore ? page.cursor : undefined;
     } while (cursor);
+
+    const records = await readBlobRecordsParallel(pathnames, readRecordFromBlobPath);
     return records.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
   return readAllFromLocal();

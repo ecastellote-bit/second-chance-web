@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { get, list, put } from "@vercel/blob";
+import { readBlobRecordsParallel } from "@/lib/storage/blobParallelRead";
 import {
   assertVercelBlobForProduction,
   isVercelBlobConfigured,
@@ -189,18 +190,19 @@ export async function createSurfaceInterestLead(input: {
 export async function listSurfaceInterestLeads(): Promise<SurfaceInterestLead[]> {
   const meta = getSurfaceInterestLeadStoreMeta();
   if (meta.backend === "blob") {
-    const leads: SurfaceInterestLead[] = [];
+    const pathnames: string[] = [];
     let cursor: string | undefined;
     do {
       const page = await list({ prefix: `${BLOB_PREFIX}/`, limit: 1000, cursor });
       for (const blob of page.blobs) {
-        const match = blob.pathname.match(/surface-interest-leads\/(.+)\.json$/);
-        if (!match?.[1]) continue;
-        const lead = await readLeadFromBlobPath(blob.pathname);
-        if (lead) leads.push(lead);
+        if (/surface-interest-leads\/(.+)\.json$/.test(blob.pathname)) {
+          pathnames.push(blob.pathname);
+        }
       }
       cursor = page.hasMore ? page.cursor : undefined;
     } while (cursor);
+
+    const leads = await readBlobRecordsParallel(pathnames, readLeadFromBlobPath);
     return leads.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
   return readAllLeadsFromLocal();

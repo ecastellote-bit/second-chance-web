@@ -7,6 +7,7 @@ import { AdminSummaryCards } from "@/components/admin/AdminSummaryCards";
 import { CampaignPulsePanel } from "@/components/admin/CampaignPulsePanel";
 import { adminFetchWithTimeout } from "@/lib/admin/adminFetch";
 import {
+  clearAdminSessionCache,
   readAdminSessionCache,
   sanitizeDashboardForSessionCache,
   writeAdminSessionCache,
@@ -40,8 +41,12 @@ export function UnifiedAdminDashboard() {
   const [stale, setStale] = useState(false);
   const [filter, setFilter] = useState("attention");
 
-  const load = useCallback(async () => {
-    const cached = readAdminSessionCache<UnifiedModerationDashboard>(DASHBOARD_CACHE_KEY);
+  const load = useCallback(async (forceRefresh = false) => {
+    if (forceRefresh) clearAdminSessionCache(DASHBOARD_CACHE_KEY);
+
+    const cached = forceRefresh
+      ? null
+      : readAdminSessionCache<UnifiedModerationDashboard>(DASHBOARD_CACHE_KEY);
     if (cached?.data) {
       setDashboard(cached.data);
       setStale(false);
@@ -52,9 +57,12 @@ export function UnifiedAdminDashboard() {
     setError("");
 
     try {
-      const res = await adminFetchWithTimeout("/api/admin/unified-moderation/dashboard", {
+      const res = await adminFetchWithTimeout(
+        `/api/admin/unified-moderation/dashboard${forceRefresh ? "?refresh=1" : ""}`,
+        {
         timeoutMs: DASHBOARD_TIMEOUT_MS,
-      });
+      },
+      );
       const data = (await res.json()) as {
         ok?: boolean;
         dashboard?: UnifiedModerationDashboard;
@@ -179,7 +187,7 @@ export function UnifiedAdminDashboard() {
               ))}
               <button
                 type="button"
-                onClick={() => void load()}
+                onClick={() => void load(true)}
                 className="vu-focus rounded-full border border-[#E8EEF3] bg-white px-3 py-1.5 text-xs font-semibold text-[#1A9BB0]"
               >
                 Actualizar

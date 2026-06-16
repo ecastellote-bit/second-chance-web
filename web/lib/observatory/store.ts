@@ -7,9 +7,41 @@ import {
   requiresVercelBlob,
 } from "@/lib/storage/vercelBlobEnv";
 import type { ObservatoryEvent } from "./types";
+import type { ObservatoryPeriod } from "./types";
 
 const EVENTS_FILE = "events.jsonl";
 const BLOB_PREFIX = "observatory-events";
+
+export type ObservatoryBoundedRead = {
+  events: ObservatoryEvent[];
+  partial: boolean;
+  listedBlobs: number;
+  timedOut: boolean;
+};
+
+function periodFromDate(period: ObservatoryPeriod): Date | null {
+  if (period === "all") return null;
+  const days = period === "7d" ? 7 : 30;
+  const from = new Date();
+  from.setDate(from.getDate() - days);
+  return from;
+}
+
+async function listObservatoryBlobRefs(): Promise<Array<{ pathname: string; uploadedAt: Date }>> {
+  const rows: Array<{ pathname: string; uploadedAt: Date }> = [];
+  let cursor: string | undefined;
+
+  do {
+    const page = await list({ prefix: `${BLOB_PREFIX}/`, limit: 1000, cursor });
+    for (const blob of page.blobs) {
+      if (!blob.pathname.endsWith(".json")) continue;
+      rows.push({ pathname: blob.pathname, uploadedAt: new Date(blob.uploadedAt) });
+    }
+    cursor = page.hasMore ? page.cursor : undefined;
+  } while (cursor);
+
+  return rows;
+}
 
 export type ObservatoryStoreMeta = {
   backend: "blob" | "local_jsonl";
@@ -66,20 +98,65 @@ async function readFromBlob(pathname: string): Promise<ObservatoryEvent | null> 
 }
 
 async function listFromBlob(): Promise<ObservatoryEvent[]> {
-  const items: ObservatoryEvent[] = [];
-  let cursor: string | undefined;
+  const result = await readObservatoryEventsBounded({
+    period: "all",
+    timeBudgetMs: 120_000,
+    maxEvents: 50_000,
+  });
+  return result.events;
+}
 
-  do {
-    const page = await list({ prefix: `${BLOB_PREFIX}/`, limit: 1000, cursor });
-    for (const blob of page.blobs) {
-      if (!blob.pathname.endsWith(".json")) continue;
-      const event = await readFromBlob(blob.pathname);
-      if (event) items.push(event);
+export async function readObservatoryEventsBounded(options: {
+  period?: ObservatoryPeriod;
+  timeBudgetMs?: number;
+  maxEvents?: number;
+}): Promise<ObservatoryBoundedRead> {
+  const { period = "30d", timeBudgetMs = 6500, maxEvents = 2500 } = options;
+
+  if (!isVercelBlobConfigured()) {
+    const events = await readFromLocal();
+    return {
+      events,
+      partial: false,
+      listedBlobs: events.length,
+      timedOut: false,
+    };
+  }
+
+  const started = Date.now();
+  const from = periodFromDate(period);
+  const slackMs = 24 * 60 * 60 * 1000;
+
+  const blobs = await listObservatoryBlobRefs();
+  const candidates = blobs
+    .filter((blob) => !from || blob.uploadedAt.getTime() >= from.getTime() - slackMs)
+    .sort((a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime());
+
+  const events: ObservatoryEvent[] = [];
+  let fetchedBlobs = 0;
+  let timedOut = false;
+
+  for (const blob of candidates) {
+    if (events.length >= maxEvents) break;
+    if (Date.now() - started >= timeBudgetMs) {
+      timedOut = true;
+      break;
     }
-    cursor = page.hasMore ? page.cursor : undefined;
-  } while (cursor);
+    const event = await readFromBlob(blob.pathname);
+    fetchedBlobs += 1;
+    if (event) events.push(event);
+  }
 
-  return items.sort((a, b) => a.at.localeCompare(b.at));
+  const partial =
+    timedOut || fetchedBlobs < candidates.length || events.length >= maxEvents;
+
+  events.sort((a, b) => a.at.localeCompare(b.at));
+  return {
+    events,
+    partial,
+    listedBlobs: candidates.length,
+    timedOut,
+  };
 }
 
 async function appendToLocal(event: ObservatoryEvent): Promise<void> {

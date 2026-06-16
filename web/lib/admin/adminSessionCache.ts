@@ -3,7 +3,7 @@ import type {
   UnifiedModerationDashboard,
 } from "@/lib/admin/unifiedModeration/types";
 
-const MAX_AGE_MS = 30 * 60 * 1000;
+const MAX_AGE_MS = 5 * 60 * 1000;
 
 /** Evita persistir feedback libre o PII en sessionStorage del tablero admin. */
 export function sanitizeDashboardForSessionCache(
@@ -46,6 +46,15 @@ export function readAdminSessionCache<T>(key: string): { data: T; savedAt: strin
     return parsed;
   } catch {
     return null;
+  }
+}
+
+export function clearAdminSessionCache(key: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(key);
+  } catch {
+    // private mode
   }
 }
 

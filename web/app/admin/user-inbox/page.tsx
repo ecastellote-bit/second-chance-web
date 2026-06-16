@@ -205,7 +205,8 @@ export default function UserInboxAdminPage() {
         </div>
 
         {counts ? (
-          <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
+          <div className="mb-4">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
             {[
               { label: "Pendientes", value: counts.attention, accent: "#DC2626" },
               { label: "Nuevos", value: counts.new, accent: "#0B2E59" },
@@ -225,6 +226,13 @@ export default function UserInboxAdminPage() {
                 </p>
               </div>
             ))}
+            </div>
+            {counts.attention === 0 && (filteredLeads.length > 0 || filteredFeedback.length > 0) ? (
+              <p className="mt-2 text-[11px] text-[#6B7A8C]">
+                Los registros visibles en Activos ya están revisados o atendidos. Nuevos/Pendientes
+                suben cuando entra una señal con estado <strong>nuevo</strong>.
+              </p>
+            ) : null}
           </div>
         ) : null}
 

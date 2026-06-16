@@ -77,6 +77,17 @@ export type ObservatoryCampaignFunnel = {
   fundadorToArchivedRate: number | null;
 };
 
+export type ObservatoryReportReadMeta = {
+  /** Lectura recortada por tiempo o límite de eventos. */
+  partial?: boolean;
+  /** Reporte servido desde caché server por fallo del cálculo fresco. */
+  stale?: boolean;
+  fetchedEvents?: number;
+  listedBlobs?: number;
+  timedOut?: boolean;
+  cachedAt?: string;
+};
+
 export type ObservatoryReport = {
   generatedAt: string;
   period: {
@@ -85,6 +96,7 @@ export type ObservatoryReport = {
     from: string | null;
     to: string;
   };
+  readMeta?: ObservatoryReportReadMeta;
   store: {
     backend: "blob" | "local_jsonl";
     durable: boolean;
