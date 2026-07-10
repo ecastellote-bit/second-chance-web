@@ -263,6 +263,9 @@ export function UnifiedAdminDashboard() {
                 <Link href="/admin/observatorio" className="text-[#6B7A8C] underline">
                   Observatorio
                 </Link>
+                <Link href="/admin/telemetry/fundador" className="text-[#6B7A8C] underline">
+                  Observabilidad fundador
+                </Link>
                 <Link href="/admin/user-inbox" className="font-semibold text-[#DC2626] underline">
                   Señales recibidas (email + feedback)
                 </Link>
