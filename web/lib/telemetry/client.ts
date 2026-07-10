@@ -113,3 +113,19 @@ export function trackEvent(input: TelemetryEventInput): void {
     }
   }
 }
+
+const DEDUPE_PREFIX = "vu_telemetry_once_";
+
+/** Una sola vez por pestaña/sesión — dedupe vía sessionStorage. */
+export function trackEventOnce(dedupeKey: string, input: TelemetryEventInput): void {
+  if (!isBrowser()) return;
+
+  try {
+    const key = DEDUPE_PREFIX + dedupeKey;
+    if (sessionStorage.getItem(key) === "1") return;
+    sessionStorage.setItem(key, "1");
+    trackEvent(input);
+  } catch {
+    trackEvent(input);
+  }
+}

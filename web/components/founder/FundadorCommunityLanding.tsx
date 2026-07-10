@@ -37,6 +37,12 @@ import {
   useFounderExitIntercept,
   useFounderScrollDepth,
 } from "@/lib/founder/useFounderLandingEngagement";
+import {
+  trackFounderMicrochoiceSelected,
+  trackFounderPrimaryCta,
+  trackFounderSecondaryCta,
+} from "@/lib/telemetry/fundadorInstrumentation";
+import { useFundadorTelemetryScroll } from "@/lib/telemetry/useFundadorTelemetryScroll";
 
 type Props = {
   qualified: boolean;
@@ -165,6 +171,7 @@ export function FundadorCommunityLanding({
   }, [router]);
 
   useFounderScrollDepth(true);
+  useFundadorTelemetryScroll(true);
 
   const exitDebugSnapshot = useFounderExitIntercept({
     getShouldIntercept,
@@ -192,6 +199,7 @@ export function FundadorCommunityLanding({
     setMicrogateStep("bridge");
     markAction();
     trackFounderConversion("founder.microgate_option_selected", { selectedOption: id });
+    trackFounderMicrochoiceSelected({ choiceId: id, destination: "bridge" });
   }
 
   return (
@@ -258,6 +266,12 @@ export function FundadorCommunityLanding({
                 type="button"
                 onClick={() => {
                   trackFounderConversion("founder.primary_cta_click", { cta: "start_path" });
+                  trackFounderPrimaryCta({
+                    ctaId: "start_path",
+                    labelKey: "primary.start_path",
+                    destination: FUNDADOR_V2_CTAS.primary.href,
+                    section: "hero",
+                  });
                   scrollToEmotional();
                 }}
                 className="vu-focus inline-flex min-h-[3.25rem] w-full items-center rounded-2xl bg-[#C6D92D] px-4 text-left text-[15px] font-bold text-[#0B2E59] shadow-[0_8px_28px_rgba(198,217,45,0.35)] active:scale-[0.99]"
@@ -270,6 +284,12 @@ export function FundadorCommunityLanding({
                 href={FUNDADOR_V2_CTAS.reading.href}
                 onClick={() => {
                   trackFounderConversion("founder.secondary_cta_click", { cta: "reading" });
+                  trackFounderSecondaryCta({
+                    ctaId: "reading",
+                    labelKey: "secondary.reading",
+                    destination: FUNDADOR_V2_CTAS.reading.href,
+                    section: "hero",
+                  });
                   markAction();
                 }}
                 className="vu-focus inline-flex min-h-[3.25rem] w-full items-center rounded-2xl border-2 border-white/30 bg-white/10 px-4 text-left text-[15px] font-semibold text-white backdrop-blur-sm active:scale-[0.99]"
@@ -282,6 +302,12 @@ export function FundadorCommunityLanding({
                 href={FUNDADOR_V2_CTAS.explore.href}
                 onClick={() => {
                   trackFounderConversion("founder.secondary_cta_click", { cta: "explore" });
+                  trackFounderSecondaryCta({
+                    ctaId: "explore",
+                    labelKey: "secondary.explore",
+                    destination: FUNDADOR_V2_CTAS.explore.href,
+                    section: "hero",
+                  });
                   markAction();
                 }}
                 className="vu-focus inline-flex min-h-[3.25rem] w-full items-center rounded-2xl border border-[#1A9BB0]/45 bg-[#1A9BB0]/12 px-4 text-left text-[15px] font-semibold text-[#1A9BB0] active:scale-[0.99]"
@@ -312,6 +338,12 @@ export function FundadorCommunityLanding({
                   onClick={() => {
                     trackFounderConversion("founder.primary_cta_click", {
                       emotionalOption: option.id,
+                    });
+                    trackFounderPrimaryCta({
+                      ctaId: option.id,
+                      labelKey: `emotional.${option.id}`,
+                      destination: option.href,
+                      section: "emotional",
                     });
                     markAction();
                   }}
@@ -345,6 +377,12 @@ export function FundadorCommunityLanding({
                 fallbackImage={door.fallbackImage}
                 onNavigate={() => {
                   trackFounderConversion("founder.secondary_cta_click", { door: door.id });
+                  trackFounderSecondaryCta({
+                    ctaId: door.id,
+                    labelKey: `ecosystem.${door.id}`,
+                    destination: door.href,
+                    section: "ecosystem",
+                  });
                   markAction();
                 }}
               />
@@ -369,6 +407,12 @@ export function FundadorCommunityLanding({
             onFeedback={openExitFromSoftNudge}
             onTrySixty={() => {
               trackFounderConversion("founder.soft_feedback_nudge_click", { action: "plaza" });
+              trackFounderSecondaryCta({
+                ctaId: "soft_nudge_plaza",
+                labelKey: "soft_nudge.plaza",
+                destination: "/plaza",
+                section: "soft_nudge",
+              });
               markAction();
               setShowSoftFeedback(false);
               router.push("/plaza");
@@ -393,7 +437,15 @@ export function FundadorCommunityLanding({
           {!qualified && !preview ? (
             <Link
               href={FUNDADOR_V2_ALREADY_READING.href}
-              onClick={markAction}
+              onClick={() => {
+                trackFounderSecondaryCta({
+                  ctaId: "already_reading",
+                  labelKey: "footer.already_reading",
+                  destination: FUNDADOR_V2_ALREADY_READING.href,
+                  section: "footer",
+                });
+                markAction();
+              }}
               className="text-[13px] font-medium text-white/45 underline underline-offset-2 hover:text-white/70"
             >
               {FUNDADOR_V2_ALREADY_READING.label}
@@ -402,6 +454,15 @@ export function FundadorCommunityLanding({
           {preview ? (
             <Link
               href="/barrio"
+              onClick={() => {
+                trackFounderSecondaryCta({
+                  ctaId: "preview_barrio",
+                  labelKey: "footer.preview_barrio",
+                  destination: "/barrio",
+                  section: "footer",
+                });
+                markAction();
+              }}
               className="text-[13px] font-semibold text-[#1A9BB0] underline underline-offset-2"
             >
               Explorar el barrio (modo exploración)
@@ -423,11 +484,23 @@ export function FundadorCommunityLanding({
           trackFounderConversion("founder.microgate_continue_click", {
             selectedOption: selectedOption ?? "unknown",
           });
+          trackFounderPrimaryCta({
+            ctaId: "microgate_continue_reading",
+            labelKey: "microchoice.continue_reading",
+            destination: "/full?founder=1",
+            section: "microchoice",
+          });
           markAction();
         }}
         onSecondaryBarrio={() => {
           trackFounderConversion("founder.microgate_secondary_click", {
             selectedOption: selectedOption ?? "unknown",
+          });
+          trackFounderSecondaryCta({
+            ctaId: "microgate_barrio",
+            labelKey: "microchoice.barrio",
+            destination: "/barrio",
+            section: "microchoice",
           });
           markAction();
         }}

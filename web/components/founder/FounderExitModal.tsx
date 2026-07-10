@@ -13,6 +13,10 @@ import {
   trackFounderConversion,
 } from "@/lib/founder/founderConversionTelemetry";
 import {
+  trackFounderExitFeedbackOpened,
+  trackFounderExitFeedbackSubmitted,
+} from "@/lib/telemetry/fundadorInstrumentation";
+import {
   resolveFounderExitSubmitMode,
 } from "@/lib/content/fundadorExitCopy";
 
@@ -41,12 +45,13 @@ export function FounderExitModal({
 
   useEffect(() => {
     if (!open) return;
+    trackFounderExitFeedbackOpened(exitTrigger);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
     };
-  }, [open]);
+  }, [open, exitTrigger]);
 
   useEffect(() => {
     if (!open) {
@@ -80,7 +85,11 @@ export function FounderExitModal({
           exitTrigger,
         }),
       });
-      const data = (await res.json()) as { ok?: boolean; submitMode?: string };
+      const data = (await res.json()) as {
+        ok?: boolean;
+        submitMode?: string;
+        feedbackId?: string;
+      };
       const submitMode = resolveFounderExitSubmitMode(selected, trimmedText || null);
       trackFounderConversion("founder.exit_feedback_submitted", {
         selectedOption: selected ?? "none",
@@ -92,6 +101,13 @@ export function FounderExitModal({
         setError("No pudimos guardar la señal. Podés salir igual.");
         return;
       }
+      trackFounderExitFeedbackSubmitted({
+        trigger: exitTrigger,
+        optionId: selected,
+        feedbackId: data.feedbackId ?? null,
+        hasFreeText: trimmedText.length > 0,
+        freeTextLength: trimmedText.length,
+      });
       if (exitTrigger !== "soft_feedback_nudge") {
         onMarkAction?.();
       }

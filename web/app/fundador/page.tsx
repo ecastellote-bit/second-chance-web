@@ -9,6 +9,7 @@ import {
 } from "@/lib/founder/communityPreviewBypass";
 import { isFoundingMemberQualified } from "@/lib/learning/foundationalMember";
 import { trackFounderView } from "@/lib/founder/founderConversionTelemetry";
+import { trackFounderLandingViewed } from "@/lib/telemetry/fundadorInstrumentation";
 
 function FundadorPageContent() {
   const searchParams = useSearchParams();
@@ -18,6 +19,12 @@ function FundadorPageContent() {
 
   useEffect(() => {
     trackFounderView();
+    const params = new URLSearchParams(window.location.search);
+    trackFounderLandingViewed({
+      hasFounderParam: params.has("founder"),
+      preview: isFounderCommunityPreviewActive(),
+      qualified: isFoundingMemberQualified(),
+    });
   }, []);
 
   useEffect(() => {
