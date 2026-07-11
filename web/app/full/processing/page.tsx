@@ -26,6 +26,14 @@ import type { FinalReading } from "@/lib/types/result";
 import { persistContextualFromFinalReading } from "@/lib/tematicas/persistContextualOnAnalyze";
 import { isFounderWaveSession } from "@/lib/learning/founderCaseDraftClient";
 import { trackObservatoryEventOnce } from "@/lib/observatory/client";
+import {
+  beginDiagnosticAttemptId,
+  buildDiagnosticAnswerMeta,
+  sanitizeDiagnosticErrorCode,
+  trackDiagnosticCompleted,
+  trackDiagnosticFailed,
+  trackDiagnosticProcessingStarted,
+} from "@/lib/telemetry/diagnosticProcessingTelemetry";
 
 type GuidedThemePayload = {
   id: string;
@@ -83,6 +91,14 @@ export default function FullProcessingPage() {
   const hasStarted = useRef(false);
 
   const runAnalysis = useCallback(async () => {
+    beginDiagnosticAttemptId();
+    const answerMeta = buildDiagnosticAnswerMeta({
+      profile: state.profile,
+      currentContext: state.currentContext,
+      narrative: state.narrative,
+      followupAnswers: followup.answers,
+    });
+
     activateFullFlowPreservation();
     setErrorMessage("");
     setFailureMode(null);
@@ -101,6 +117,10 @@ export default function FullProcessingPage() {
       });
 
       if (!preservation.ok) {
+        trackDiagnosticFailed(answerMeta, {
+          phase: "validation",
+          errorCode: "preservation_blocked",
+        });
         setFailureMode("preservation");
         setErrorMessage(PRESERVATION_SAVE_BLOCKED_MESSAGE);
         return;
@@ -111,6 +131,7 @@ export default function FullProcessingPage() {
       trackObservatoryEventOnce("funnel.analysis_started", "campaign", {
         founder: isFounderWaveSession(),
       });
+      trackDiagnosticProcessingStarted(answerMeta);
 
       const res = await fetchWithTimeout(
         "/api/analyze",
@@ -122,7 +143,44 @@ export default function FullProcessingPage() {
         ANALYZE_TIMEOUT_MS,
       );
 
-      const result = (await res.json()) as AnalyzeResponse;
+      if (!res.ok) {
+        const humanError = humanizeAnalysisError(`HTTP ${res.status}`);
+        await syncAnalysisFailedServer({
+          rawAnswers,
+          builtUserIntake,
+          errorSummary: humanError,
+          stage: "analyze",
+        });
+        trackDiagnosticFailed(answerMeta, {
+          phase: "response",
+          errorCode: "api_non_ok",
+          status: res.status,
+        });
+        setFailureMode("analysis");
+        setErrorMessage(humanError);
+        return;
+      }
+
+      let result: AnalyzeResponse;
+      try {
+        result = (await res.json()) as AnalyzeResponse;
+      } catch {
+        const humanError = humanizeAnalysisError("invalid_json");
+        await syncAnalysisFailedServer({
+          rawAnswers,
+          builtUserIntake,
+          errorSummary: humanError,
+          stage: "analyze",
+        });
+        trackDiagnosticFailed(answerMeta, {
+          phase: "parse",
+          errorCode: "invalid_json",
+          status: res.status,
+        });
+        setFailureMode("analysis");
+        setErrorMessage(humanError);
+        return;
+      }
 
       if (!result.ok) {
         const humanError = humanizeAnalysisError(
@@ -134,6 +192,29 @@ export default function FullProcessingPage() {
           builtUserIntake,
           errorSummary: humanError,
           stage: "analyze",
+        });
+        trackDiagnosticFailed(answerMeta, {
+          phase: "validation",
+          errorCode: sanitizeDiagnosticErrorCode(result.error),
+          status: res.status,
+        });
+        setFailureMode("analysis");
+        setErrorMessage(humanError);
+        return;
+      }
+
+      if (!result.data) {
+        const humanError = humanizeAnalysisError("missing_result");
+        await syncAnalysisFailedServer({
+          rawAnswers,
+          builtUserIntake,
+          errorSummary: humanError,
+          stage: "analyze",
+        });
+        trackDiagnosticFailed(answerMeta, {
+          phase: "validation",
+          errorCode: "missing_result",
+          status: res.status,
         });
         setFailureMode("analysis");
         setErrorMessage(humanError);
@@ -157,12 +238,22 @@ export default function FullProcessingPage() {
       });
 
       if (!postPreserve.ok) {
+        trackDiagnosticFailed(answerMeta, {
+          phase: "validation",
+          errorCode: "preservation_post_failed",
+        });
         setFailureMode("preservation_post");
         setErrorMessage(POST_ANALYSIS_SAVE_REQUIRED_MESSAGE);
         return;
       }
 
       setPhase("navigating");
+
+      const resultFamilyCount =
+        result.data.supportingProfiles?.length ??
+        (Array.isArray(result.data.familyScores) ? result.data.familyScores.length : undefined);
+
+      trackDiagnosticCompleted(answerMeta, { resultFamilyCount });
 
       if (result.followup?.shouldAskFollowup && result.followup.pack) {
         setFollowup(result.followup);
@@ -173,18 +264,22 @@ export default function FullProcessingPage() {
       clearFollowup();
       router.replace("/full/result");
     } catch (error) {
-      const humanError =
-        error instanceof FetchTimeoutError
-          ? "La lectura tardó más de lo esperado. Podés reintentar: tus respuestas no se borraron."
-          : humanizeAnalysisError(
-              error instanceof Error ? error.message : String(error),
-            );
+      const isTimeout = error instanceof FetchTimeoutError;
+      const humanError = isTimeout
+        ? "La lectura tardó más de lo esperado. Podés reintentar: tus respuestas no se borraron."
+        : humanizeAnalysisError(
+            error instanceof Error ? error.message : String(error),
+          );
 
       await syncAnalysisFailedServer({
         rawAnswers,
         builtUserIntake,
         errorSummary: humanError,
-        stage: error instanceof FetchTimeoutError ? "timeout" : "network",
+        stage: isTimeout ? "timeout" : "network",
+      });
+      trackDiagnosticFailed(answerMeta, {
+        phase: isTimeout ? "fetch" : "client_exception",
+        errorCode: isTimeout ? "timeout" : "network_error",
       });
       setFailureMode("analysis");
       setErrorMessage(humanError);
