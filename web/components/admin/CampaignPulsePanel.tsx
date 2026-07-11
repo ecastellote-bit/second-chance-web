@@ -2,16 +2,15 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { CampaignFunnelDropoff } from "@/components/admin/CampaignFunnelDropoff";
 import { adminFetchWithTimeout } from "@/lib/admin/adminFetch";
 import {
   clearAdminSessionCache,
   readAdminSessionCache,
   writeAdminSessionCache,
 } from "@/lib/admin/adminSessionCache";
-import type { ObservatoryReport } from "@/lib/observatory/types";
+import type { FundadorSummaryResponse } from "@/lib/telemetry/fundadorSummary";
 
-const PULSE_CACHE_KEY = "vu_admin_pulse_7d";
+const PULSE_CACHE_KEY = "vu_admin_fundador_pulse_7d";
 const PULSE_TIMEOUT_MS = 8000;
 
 function PulseCard({ label, value }: { label: string; value: number }) {
@@ -28,61 +27,64 @@ function PulseCard({ label, value }: { label: string; value: number }) {
   );
 }
 
+function hasFounderActivity(totals: FundadorSummaryResponse["totals"]): boolean {
+  return (
+    totals.founderLandingViews > 0 ||
+    totals.founderPrimaryCtaClicks > 0 ||
+    totals.founderSecondaryCtaClicks > 0 ||
+    totals.founderMicrochoices > 0 ||
+    totals.founderScrollEvents > 0 ||
+    totals.founderExitFeedbackOpened > 0 ||
+    totals.founderExitFeedbackSubmitted > 0 ||
+    totals.founderTotalEvents > 0
+  );
+}
+
 export function CampaignPulsePanel({ compact = false }: { compact?: boolean }) {
-  const [report, setReport] = useState<ObservatoryReport | null>(() => {
-    return readAdminSessionCache<ObservatoryReport>(PULSE_CACHE_KEY)?.data ?? null;
+  const [summary, setSummary] = useState<FundadorSummaryResponse | null>(() => {
+    return readAdminSessionCache<FundadorSummaryResponse>(PULSE_CACHE_KEY)?.data ?? null;
   });
-  const [loading, setLoading] = useState(() => !report);
+  const [loading, setLoading] = useState(() => !summary);
   const [unavailable, setUnavailable] = useState(false);
   const [stale, setStale] = useState(false);
-  const [errorDetail, setErrorDetail] = useState("");
 
   const load = useCallback(async (forceRefresh = false) => {
     if (forceRefresh) clearAdminSessionCache(PULSE_CACHE_KEY);
 
-    const cached = forceRefresh ? null : readAdminSessionCache<ObservatoryReport>(PULSE_CACHE_KEY);
+    const cached = forceRefresh
+      ? null
+      : readAdminSessionCache<FundadorSummaryResponse>(PULSE_CACHE_KEY);
     if (cached?.data) {
-      setReport(cached.data);
-      setStale(Boolean(cached.data.readMeta?.stale));
+      setSummary(cached.data);
       setLoading(false);
     } else {
       setLoading(true);
     }
     setUnavailable(false);
-    setErrorDetail("");
-
-    const url = `/api/admin/observatory/report?period=7d${forceRefresh ? "&refresh=1" : ""}`;
+    setStale(false);
 
     try {
-      const res = await adminFetchWithTimeout(url, { timeoutMs: PULSE_TIMEOUT_MS });
-      const data = (await res.json()) as {
+      const res = await adminFetchWithTimeout(
+        "/api/admin/telemetry/fundador-summary?days=7",
+        { timeoutMs: PULSE_TIMEOUT_MS },
+      );
+      const data = (await res.json()) as FundadorSummaryResponse & {
         ok?: boolean;
-        report?: ObservatoryReport;
         error?: string;
-        message?: string;
       };
-      if (!res.ok || !data.ok || !data.report) {
-        const detail = data.message ?? data.error ?? `HTTP ${res.status}`;
-        setErrorDetail(detail);
+      if (!res.ok || !data.ok) {
         setUnavailable(true);
-        if (!cached?.data) setReport(null);
+        if (!cached?.data) setSummary(null);
         else setStale(true);
         return;
       }
-      setReport(data.report);
-      setStale(Boolean(data.report.readMeta?.stale));
+      setSummary(data);
+      setStale(false);
       setUnavailable(false);
-      writeAdminSessionCache(PULSE_CACHE_KEY, data.report);
-    } catch (err) {
-      const detail =
-        err instanceof DOMException && err.name === "AbortError"
-          ? "timeout_cliente"
-          : err instanceof Error
-            ? err.message
-            : "fetch_failed";
-      setErrorDetail(detail);
+      writeAdminSessionCache(PULSE_CACHE_KEY, data);
+    } catch {
       setUnavailable(true);
-      if (!cached?.data) setReport(null);
+      if (!cached?.data) setSummary(null);
       else setStale(true);
     } finally {
       setLoading(false);
@@ -93,10 +95,9 @@ export function CampaignPulsePanel({ compact = false }: { compact?: boolean }) {
     void load();
   }, [load]);
 
-  const campaign = report?.campaign;
-  const readMeta = report?.readMeta;
-  const showPartial = Boolean(readMeta?.partial && campaign);
-  const showStaleBanner = Boolean((stale || readMeta?.stale) && campaign);
+  const totals = summary?.totals;
+  const showData = Boolean(totals);
+  const emptyPeriod = showData && totals && !hasFounderActivity(totals);
 
   return (
     <section
@@ -108,9 +109,12 @@ export function CampaignPulsePanel({ compact = false }: { compact?: boolean }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-sm font-bold text-[#0B2E59]">Pulso de campaña</h2>
-          <p className="mt-0.5 text-xs text-[#6B7A8C]">Últimos 7 días · embudo fundador</p>
+          <p className="mt-0.5 text-xs text-[#6B7A8C]">
+            Últimos 7 días · telemetría interna /fundador
+          </p>
+          <p className="mt-1 text-[10px] font-medium text-[#9AA8B8]">Fuente: telemetría interna</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => void load(true)}
@@ -119,39 +123,31 @@ export function CampaignPulsePanel({ compact = false }: { compact?: boolean }) {
             Reintentar
           </button>
           <Link
+            href="/admin/telemetry/fundador"
+            className="text-xs font-semibold text-[#1A9BB0] underline"
+          >
+            Ver observabilidad fundador
+          </Link>
+          <Link
             href="/admin/observatorio"
             className="text-xs font-semibold text-[#6B7A8C] underline"
           >
-            Observatorio
+            Observatorio legacy
           </Link>
         </div>
       </div>
 
-      {showStaleBanner ? (
+      {stale && showData ? (
         <p className="mt-3 text-[11px] font-medium text-amber-800">
-          Última lectura disponible
-          {readMeta?.cachedAt
-            ? ` (${new Date(readMeta.cachedAt).toLocaleString("es-AR")})`
-            : ""}
-          · no pudimos refrescar el pulso ahora.
+          Mostrando última lectura disponible · no pudimos refrescar ahora.
         </p>
       ) : null}
 
-      {showPartial ? (
-        <p className="mt-2 text-[11px] font-medium text-[#1A9BB0]">
-          Lectura parcial · {readMeta?.fetchedEvents ?? 0} eventos de {readMeta?.listedBlobs ?? "?"}{" "}
-          en el período.
-        </p>
-      ) : null}
-
-      {loading && !campaign ? (
+      {loading && !showData ? (
         <p className="mt-4 text-sm text-[#6B7A8C]">Cargando pulso…</p>
-      ) : unavailable && !campaign ? (
+      ) : unavailable && !showData ? (
         <div className="mt-4 space-y-2 text-sm text-[#6B7A8C]">
-          <p>No pudimos cargar el pulso ahora. Podés seguir moderando.</p>
-          {errorDetail ? (
-            <p className="text-[11px] text-[#9AA8B8]">Causa: {errorDetail}</p>
-          ) : null}
+          <p>No pudimos cargar la telemetría interna del fundador ahora.</p>
           <p>
             <button
               type="button"
@@ -161,39 +157,44 @@ export function CampaignPulsePanel({ compact = false }: { compact?: boolean }) {
               Reintentar
             </button>
             {" · "}
-            <Link href="/admin/observatorio" className="font-semibold text-[#1A9BB0] underline">
-              Ir al observatorio
+            <Link href="/admin/telemetry/fundador" className="font-semibold text-[#1A9BB0] underline">
+              Ver observabilidad fundador
             </Link>
           </p>
         </div>
-      ) : campaign ? (
+      ) : totals ? (
         <>
           {loading ? (
             <p className="mt-3 text-[11px] text-[#9AA8B8]">Actualizando pulso…</p>
           ) : null}
-          {compact ? (
-            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
-              <PulseCard label="Visitas fundador" value={campaign.fundadorViews} />
-              <PulseCard label="Paso 1" value={campaign.step1Views} />
-              <PulseCard label="Paso 5" value={campaign.step5Views} />
-              <PulseCard label="Análisis" value={campaign.analysisStarted} />
-              <PulseCard label="Archivadas" value={campaign.diagnosticArchived} />
-            </div>
-          ) : (
-            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-              <PulseCard label="Visitas fundador" value={campaign.fundadorViews} />
-              <PulseCard label="Inicio lectura" value={campaign.fullReadingIntroViews} />
-              <PulseCard label="Paso 1" value={campaign.step1Views} />
-              <PulseCard label="Análisis iniciado" value={campaign.analysisStarted} />
-              <PulseCard label="Lecturas archivadas" value={campaign.diagnosticArchived} />
-            </div>
-          )}
-          <CampaignFunnelDropoff campaign={campaign} />
-          {!compact ? (
+
+          {emptyPeriod ? (
+            <p className="mt-4 text-sm text-[#6B7A8C]">
+              No hay eventos de /fundador en este período todavía.
+            </p>
+          ) : null}
+
+          <div
+            className={[
+              "mt-4 grid gap-2",
+              compact ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4",
+            ].join(" ")}
+          >
+            <PulseCard label="Visitas landing" value={totals.founderLandingViews} />
+            <PulseCard label="Clicks CTA primario" value={totals.founderPrimaryCtaClicks} />
+            <PulseCard label="Clicks CTA secundario" value={totals.founderSecondaryCtaClicks} />
+            <PulseCard label="Microopciones" value={totals.founderMicrochoices} />
+            <PulseCard label="Scroll" value={totals.founderScrollEvents} />
+            <PulseCard label="Feedback enviado" value={totals.founderExitFeedbackSubmitted} />
+            <PulseCard label="Total eventos /fundador" value={totals.founderTotalEvents} />
+          </div>
+
+          {!compact && summary?.lastEventAt ? (
             <p className="mt-3 text-xs text-[#6B7A8C]">
-              Sesiones únicas: {report?.totals.uniqueSessions ?? 0} · eventos totales:{" "}
-              {report?.totals.events ?? 0}
-              {report?.store?.durable ? ` · almacén ${report.store.backend}` : ""}
+              Último evento: {new Date(summary.lastEventAt).toLocaleString("es-AR")}
+              {summary.updatedAt
+                ? ` · actualizado ${new Date(summary.updatedAt).toLocaleString("es-AR")}`
+                : ""}
             </p>
           ) : null}
         </>
