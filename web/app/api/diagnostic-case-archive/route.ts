@@ -6,6 +6,7 @@ import {
   type HumanCasePayload,
 } from "@/lib/learning/humanCaseDepot";
 import { appendObservatoryEvent, buildObservatoryEvent } from "@/lib/observatory/store";
+import { syncLinkedProfileFamiliesForArchive } from "@/lib/users/userProfileStore";
 
 function extractInputTextForEmbedding(payload: HumanCasePayload): string {
   const parts: string[] = [];
@@ -75,6 +76,8 @@ export async function POST(request: Request) {
           },
         }),
       ).catch(() => {});
+
+      await syncLinkedProfileFamiliesForArchive(result.archiveId).catch(() => {});
     }
 
     if (result.legacy?.learningObservation?.appended) {

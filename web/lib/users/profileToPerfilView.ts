@@ -1,4 +1,5 @@
 import type { PerfilUsuario } from "@/lib/content/perfilCatalog";
+import { toPublicFamilyLabel } from "@/lib/public/humanFamilyLabel";
 import { initialsFromName, type UserProfileClientView } from "./userProfileTypes";
 
 export function userProfileToPerfilView(
@@ -6,6 +7,11 @@ export function userProfileToPerfilView(
 ): PerfilUsuario {
   const toChips = (labels: string[]) =>
     labels.map((label, i) => ({ id: `chip-${i}`, label }));
+
+  const familiaLabel = toPublicFamilyLabel(profile.familiaVocacional);
+  const afinidades = familiaLabel
+    ? [{ id: "familia-vocacional", label: familiaLabel }]
+    : [];
 
   return {
     id: profile.userId,
@@ -19,7 +25,7 @@ export function userProfileToPerfilView(
     caminoLabel: profile.diagnosticArchiveId
       ? "Diagnóstico archivado · camino activo"
       : "Perfil creado · camino iniciado",
-    afinidades: [],
+    afinidades,
     buscando: toChips(profile.buscando),
     aportar: toChips(profile.aportar),
     circulosActivos: [],

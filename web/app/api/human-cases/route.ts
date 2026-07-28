@@ -20,6 +20,25 @@ import {
 import { getCohortBatchFromPayload } from "@/lib/learning/foundationalCohort";
 import { isHumanCasePersistedAcknowledged } from "@/lib/learning/humanCasePersistence";
 import { appendObservatoryEvent, buildObservatoryEvent } from "@/lib/observatory/store";
+import { syncLinkedProfileFamiliesForArchive } from "@/lib/users/userProfileStore";
+
+function resolveArchiveLinkedUserId(body: {
+  userId?: string;
+  clientMeta?: Record<string, unknown>;
+}): string | null {
+  const direct = body.userId?.trim();
+  if (direct) return direct;
+
+  const meta = body.clientMeta;
+  if (!meta) return null;
+
+  for (const key of ["userId", "vuUserId"] as const) {
+    const value = meta[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+
+  return null;
+}
 
 function extractInputText(payload: HumanCasePayload): string {
   const parts: string[] = [];
@@ -161,6 +180,11 @@ export async function POST(req: Request) {
             primaryFamily: result.completeRecord.classification.primaryFamily,
           },
         }),
+      ).catch(() => {});
+
+      await syncLinkedProfileFamiliesForArchive(
+        result.archiveId,
+        resolveArchiveLinkedUserId(body),
       ).catch(() => {});
     }
 

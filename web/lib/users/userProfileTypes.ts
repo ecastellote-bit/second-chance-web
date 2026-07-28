@@ -1,3 +1,5 @@
+import type { ProfileFamilyId } from "@/lib/types/profileFamilies";
+
 export type VuUserProfileRecord = {
   recordType: "vu_user_profile";
   userId: string;
@@ -11,6 +13,16 @@ export type VuUserProfileRecord = {
   aportar: string[];
   diagnosticArchiveId: string | null;
   cohortBatch: string | null;
+  /** Familia vocacional extraída del diagnóstico (Paso 3) */
+  familiaVocacional: ProfileFamilyId | null;
+  /** Identificador único para URL pública — ej. "santiago-lopez" */
+  slug: string | null;
+  /** Opt-in para aparecer en el directorio Connect */
+  visibleEnDirectorio: boolean;
+  /** Ciudad (complementa country) */
+  city: string | null;
+  /** Biografía pública (max 280 chars); distinta de headline/momentoActual */
+  bio: string | null;
   /** URL pública — obligatoria para perfil completo (seguridad del barrio) */
   avatarUrl: string | null;
   /** Portada; si falta, la UI usa avatar o imagen del barrio */
@@ -35,9 +47,30 @@ export type UserProfilePayload = {
   coverUrl?: string | null;
   diagnosticArchiveId?: string | null;
   cohortBatch?: string | null;
+  familiaVocacional?: ProfileFamilyId | null;
+  slug?: string | null;
+  visibleEnDirectorio?: boolean;
+  city?: string | null;
+  bio?: string | null;
   email?: string | null;
   notificationConsent?: boolean;
 };
+
+export const PROFILE_BIO_MAX_LENGTH = 280;
+
+/** Valores seguros para perfiles persistidos antes de Connect. */
+export function applyVuUserProfileDefaults(
+  record: VuUserProfileRecord,
+): VuUserProfileRecord {
+  return {
+    ...record,
+    familiaVocacional: record.familiaVocacional ?? null,
+    slug: record.slug?.trim() || null,
+    visibleEnDirectorio: record.visibleEnDirectorio === true,
+    city: record.city?.trim() || null,
+    bio: record.bio?.trim().slice(0, PROFILE_BIO_MAX_LENGTH) || null,
+  };
+}
 
 /** Vista segura para cliente: sin email en claro */
 export type UserProfileClientView = Omit<VuUserProfileRecord, "email"> & {
@@ -65,6 +98,76 @@ export function toUserProfileClientView(profile: VuUserProfileRecord): UserProfi
     ...rest,
     hasCommunityEmail: isCommunityEmailReady(profile),
     notificationConsent: profile.notificationConsent === true,
+  };
+}
+
+/** Vista pública de perfil — sin datos privados ni identificadores internos. */
+export type PublicProfileView = {
+  slug: string;
+  displayName: string;
+  headline: string;
+  bio: string | null;
+  city: string | null;
+  country: string | null;
+  familiaVocacional: ProfileFamilyId | null;
+  familiaLabel: string | null;
+  avatarUrl: string;
+  coverUrl: string | null;
+  buscando: string[];
+  aportar: string[];
+  momentoActual: string;
+  caminoProgress: number;
+};
+
+export function toPublicProfileView(
+  profile: VuUserProfileRecord,
+  familiaLabel: string | null,
+): PublicProfileView | null {
+  const slug = profile.slug?.trim();
+  const avatarUrl = profile.avatarUrl?.trim();
+  if (!slug || !avatarUrl || !isUserProfileComplete(profile)) return null;
+
+  return {
+    slug,
+    displayName: profile.displayName.trim(),
+    headline: profile.headline.trim(),
+    bio: profile.bio,
+    city: profile.city,
+    country: profile.country,
+    familiaVocacional: profile.familiaVocacional,
+    familiaLabel,
+    avatarUrl,
+    coverUrl: profile.coverUrl?.trim() || null,
+    buscando: profile.buscando,
+    aportar: profile.aportar,
+    momentoActual: profile.momentoActual.trim(),
+    caminoProgress: profile.caminoProgress,
+  };
+}
+
+export function clientViewToPublicProfileView(
+  profile: UserProfileClientView,
+  familiaLabel: string | null,
+): PublicProfileView | null {
+  const slug = profile.slug?.trim();
+  const avatarUrl = profile.avatarUrl?.trim();
+  if (!slug || !avatarUrl || !isUserProfileComplete(profile)) return null;
+
+  return {
+    slug,
+    displayName: profile.displayName.trim(),
+    headline: profile.headline.trim(),
+    bio: profile.bio,
+    city: profile.city,
+    country: profile.country,
+    familiaVocacional: profile.familiaVocacional,
+    familiaLabel,
+    avatarUrl,
+    coverUrl: profile.coverUrl?.trim() || null,
+    buscando: profile.buscando,
+    aportar: profile.aportar,
+    momentoActual: profile.momentoActual.trim(),
+    caminoProgress: profile.caminoProgress,
   };
 }
 

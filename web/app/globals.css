@@ -122,3 +122,56 @@ body {
   padding: 0.25rem 0.625rem;
   border-radius: 16px;
 }
+
+@keyframes premium-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes premium-banner-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes premium-section-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.premium-card-enter {
+  animation: premium-card-enter 520ms ease-out both;
+}
+
+.premium-banner-enter {
+  animation: premium-banner-enter 480ms ease-out both;
+}
+
+.premium-section-enter {
+  animation: premium-section-enter 560ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .premium-card-enter,
+  .premium-banner-enter,
+  .premium-section-enter {
+    animation: none;
+  }
+}

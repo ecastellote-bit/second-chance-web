@@ -44,7 +44,7 @@ function MessageCard({ item }: { item: CommunityMessage }) {
   );
 }
 
-export function MensajesView() {
+export function MensajesView({ embedded = false }: { embedded?: boolean }) {
   const [messages, setMessages] = useState<CommunityMessage[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -61,39 +61,49 @@ export function MensajesView() {
     };
   }, []);
 
-  return (
-    <VuMobileShell navActive="mensajes">
-      <div className="px-4 pb-8 pt-2 max-w-lg mx-auto">
-        <h1 className="text-[1.65rem] font-bold tracking-tight text-[#0B2E59]">
-          {MENSAJES_COPY.title}
-        </h1>
-        <p className="mt-1.5 text-[15px] leading-relaxed text-[#6B7A8C]">
-          {MENSAJES_COPY.subtitle}
-        </p>
+  const content = (
+    <div className={embedded ? "" : "px-4 pb-8 pt-2 max-w-lg mx-auto"}>
+      {!embedded ? (
+        <>
+          <h1 className="text-[1.65rem] font-bold tracking-tight text-[#0B2E59]">
+            {MENSAJES_COPY.title}
+          </h1>
+          <p className="mt-1.5 text-[15px] leading-relaxed text-[#6B7A8C]">
+            {MENSAJES_COPY.subtitle}
+          </p>
+        </>
+      ) : null}
 
-        {loading ? (
-          <p className="mt-8 text-sm text-[#6B7A8C]">Cargando mensajes…</p>
-        ) : messages.length > 0 ? (
-          <div className="mt-6 space-y-3">
-            {messages.map((item) => (
-              <MessageCard key={item.id} item={item} />
-            ))}
-          </div>
-        ) : (
-          <div className="mt-8 rounded-2xl border border-[#E8EEF3] bg-white p-6 text-center">
-            <p className="text-sm font-semibold text-[#0B2E59]">{MENSAJES_COPY.emptyTitle}</p>
-            <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">
-              {MENSAJES_COPY.emptyBody}
-            </p>
+      {loading ? (
+        <p className={embedded ? "mt-2 text-sm text-[#6B7A8C]" : "mt-8 text-sm text-[#6B7A8C]"}>
+          Cargando avisos…
+        </p>
+      ) : messages.length > 0 ? (
+        <div className={embedded ? "mt-3 space-y-3" : "mt-6 space-y-3"}>
+          {messages.map((item) => (
+            <MessageCard key={item.id} item={item} />
+          ))}
+        </div>
+      ) : (
+        <div className={embedded ? "mt-3 rounded-2xl border border-[#E8EEF3] bg-white p-5 text-center" : "mt-8 rounded-2xl border border-[#E8EEF3] bg-white p-6 text-center"}>
+          <p className="text-sm font-semibold text-[#0B2E59]">{MENSAJES_COPY.emptyTitle}</p>
+          <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">
+            {MENSAJES_COPY.emptyBody}
+          </p>
+          {!embedded ? (
             <Link
               href="/proyectos/sembrar"
               className="vu-focus mt-5 inline-flex min-h-[44px] items-center justify-center rounded-xl bg-[#0B2E59] px-5 text-sm font-semibold text-white"
             >
               Sembrar un proyecto
             </Link>
-          </div>
-        )}
-      </div>
-    </VuMobileShell>
+          ) : null}
+        </div>
+      )}
+    </div>
   );
+
+  if (embedded) return content;
+
+  return <VuMobileShell navActive="mensajes">{content}</VuMobileShell>;
 }

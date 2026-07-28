@@ -3,6 +3,7 @@ import { getFounderCaseDraft } from "@/lib/learning/founderCaseDraftStore";
 import { HumanCaseDurableStoreError } from "@/lib/learning/humanCaseDurableStore";
 import { persistMinimalHumanCaseArchive } from "@/lib/learning/humanCaseMinimalArchive";
 import type { DiagnosticCaseSource } from "@/lib/learning/founderCaseDraftTypes";
+import { syncLinkedProfileFamiliesForArchive } from "@/lib/users/userProfileStore";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -53,6 +54,8 @@ export async function POST(req: Request) {
         hasAnalysisResultFullInDraft: Boolean(draft?.analysisResultFull),
       },
     });
+
+    await syncLinkedProfileFamiliesForArchive(result.archiveId).catch(() => {});
 
     return NextResponse.json({
       ok: true,

@@ -98,6 +98,8 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
   const [headline, setHeadline] = useState("");
   const [momentoActual, setMomentoActual] = useState("");
   const [country, setCountry] = useState("");
+  const [city, setCity] = useState("");
+  const [bio, setBio] = useState("");
   const [buscandoRaw, setBuscandoRaw] = useState("");
   const [aportarRaw, setAportarRaw] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -198,6 +200,8 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
     setHeadline(profile.headline);
     setMomentoActual(profile.momentoActual);
     setCountry(profile.country ?? "");
+    setCity(profile.city ?? "");
+    setBio(profile.bio ?? "");
     setBuscandoRaw(profile.buscando.join(", "));
     setAportarRaw(profile.aportar.join(", "));
     setAvatarUrl(profile.avatarUrl);
@@ -268,6 +272,8 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
             headline,
             momentoActual,
             country: country.trim() || undefined,
+            city: city.trim() || null,
+            bio: bio.trim() || null,
             buscando: parseChipInput(buscandoRaw),
             aportar: parseChipInput(aportarRaw),
             avatarUrl: resolvedAvatarUrl,
@@ -370,6 +376,20 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
             onChange={setCountry}
           />
           <Field
+            label="Ciudad"
+            value={city}
+            onChange={setCity}
+            placeholder="Ej. Buenos Aires, Medellín, Madrid"
+          />
+          <Field
+            label="Bio pública"
+            value={bio}
+            onChange={setBio}
+            multiline
+            maxLength={280}
+            placeholder="Una frase sobre vos para la tarjeta pública (máx. 280 caracteres)."
+          />
+          <Field
             label={PROFILE_FLOW_COPY.fields.buscando}
             value={buscandoRaw}
             onChange={setBuscandoRaw}
@@ -447,6 +467,7 @@ function Field({
   onChange,
   required,
   minLength,
+  maxLength,
   multiline,
   placeholder,
   type = "text",
@@ -456,6 +477,7 @@ function Field({
   onChange: (v: string) => void;
   required?: boolean;
   minLength?: number;
+  maxLength?: number;
   multiline?: boolean;
   placeholder?: string;
   type?: string;
@@ -472,6 +494,7 @@ function Field({
           onChange={(e) => onChange(e.target.value)}
           required={required}
           minLength={minLength}
+          maxLength={maxLength}
           rows={4}
           placeholder={placeholder}
           className={className}
@@ -483,6 +506,7 @@ function Field({
           onChange={(e) => onChange(e.target.value)}
           required={required}
           minLength={minLength}
+          maxLength={maxLength}
           placeholder={placeholder}
           className={className}
         />

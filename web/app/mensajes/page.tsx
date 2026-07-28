@@ -1,10 +1,10 @@
-import { MensajesView } from "@/components/community/MensajesView";
+import { MessagesHubView } from "@/components/messaging/MessagesHubView";
 import { UserProfileGate } from "@/components/perfil/UserProfileGate";
 
 export default function MensajesPage() {
   return (
     <UserProfileGate>
-      <MensajesView />
+      <MessagesHubView />
     </UserProfileGate>
   );
 }

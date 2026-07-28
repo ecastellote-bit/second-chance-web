@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { DiagnosisFirstBanner } from "@/components/founder/DiagnosisFirstBanner";
+import { ConnectDirectoryGallery } from "@/components/community/ConnectDirectoryGallery";
 import { CooperativeExampleVoices } from "@/components/community/CooperativeExampleVoices";
 import { NeighborhoodHero } from "@/components/community/NeighborhoodHero";
 import { PublicCommunityRecentActivity } from "@/components/community/PublicCommunityRecentActivity";
@@ -68,7 +69,9 @@ export function ConectarConOtrosView() {
       <div className="mt-4 px-4">
         <DiagnosisFirstBanner variant="light" className="mb-6" />
 
-        <PublicCommunityRecentActivity className="mb-6" limit={5} surface="connection" />
+        <ConnectDirectoryGallery />
+
+        <PublicCommunityRecentActivity className="mb-6 mt-8" limit={5} surface="connection" />
 
         <p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-[#6B7A8C]">
           Formas de sumarte

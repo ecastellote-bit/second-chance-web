@@ -45,10 +45,14 @@ export async function POST(req: Request) {
       headline?: string;
       momentoActual?: string;
       country?: string;
+      city?: string | null;
+      bio?: string | null;
       buscando?: string | string[];
       aportar?: string | string[];
       diagnosticArchiveId?: string | null;
       cohortBatch?: string | null;
+      slug?: string | null;
+      visibleEnDirectorio?: boolean;
       avatarUrl?: string | null;
       coverUrl?: string | null;
       email?: string | null;
@@ -74,6 +78,10 @@ export async function POST(req: Request) {
         aportar,
         diagnosticArchiveId: body.diagnosticArchiveId ?? null,
         cohortBatch: body.cohortBatch ?? getFoundationalCohortBatch(),
+        slug: body.slug,
+        visibleEnDirectorio: body.visibleEnDirectorio,
+        city: body.city,
+        bio: body.bio,
         avatarUrl: body.avatarUrl ?? null,
         coverUrl: body.coverUrl ?? null,
         email: body.email,
@@ -109,6 +117,9 @@ export async function POST(req: Request) {
       message === "profile_incomplete" ||
       message === "avatar_required" ||
       message === "email_invalid" ||
+      message === "slug_invalid" ||
+      message === "slug_reserved" ||
+      message === "slug_taken" ||
       message.startsWith("blob_not_configured")
         ? 400
         : 500;
