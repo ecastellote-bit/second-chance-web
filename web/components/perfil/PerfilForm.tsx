@@ -23,6 +23,7 @@ import {
   uploadProfileMedia,
   withTimeout,
 } from "@/lib/users/uploadProfileMediaClient";
+import { trackMetaEvent } from "@/lib/analytics/trackMetaEvent";
 import { ProfilePhotosEditor } from "@/components/perfil/ProfilePhotosEditor";
 
 function mediaUploadError(
@@ -295,6 +296,14 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
       };
       if (!data.ok || !data.profile) {
         throw new Error(profileSaveError(data.error));
+      }
+
+      if (mode === "create") {
+        trackMetaEvent("CompleteRegistration", {
+          content_name: "profile_create",
+          status: true,
+          method: "perfil_crear",
+        });
       }
 
       markProfileComplete(data.profile);

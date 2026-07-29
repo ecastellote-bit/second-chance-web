@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ContactModal } from "@/components/messaging/ContactModal";
 import { Button } from "@/components/ui/Button";
+import { trackMetaEvent } from "@/lib/analytics/trackMetaEvent";
 import {
   fetchUserProfile,
   getCachedUserId,
@@ -107,7 +108,14 @@ export function PublicProfileContactButton({
         variant="primary"
         size="lg"
         fullWidth
-        onClick={() => setModalOpen(true)}
+        onClick={() => {
+          trackMetaEvent("Contact", {
+            content_name: recipientName,
+            content_ids: [recipientSlug],
+            content_type: "profile",
+          });
+          setModalOpen(true);
+        }}
       >
         Contactar
       </Button>

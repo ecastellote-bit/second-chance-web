@@ -7,6 +7,7 @@ import {
 } from "@/components/community/DirectoryProfileCard";
 import { DirectoryPagination } from "@/components/community/DirectoryPagination";
 import { Button } from "@/components/ui/Button";
+import { trackMetaEvent } from "@/lib/analytics/trackMetaEvent";
 import type { DirectoryProfileEntry } from "@/lib/users/directoryProfile";
 import type { ProfileFamilyId } from "@/lib/types/profileFamilies";
 
@@ -132,8 +133,15 @@ export function ConnectDirectoryGallery() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
+      const nextQuery = queryInput.trim();
       setDebouncedQuery(queryInput);
       setOffset(0);
+      if (nextQuery.length >= 2) {
+        trackMetaEvent("Search", {
+          search_string: nextQuery,
+          content_category: "directory",
+        });
+      }
     }, SEARCH_DEBOUNCE_MS);
 
     return () => window.clearTimeout(timer);

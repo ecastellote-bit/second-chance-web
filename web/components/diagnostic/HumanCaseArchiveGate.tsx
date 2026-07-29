@@ -13,6 +13,7 @@ import {
   downloadHumanCaseBackup,
   persistHumanCaseFromBrowserWithRetry,
 } from "@/lib/learning/persistHumanCaseFromBrowser";
+import { trackMetaEventOnce } from "@/lib/analytics/trackMetaEvent";
 import { trackObservatoryEventOnce } from "@/lib/observatory/client";
 
 type GateState =
@@ -116,7 +117,16 @@ export function HumanCaseArchiveGate({
     trackObservatoryEventOnce("funnel.diagnostic_archived", "campaign", {
       level: state === "confirmed" ? "full" : "minimal",
     });
-  }, [state]);
+
+    const level = state === "confirmed" ? "full" : "minimal";
+    const onceKey = `vu_meta_complete_registration_diagnostic_${caseId || diagnosticRunId || "anon"}`;
+    trackMetaEventOnce(onceKey, "CompleteRegistration", {
+      content_name: "diagnostic_complete",
+      status: true,
+      method: "diagnostic_result",
+      level,
+    });
+  }, [state, caseId, diagnosticRunId]);
 
   if (state === "archiving") {
     return (

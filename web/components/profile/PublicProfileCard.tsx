@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Card } from "@/components/ui/Card";
 import { PublicProfileContactButton } from "@/components/profile/PublicProfileContactButton";
+import { PublicProfileViewTracker } from "@/components/profile/PublicProfileViewTracker";
 import { vuTokens } from "@/lib/design/tokens";
 import { toPublicFamilyLabel } from "@/lib/public/humanFamilyLabel";
 import { initialsFromName, type VuUserProfileRecord } from "@/lib/users/userProfileTypes";
@@ -64,6 +65,11 @@ export function PublicProfileCard({ profile }: PublicProfileCardProps) {
 
   return (
     <div className="min-h-[100dvh] bg-[#F8FAFC] px-4 py-8 font-[family-name:var(--font-inter)] sm:px-6">
+      <PublicProfileViewTracker
+        profileUserId={profile.userId}
+        profileSlug={profile.slug?.trim() ?? ""}
+        displayName={profile.displayName.trim()}
+      />
       <article className="mx-auto w-full max-w-[800px]">
         <Card variant="elevated" className="overflow-hidden p-0">
           <div className="relative h-[200px] w-full overflow-hidden rounded-t-vu-md sm:h-[220px]">
