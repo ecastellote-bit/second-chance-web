@@ -129,6 +129,21 @@ export function ProyectosListView() {
             <MyFounderSeedBanner />
 
             <Link
+              href="/proyectos/vivos"
+              className="vu-focus mb-6 flex min-h-[52px] items-center justify-between gap-3 rounded-[24px] border border-[#1A9BB0]/35 bg-[#E8F7FA] px-5 py-4 text-[#0B2E59] shadow-[0_4px_16px_rgba(15,42,70,0.06)]"
+            >
+              <div className="min-w-0 text-left">
+                <p className="text-[15px] font-bold">¿Tenés una idea propia?</p>
+                <p className="mt-0.5 text-[12px] leading-snug text-[#6B7A8C]">
+                  Lanzá un proyecto colaborativo con roles abiertos y armá tu equipo.
+                </p>
+              </div>
+              <span className="shrink-0 text-[13px] font-bold text-[#1A9BB0]">
+                Proyectos vivos →
+              </span>
+            </Link>
+
+            <Link
               href={canSembrar ? "/proyectos/sembrar" : "/fundador"}
               className="vu-focus mb-6 flex min-h-[52px] items-center justify-between gap-3 rounded-[24px] bg-[#0B2E59] px-5 py-4 text-white shadow-[0_4px_16px_rgba(15,42,70,0.12)] active:scale-[0.99]"
             >

@@ -81,6 +81,21 @@ export function CirculosView() {
               <p className="mt-6 text-center text-[12px] text-[#6B7A8C] lg:text-left">
                 Mesas semilla — sin membresía masiva ni contadores fingidos.
               </p>
+
+              <Link
+                href="/comunidad"
+                className="vu-focus mt-6 flex min-h-[52px] items-center justify-between gap-3 rounded-[24px] border border-[#1A9BB0]/35 bg-[#E8F7FA] px-5 py-4 text-[#0B2E59]"
+              >
+                <div className="min-w-0 text-left">
+                  <p className="text-[15px] font-bold">Entrá a la conversación</p>
+                  <p className="mt-0.5 text-[12px] leading-snug text-[#6B7A8C]">
+                    Publicá en la Comunidad usando estos círculos como temas.
+                  </p>
+                </div>
+                <span className="shrink-0 text-[13px] font-bold text-[#1A9BB0]">
+                  Comunidad →
+                </span>
+              </Link>
             </div>
           </main>
 

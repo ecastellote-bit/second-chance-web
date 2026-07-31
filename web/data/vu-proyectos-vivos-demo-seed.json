@@ -1,0 +1,69 @@
+{
+  "isDemo": true,
+  "note": "Datos ficticios aislados. No confundir con la semilla estática radio-second-chance.",
+  "project": {
+    "id": "prj_demo_podcast_reinicio",
+    "slug": "podcast-historias-de-reinicio",
+    "title": "Podcast de Historias de Reinicio",
+    "description": "Un podcast colaborativo para contar historias reales de personas que se reinician a mitad de camino. Buscamos voces, edición y comunidad para las primeras 6 entregas.",
+    "status": "buscando_miembros",
+    "creatorId": "demo-user-1",
+    "creatorName": "Demo Líder",
+    "creatorSlug": "demo-lider",
+    "creatorImage": null,
+    "familiaVocacional": "Cultural Explorer",
+    "familiaVocacionalId": "cultural_explorer",
+    "city": "Buenos Aires",
+    "coverImage": "/vu/seeds/projects/radio-second-chance.jpg",
+    "isDemo": true,
+    "createdAt": "2026-07-31T12:00:00.000Z",
+    "updatedAt": "2026-07-31T12:00:00.000Z"
+  },
+  "roles": [
+    {
+      "id": "role_demo_productor",
+      "projectId": "prj_demo_podcast_reinicio",
+      "title": "Productor de contenido",
+      "description": "Ordenar guiones, calendarizar episodios y acompañar a los invitados.",
+      "skillsNeeded": ["organización", "guion", "podcast"],
+      "filled": false,
+      "filledByUserId": null,
+      "filledByName": null,
+      "createdAt": "2026-07-31T12:00:00.000Z"
+    },
+    {
+      "id": "role_demo_editor",
+      "projectId": "prj_demo_podcast_reinicio",
+      "title": "Editor de audio",
+      "description": "Limpiar tomas, montar episodios y dejar una pieza lista para publicar.",
+      "skillsNeeded": ["edición", "Audacity", "ritmo"],
+      "filled": false,
+      "filledByUserId": null,
+      "filledByName": null,
+      "createdAt": "2026-07-31T12:00:00.000Z"
+    }
+  ],
+  "milestones": [
+    {
+      "id": "ms_demo_1",
+      "projectId": "prj_demo_podcast_reinicio",
+      "title": "Definir formato del episodio piloto",
+      "description": "Acordar duración, secciones y tono de la primera entrega.",
+      "completed": false,
+      "completedAt": null,
+      "order": 1,
+      "createdAt": "2026-07-31T12:00:00.000Z"
+    },
+    {
+      "id": "ms_demo_2",
+      "projectId": "prj_demo_podcast_reinicio",
+      "title": "Grabar piloto",
+      "description": "Registrar el primer episodio con al menos un invitado.",
+      "completed": false,
+      "completedAt": null,
+      "order": 2,
+      "createdAt": "2026-07-31T12:00:00.000Z"
+    }
+  ],
+  "members": []
+}

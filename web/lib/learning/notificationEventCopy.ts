@@ -21,6 +21,9 @@ export const NOTIFICATION_EVENT_TYPE_LABEL: Record<NotificationEventType, string
   circle_idea_visible: "Idea de círculo visible",
   admin_post_published: "Post editorial (pendiente)",
   formation_suggestion_reviewed: "Sugerencia formación revisada",
+  vivo_application_received: "Postulación a proyecto vivo",
+  vivo_application_response: "Respuesta a postulación",
+  vivo_milestone_completed: "Hito de proyecto completado",
 };
 
 export const NOTIFICATION_EVENT_STATUS_LABEL = {
@@ -63,5 +66,21 @@ export const NOTIFICATION_MILESTONE_COPY = {
   formation_suggestion_reviewed: {
     title: "Tu sugerencia de formación fue revisada",
     body: "El equipo registró tu sugerencia para orientar futuras modalidades formativas.",
+  },
+  vivo_application_received: {
+    title: "Nueva postulación a tu proyecto",
+    body: "Alguien quiere sumarse a un rol de tu proyecto colaborativo. Revisá las solicitudes en Mis proyectos.",
+  },
+  vivo_application_accepted: {
+    title: "Te sumaron a un proyecto",
+    body: "El líder aceptó tu postulación. Ya podés conversar y ver el proyecto en Mis proyectos.",
+  },
+  vivo_application_rejected: {
+    title: "Postulación no aceptada",
+    body: "El líder revisó tu postulación y por ahora no te sumaron a ese rol.",
+  },
+  vivo_milestone_completed: {
+    title: "Un hito del proyecto se completó",
+    body: "El líder marcó un hito como hecho. Miralo en la ficha del proyecto.",
   },
 } as const;

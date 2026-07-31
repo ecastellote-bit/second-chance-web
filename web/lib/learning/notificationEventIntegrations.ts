@@ -118,3 +118,81 @@ export async function notifyFormationSuggestionReviewed(input: {
     metadata: { suggestionId: input.suggestionId },
   });
 }
+
+export async function notifyVivoApplicationReceived(input: {
+  creatorId: string;
+  projectId: string;
+  projectSlug: string;
+  memberId: string;
+  actorUserId: string;
+}): Promise<void> {
+  const copy = NOTIFICATION_MILESTONE_COPY.vivo_application_received;
+  await tryCreateNotificationEventForUser({
+    userId: input.creatorId,
+    type: "vivo_application_received",
+    title: copy.title,
+    body: copy.body,
+    targetType: "vivo_project",
+    targetId: input.projectId,
+    dedupeKey: `vivo_application_received:${input.projectId}:${input.memberId}`,
+    metadata: {
+      projectId: input.projectId,
+      projectSlug: input.projectSlug,
+      memberId: input.memberId,
+    },
+    actorUserId: input.actorUserId,
+  });
+}
+
+export async function notifyVivoApplicationResponse(input: {
+  applicantId: string;
+  projectId: string;
+  projectSlug: string;
+  memberId: string;
+  accepted: boolean;
+}): Promise<void> {
+  const copy = input.accepted
+    ? NOTIFICATION_MILESTONE_COPY.vivo_application_accepted
+    : NOTIFICATION_MILESTONE_COPY.vivo_application_rejected;
+  await tryCreateNotificationEventForUser({
+    userId: input.applicantId,
+    type: "vivo_application_response",
+    title: copy.title,
+    body: copy.body,
+    targetType: "vivo_project",
+    targetId: input.projectId,
+    dedupeKey: `vivo_application_response:${input.memberId}:${input.accepted ? "ok" : "no"}`,
+    metadata: {
+      projectId: input.projectId,
+      projectSlug: input.projectSlug,
+      memberId: input.memberId,
+      accepted: input.accepted,
+    },
+  });
+}
+
+export async function notifyVivoMilestoneCompleted(input: {
+  memberUserIds: string[];
+  projectId: string;
+  projectSlug: string;
+  milestoneId: string;
+  milestoneTitle: string;
+}): Promise<void> {
+  const copy = NOTIFICATION_MILESTONE_COPY.vivo_milestone_completed;
+  for (const userId of input.memberUserIds) {
+    await tryCreateNotificationEventForUser({
+      userId,
+      type: "vivo_milestone_completed",
+      title: copy.title,
+      body: `${copy.body} Hito: ${input.milestoneTitle}.`,
+      targetType: "vivo_project",
+      targetId: input.projectId,
+      dedupeKey: `vivo_milestone_completed:${input.milestoneId}:${userId}`,
+      metadata: {
+        projectId: input.projectId,
+        projectSlug: input.projectSlug,
+        milestoneId: input.milestoneId,
+      },
+    });
+  }
+}

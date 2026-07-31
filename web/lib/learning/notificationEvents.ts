@@ -19,7 +19,10 @@ export type NotificationEventType =
   | "project_contribution_visible"
   | "circle_idea_visible"
   | "admin_post_published"
-  | "formation_suggestion_reviewed";
+  | "formation_suggestion_reviewed"
+  | "vivo_application_received"
+  | "vivo_application_response"
+  | "vivo_milestone_completed";
 
 export type NotificationEventStatus = "pending" | "sent" | "failed" | "skipped";
 
