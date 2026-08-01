@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { formatMessageBubbleTime } from "@/lib/messaging/formatMessageTime";
 import { MESSAGE_CONTENT_MAX_LENGTH } from "@/lib/messaging/messageTypes";
 import type { VuMessage } from "@/lib/messaging/messageTypes";
@@ -64,6 +65,15 @@ export function ConversationThreadView({ slug }: { slug: string }) {
         body: JSON.stringify({
           readerId: userId,
           senderId: profile.userId,
+        }),
+      }).catch(() => {});
+
+      await fetch("/api/notificaciones/marcar-hilo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          threadId: profile.userId,
         }),
       }).catch(() => {});
 
@@ -192,6 +202,8 @@ export function ConversationThreadView({ slug }: { slug: string }) {
             </Link>
             <p className="text-sm text-[#6B7A8C]">Ver perfil público</p>
           </div>
+
+          <NotificationBell />
         </div>
       </header>
 

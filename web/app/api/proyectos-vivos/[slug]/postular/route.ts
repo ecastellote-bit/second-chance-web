@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { applyToRole } from "@/lib/projects-vivos/projectStore";
+import { applyToRole, findProjectBySlug } from "@/lib/projects-vivos/projectStore";
 import { notifyVivoApplicationReceived } from "@/lib/learning/notificationEventIntegrations";
-import { findProjectBySlug } from "@/lib/projects-vivos/projectStore";
+import { createInAppNotification } from "@/lib/in-app-notifications/inAppNotificationStore";
 import {
   mapProjectError,
   missingUserIdResponse,
@@ -45,6 +45,17 @@ export async function POST(
         projectSlug: project.slug,
         memberId: member.id,
         actorUserId: userId,
+      }).catch(() => {});
+
+      await createInAppNotification({
+        userId: project.creatorId,
+        type: "postulacion_recibida",
+        title: "Nueva postulación",
+        body: `${member.userName} se postuló a ${member.role} en ${project.title}`,
+        data: {
+          url: `/proyectos/vivos/${project.slug}`,
+          projectSlug: project.slug,
+        },
       }).catch(() => {});
     }
 

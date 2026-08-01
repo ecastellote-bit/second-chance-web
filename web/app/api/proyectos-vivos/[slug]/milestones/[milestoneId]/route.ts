@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { completeMilestone } from "@/lib/projects-vivos/projectStore";
 import { notifyVivoMilestoneCompleted } from "@/lib/learning/notificationEventIntegrations";
+import { createInAppNotification } from "@/lib/in-app-notifications/inAppNotificationStore";
 import {
   mapProjectError,
   missingUserIdResponse,
@@ -44,6 +45,20 @@ export async function PATCH(
       milestoneId: result.milestone.id,
       milestoneTitle: result.milestone.title,
     }).catch(() => {});
+
+    for (const memberUserId of result.acceptedMemberIds) {
+      await createInAppNotification({
+        userId: memberUserId,
+        type: "milestone_completado",
+        title: "Hito alcanzado",
+        body: `Se completó ${result.milestone.title} en ${result.project.title}`,
+        data: {
+          url: `/proyectos/vivos/${result.project.slug}`,
+          projectSlug: result.project.slug,
+          milestoneId: result.milestone.id,
+        },
+      }).catch(() => {});
+    }
 
     return NextResponse.json({
       ok: true,

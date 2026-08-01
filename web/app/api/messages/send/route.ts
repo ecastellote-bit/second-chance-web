@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { sendMessage } from "@/lib/messaging/messageStore";
 import { validateMessageContent } from "@/lib/messaging/messageTypes";
+import { createInAppNotification } from "@/lib/in-app-notifications/inAppNotificationStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -40,6 +41,25 @@ export async function POST(req: Request) {
     validateMessageContent(content);
 
     const message = await sendMessage({ senderId, recipientId, content });
+
+    const preview =
+      message.content.length > 50
+        ? `${message.content.slice(0, 50).trim()}…`
+        : message.content;
+    const threadUrl = message.senderSlug
+      ? `/mensajes/${message.senderSlug}`
+      : "/mensajes";
+
+    await createInAppNotification({
+      userId: recipientId,
+      type: "mensaje_nuevo_hilo",
+      title: "Nuevo mensaje",
+      body: `${message.senderName}: ${preview}`,
+      data: {
+        url: threadUrl,
+        threadId: senderId,
+      },
+    }).catch(() => {});
 
     return NextResponse.json({ ok: true, message });
   } catch (error) {

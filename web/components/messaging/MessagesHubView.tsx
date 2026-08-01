@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { DirectMessagesInbox } from "@/components/messaging/DirectMessagesInbox";
 import { VuMobileShell } from "@/components/layout/VuMobileShell";
+import { BarrioNotificationHeader } from "@/components/notifications/NotificationBell";
 import { getCachedUserId } from "@/lib/users/activeUserSession";
 import { MensajesView } from "@/components/community/MensajesView";
 
@@ -36,6 +37,7 @@ export function MessagesHubView() {
 
   return (
     <VuMobileShell navActive="mensajes">
+      <BarrioNotificationHeader />
       <div className="mx-auto max-w-2xl px-4 pb-8 pt-2">
         <Link
           href="/community/conectar_con_otros"

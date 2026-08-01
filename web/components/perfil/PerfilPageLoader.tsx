@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { PerfilPreviewMode } from "@/components/perfil/PerfilPreviewMode";
 import { PerfilUsuarioView } from "@/components/perfil/PerfilUsuarioView";
 import { PerfilVisibilityPanel } from "@/components/perfil/PerfilVisibilityPanel";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import {
   fetchUserProfile,
   getOrCreateUserId,
@@ -95,6 +96,10 @@ export function PerfilPageLoader() {
               Editar perfil
             </Link>
           ) : null}
+
+          <div className="rounded-full bg-white/95 shadow-md ring-1 ring-[#E8EEF3]">
+            <NotificationBell />
+          </div>
         </div>
       </div>
 
