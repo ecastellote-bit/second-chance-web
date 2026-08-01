@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { BadgeSection } from "@/components/badges/BadgeSection";
 import { Card } from "@/components/ui/Card";
 import { PublicProfileContactButton } from "@/components/profile/PublicProfileContactButton";
 import { PublicProfileViewTracker } from "@/components/profile/PublicProfileViewTracker";
@@ -152,6 +153,8 @@ export function PublicProfileCard({ profile }: PublicProfileCardProps) {
                 </p>
               ) : null}
             </div>
+
+            <BadgeSection userId={profile.userId} isOwnProfile={false} />
 
             <div className="mt-8 space-y-6">
               {profile.buscando.length > 0 ? (

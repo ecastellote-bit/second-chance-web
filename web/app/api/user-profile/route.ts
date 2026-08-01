@@ -11,6 +11,10 @@ import {
   toUserProfileClientView,
 } from "@/lib/users/userProfileTypes";
 import { appendObservatoryEvent, buildObservatoryEvent } from "@/lib/observatory/store";
+import {
+  collectEarnedPayloads,
+  evaluateBadge,
+} from "@/lib/badges-store/evaluate-badge";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -102,6 +106,15 @@ export async function POST(req: Request) {
       }),
     ).catch(() => {});
 
+    const earnedBadges =
+      result.profile.visibleEnDirectorio === true
+        ? collectEarnedPayloads([
+            await evaluateBadge(result.profile.userId, "perfil_publico").catch(
+              () => ({ earned: false as const }),
+            ),
+          ])
+        : [];
+
     return NextResponse.json({
       ok: true,
       profile: toUserProfileClientView(result.profile),
@@ -110,6 +123,7 @@ export async function POST(req: Request) {
         hasEmail: isCommunityEmailReady(result.profile),
         notificationConsent: result.profile.notificationConsent === true,
       },
+      earnedBadges,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "save_failed";

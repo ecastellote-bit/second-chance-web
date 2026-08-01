@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
+import { BadgeSection } from "@/components/badges/BadgeSection";
 import { CirculosLeftNav } from "@/components/circulos/CirculosLeftNav";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
 import { PerfilIdentityHeader } from "@/components/perfil/PerfilIdentityHeader";
@@ -27,6 +28,8 @@ export function PerfilUsuarioView({
         <main className="relative z-[1] -mt-3 flex-1 overflow-y-auto rounded-t-[22px] bg-[#F8FAFC] shadow-[0_2px_12px_rgba(11,46,89,0.06)]">
           <div className="mx-auto max-w-lg space-y-4 px-4 pt-5 pb-8">
             <PerfilBarrioSection profile={profileRecord} />
+
+            <BadgeSection userId={profileRecord.userId} isOwnProfile />
 
             <PerfilSection title="Mi momento actual">
               <p className="text-[15px] leading-relaxed text-[#6B7A8C]">{profile.momentoActual}</p>

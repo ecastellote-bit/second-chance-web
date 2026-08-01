@@ -4,6 +4,10 @@ import {
   listFeedPosts,
 } from "@/lib/community-store/communityPostStore";
 import {
+  collectEarnedPayloads,
+  evaluateBadge,
+} from "@/lib/badges-store/evaluate-badge";
+import {
   mapCommunityError,
   missingUserIdResponse,
   requireCommunityUser,
@@ -72,7 +76,18 @@ export async function POST(req: Request) {
       circleTagSlug: body.circleTagSlug ?? body.circleTag ?? "",
     });
 
-    return NextResponse.json({ ok: true, post }, { status: 201 });
+    const badgeResult = await evaluateBadge(userId, "primera_accion").catch(
+      () => ({ earned: false as const }),
+    );
+
+    return NextResponse.json(
+      {
+        ok: true,
+        post,
+        earnedBadges: collectEarnedPayloads([badgeResult]),
+      },
+      { status: 201 },
+    );
   } catch (error) {
     return mapCommunityError(error);
   }

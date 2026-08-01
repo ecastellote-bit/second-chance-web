@@ -11,6 +11,10 @@ import {
   MIN_ROLES_PER_PROJECT,
   PROJECT_DESCRIPTION_MAX,
 } from "@/lib/projects-vivos/projectTypes";
+import {
+  emitEarnedBadges,
+  readEarnedBadgesFromJson,
+} from "@/lib/badges-store/badgeToastClient";
 
 type RoleDraft = {
   title: string;
@@ -99,6 +103,7 @@ export function CreateVivoProjectWizard() {
         };
         throw new Error(map[data.error ?? ""] ?? data.error ?? "No se pudo publicar");
       }
+      emitEarnedBadges(readEarnedBadgesFromJson(data));
       router.replace(`/proyectos/vivos/${data.project.slug}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");

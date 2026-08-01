@@ -15,6 +15,7 @@ import {
 } from "@/lib/learning/persistHumanCaseFromBrowser";
 import { trackMetaEventOnce } from "@/lib/analytics/trackMetaEvent";
 import { trackObservatoryEventOnce } from "@/lib/observatory/client";
+import { emitEarnedBadges } from "@/lib/badges-store/badgeToastClient";
 
 type GateState =
   | "archiving"
@@ -66,6 +67,10 @@ export function HumanCaseArchiveGate({
 
       setArchiveId(result.archiveId);
       setVerificationStatus(result.verificationStatus);
+
+      if (result.earnedBadges?.length) {
+        emitEarnedBadges(result.earnedBadges);
+      }
 
       if (result.persisted && result.archiveLevel === "full") {
         setPreservationLevel("full");

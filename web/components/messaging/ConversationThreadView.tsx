@@ -9,6 +9,10 @@ import { formatMessageBubbleTime } from "@/lib/messaging/formatMessageTime";
 import { MESSAGE_CONTENT_MAX_LENGTH } from "@/lib/messaging/messageTypes";
 import type { VuMessage } from "@/lib/messaging/messageTypes";
 import { getCachedUserId } from "@/lib/users/activeUserSession";
+import {
+  emitEarnedBadges,
+  readEarnedBadgesFromJson,
+} from "@/lib/badges-store/badgeToastClient";
 
 type OtherProfile = {
   userId: string;
@@ -132,6 +136,7 @@ export function ConversationThreadView({ slug }: { slug: string }) {
         throw new Error(data.error ?? "No se pudo enviar el mensaje");
       }
 
+      emitEarnedBadges(readEarnedBadgesFromJson(data));
       setDraft("");
       setMessages((prev) => [...prev, data.message!]);
     } catch (err) {

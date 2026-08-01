@@ -13,6 +13,10 @@ import type {
   VivoProjectMember,
   VivoProjectRole,
 } from "@/lib/projects-vivos/projectTypes";
+import {
+  emitEarnedBadges,
+  readEarnedBadgesFromJson,
+} from "@/lib/badges-store/badgeToastClient";
 
 function errorLabel(code: string): string {
   const map: Record<string, string> = {
@@ -91,6 +95,7 @@ export function VivoProjectDetailView({ slug }: { slug: string }) {
       if (!res.ok || !data.ok) {
         throw new Error(errorLabel(data.error ?? "No se pudo postular"));
       }
+      emitEarnedBadges(readEarnedBadgesFromJson(data));
       setApplyRole(null);
       setToast("Postulación enviada");
       await load();

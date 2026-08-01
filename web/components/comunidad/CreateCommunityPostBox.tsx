@@ -8,6 +8,10 @@ import {
   COMMUNITY_POST_MAX,
   type CommunityPost,
 } from "@/lib/community-store/communityTypes";
+import {
+  emitEarnedBadges,
+  readEarnedBadgesFromJson,
+} from "@/lib/badges-store/badgeToastClient";
 
 type Props = {
   onCreated: (post: CommunityPost) => void;
@@ -61,6 +65,7 @@ export function CreateCommunityPostBox({ onCreated }: Props) {
       if (!res.ok || !data.ok || !data.post) {
         throw new Error(data.message ?? data.error ?? "No se pudo publicar");
       }
+      emitEarnedBadges(readEarnedBadgesFromJson(data));
       onCreated(data.post);
       setContent("");
       setLinkUrl("");

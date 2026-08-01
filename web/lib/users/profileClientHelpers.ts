@@ -1,4 +1,8 @@
 import type { UserProfileClientView, VuUserProfileRecord } from "@/lib/users/userProfileTypes";
+import {
+  emitEarnedBadges,
+  readEarnedBadgesFromJson,
+} from "@/lib/badges-store/badgeToastClient";
 
 /** Adapta la vista cliente al shape que espera PublicProfileCard (server). */
 export function clientViewToProfileRecord(
@@ -59,11 +63,14 @@ export async function saveUserProfileFromClient(
     ok?: boolean;
     profile?: UserProfileClientView;
     error?: string;
+    earnedBadges?: unknown;
   };
 
   if (!data.ok || !data.profile) {
     throw new Error(data.error ?? "No se pudo guardar el perfil");
   }
+
+  emitEarnedBadges(readEarnedBadgesFromJson(data));
 
   return data.profile;
 }

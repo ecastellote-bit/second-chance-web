@@ -21,6 +21,10 @@ import { getCohortBatchFromPayload } from "@/lib/learning/foundationalCohort";
 import { isHumanCasePersistedAcknowledged } from "@/lib/learning/humanCasePersistence";
 import { appendObservatoryEvent, buildObservatoryEvent } from "@/lib/observatory/store";
 import { syncLinkedProfileFamiliesForArchive } from "@/lib/users/userProfileStore";
+import {
+  collectEarnedPayloads,
+  evaluateBadge,
+} from "@/lib/badges-store/evaluate-badge";
 
 function resolveArchiveLinkedUserId(body: {
   userId?: string;
@@ -188,6 +192,16 @@ export async function POST(req: Request) {
       ).catch(() => {});
     }
 
+    const linkedUserId = resolveArchiveLinkedUserId(body);
+    const earnedBadges =
+      linkedUserId && (result.complete.appended || result.durable.stored)
+        ? collectEarnedPayloads([
+            await evaluateBadge(linkedUserId, "diagnostico_completado").catch(
+              () => ({ earned: false as const }),
+            ),
+          ])
+        : [];
+
     return NextResponse.json({
       ok: true,
       archiveId: result.archiveId,
@@ -201,6 +215,7 @@ export async function POST(req: Request) {
       },
       classification: result.completeRecord.classification,
       reviewStatus: result.completeRecord.storagePolicy.reviewStatus,
+      earnedBadges,
     });
   } catch (error) {
     if (error instanceof HumanCaseDurableStoreError) {

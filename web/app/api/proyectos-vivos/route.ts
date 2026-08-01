@@ -3,6 +3,10 @@ import { listProjectsFiltered } from "@/lib/projects-vivos/projectStore";
 import type { ProjectStatus } from "@/lib/projects-vivos/projectTypes";
 import { createProjectWithRoles } from "@/lib/projects-vivos/projectStore";
 import {
+  collectEarnedPayloads,
+  evaluateBadge,
+} from "@/lib/badges-store/evaluate-badge";
+import {
   mapProjectError,
   missingUserIdResponse,
   requireCommunityUser,
@@ -81,7 +85,18 @@ export async function POST(req: Request) {
       })),
     });
 
-    return NextResponse.json({ ok: true, project }, { status: 201 });
+    const badgeResult = await evaluateBadge(userId, "primer_proyecto").catch(
+      () => ({ earned: false as const }),
+    );
+
+    return NextResponse.json(
+      {
+        ok: true,
+        project,
+        earnedBadges: collectEarnedPayloads([badgeResult]),
+      },
+      { status: 201 },
+    );
   } catch (error) {
     return mapProjectError(error);
   }

@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { MESSAGE_CONTENT_MAX_LENGTH } from "@/lib/messaging/messageTypes";
+import {
+  emitEarnedBadges,
+  readEarnedBadgesFromJson,
+} from "@/lib/badges-store/badgeToastClient";
 
 export type ContactModalProps = {
   isOpen: boolean;
@@ -82,6 +86,7 @@ export function ContactModal({
         throw new Error(data.error ?? "No se pudo enviar el mensaje");
       }
 
+      emitEarnedBadges(readEarnedBadgesFromJson(data));
       setSuccess(
         "Mensaje enviado. Podés ver la conversación en tu bandeja de entrada.",
       );

@@ -24,6 +24,12 @@ export type PersistHumanCaseResponse = {
   };
   error?: string;
   archiveLevel?: "full" | "minimal";
+  earnedBadges?: Array<{
+    slug: string;
+    name: string;
+    description: string;
+    icon: string;
+  }>;
 };
 
 export type PersistHumanCaseOutcome = {
@@ -36,6 +42,7 @@ export type PersistHumanCaseOutcome = {
   draftServerConfirmed: boolean;
   caseId: string | null;
   diagnosticRunId: string | null;
+  earnedBadges?: PersistHumanCaseResponse["earnedBadges"];
 };
 
 const MAX_ATTEMPTS = 3;
@@ -78,10 +85,28 @@ function buildLeanArchivePayload(payload: unknown): unknown {
 }
 
 async function postOnce(payload: unknown): Promise<PersistHumanCaseResponse> {
+  let body: unknown = payload;
+  if (payload && typeof payload === "object" && typeof window !== "undefined") {
+    const userId = window.localStorage.getItem("vu_user_id")?.trim();
+    if (userId) {
+      const p = payload as Record<string, unknown>;
+      const meta =
+        p.clientMeta && typeof p.clientMeta === "object"
+          ? { ...(p.clientMeta as Record<string, unknown>) }
+          : {};
+      if (!meta.userId && !meta.vuUserId) meta.vuUserId = userId;
+      body = {
+        ...p,
+        userId: typeof p.userId === "string" && p.userId.trim() ? p.userId : userId,
+        clientMeta: meta,
+      };
+    }
+  }
+
   const res = await fetch("/api/human-cases", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(body),
   });
 
   const data = (await res.json().catch(() => ({}))) as PersistHumanCaseResponse;
@@ -176,6 +201,7 @@ export async function persistHumanCaseFromBrowserWithRetry(
           draftServerConfirmed,
           caseId: identity.caseId,
           diagnosticRunId: identity.diagnosticRunId,
+          earnedBadges: data.earnedBadges,
         };
       }
 

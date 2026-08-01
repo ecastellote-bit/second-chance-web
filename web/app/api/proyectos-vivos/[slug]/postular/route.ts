@@ -3,6 +3,10 @@ import { applyToRole, findProjectBySlug } from "@/lib/projects-vivos/projectStor
 import { notifyVivoApplicationReceived } from "@/lib/learning/notificationEventIntegrations";
 import { createInAppNotification } from "@/lib/in-app-notifications/inAppNotificationStore";
 import {
+  collectEarnedPayloads,
+  evaluateBadge,
+} from "@/lib/badges-store/evaluate-badge";
+import {
   mapProjectError,
   missingUserIdResponse,
   requireCommunityUser,
@@ -59,7 +63,18 @@ export async function POST(
       }).catch(() => {});
     }
 
-    return NextResponse.json({ ok: true, application: member }, { status: 201 });
+    const badgeResult = await evaluateBadge(userId, "primera_accion").catch(
+      () => ({ earned: false as const }),
+    );
+
+    return NextResponse.json(
+      {
+        ok: true,
+        application: member,
+        earnedBadges: collectEarnedPayloads([badgeResult]),
+      },
+      { status: 201 },
+    );
   } catch (error) {
     return mapProjectError(error);
   }

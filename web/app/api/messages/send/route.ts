@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { sendMessage } from "@/lib/messaging/messageStore";
 import { validateMessageContent } from "@/lib/messaging/messageTypes";
 import { createInAppNotification } from "@/lib/in-app-notifications/inAppNotificationStore";
+import {
+  collectEarnedPayloads,
+  evaluateBadge,
+} from "@/lib/badges-store/evaluate-badge";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,7 +65,15 @@ export async function POST(req: Request) {
       },
     }).catch(() => {});
 
-    return NextResponse.json({ ok: true, message });
+    const badgeResult = await evaluateBadge(senderId, "primer_mensaje").catch(
+      () => ({ earned: false as const }),
+    );
+
+    return NextResponse.json({
+      ok: true,
+      message,
+      earnedBadges: collectEarnedPayloads([badgeResult]),
+    });
   } catch (error) {
     const code = error instanceof Error ? error.message : "message_send_failed";
     return NextResponse.json({ ok: false, error: code }, { status: errorStatus(code) });
