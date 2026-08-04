@@ -16,6 +16,7 @@ export type ObservatoryEventType =
   | "funnel.activacion_cartel"
   | "funnel.plaza_post_activacion"
   | "funnel.barrio_commitment"
+  | "funnel.profile_resumed"
   | "diagnostic.full_result_view"
   | "diagnostic.case_archived"
   | "human_case.persisted"

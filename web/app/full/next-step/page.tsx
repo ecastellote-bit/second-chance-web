@@ -77,11 +77,18 @@ export default function FullNextStepPage() {
 
         <div className="flex gap-3 flex-wrap">
           <button
-            onClick={() => router.push("/community")}
+            onClick={() => router.push("/barrio")}
             className="px-4 py-2 rounded-md bg-black text-white text-sm"
           >
-            Entrar a la comunidad
+            Entrar al barrio
           </button>
+
+          <Link
+            href="/comunidad"
+            className="px-4 py-2 rounded-md border border-black text-sm"
+          >
+            Ver la comunidad
+          </Link>
 
           <Link
             href="/full/themes"

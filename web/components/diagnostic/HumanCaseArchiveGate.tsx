@@ -204,7 +204,8 @@ export function HumanCaseArchiveGate({
       ? `/full/themes?archiveId=${encodeURIComponent(archiveId)}`
       : `/full/themes?caseId=${encodeURIComponent(caseId)}&diagnosticRunId=${encodeURIComponent(diagnosticRunId)}`;
 
-  const perfilHref = `/perfil/crear?redirect=${encodeURIComponent(themesHref)}`;
+  const perfilHref = `/perfil/crear?redirect=${encodeURIComponent("/barrio")}`;
+  const retomarHref = `/perfil/continuar?redirect=${encodeURIComponent("/barrio")}`;
 
   return (
     <div className="space-y-6">
@@ -220,12 +221,26 @@ export function HumanCaseArchiveGate({
             Gracias por dejar una referencia útil para esta etapa fundadora. Revisaremos
             tu caso para ayudar a que tu lectura quede mejor ubicada.
           </p>
-          <a
-            href={perfilHref}
-            className="mt-3 inline-block text-[13px] font-semibold text-[#1A9BB0] underline"
-          >
-            Crear tu perfil en VocationUp (necesario para conectar en el barrio) →
-          </a>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <a
+              href={perfilHref}
+              className="inline-block text-[13px] font-semibold text-[#1A9BB0] underline"
+            >
+              Crear perfil y entrar al barrio →
+            </a>
+            <a
+              href={retomarHref}
+              className="inline-block text-[13px] font-semibold text-[#0B2E59] underline"
+            >
+              Ya tengo perfil — retomarlo
+            </a>
+            <a
+              href="/barrio"
+              className="inline-block text-[13px] font-semibold text-[#6B7A8C] underline"
+            >
+              Ir al barrio sin perfil todavía
+            </a>
+          </div>
         </div>
       ) : state === "pending_verification" ? (
         <div

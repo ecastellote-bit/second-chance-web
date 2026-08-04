@@ -8,9 +8,9 @@ import { PerfilUsuarioView } from "@/components/perfil/PerfilUsuarioView";
 import { PerfilVisibilityPanel } from "@/components/perfil/PerfilVisibilityPanel";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import {
+  bindLocalSession,
   fetchUserProfile,
-  getOrCreateUserId,
-  markProfileComplete,
+  getCachedUserId,
 } from "@/lib/users/activeUserSession";
 import { userProfileToPerfilView } from "@/lib/users/profileToPerfilView";
 import {
@@ -29,15 +29,34 @@ export function PerfilPageLoader() {
   useEffect(() => {
     let cancelled = false;
 
-    fetchUserProfile(getOrCreateUserId()).then((p) => {
-      if (cancelled) return;
-      if (!isUserProfileComplete(p)) {
-        router.replace("/perfil/crear");
+    async function load() {
+      const existingId = getCachedUserId();
+      if (!existingId) {
+        // No inventar userId al mirar el perfil: alta en /perfil/crear.
+        router.replace("/perfil/crear?redirect=%2Fperfil");
         return;
       }
+
+      const p = await fetchUserProfile(existingId);
+      if (cancelled) return;
+
+      if (!p) {
+        // Hay ID local pero el servidor no encuentra perfil → retomar, no recrear a ciegas.
+        router.replace("/perfil/continuar?redirect=%2Fperfil");
+        return;
+      }
+
+      if (!isUserProfileComplete(p)) {
+        router.replace("/perfil/editar?redirect=%2Fperfil");
+        return;
+      }
+
+      bindLocalSession(p);
       setProfile(p);
       setLoading(false);
-    });
+    }
+
+    void load();
 
     return () => {
       cancelled = true;
@@ -45,7 +64,7 @@ export function PerfilPageLoader() {
   }, [router]);
 
   function handleProfileUpdated(updated: UserProfileClientView) {
-    markProfileComplete(updated);
+    bindLocalSession(updated);
     setProfile(updated);
   }
 

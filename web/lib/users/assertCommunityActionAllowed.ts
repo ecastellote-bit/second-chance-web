@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { findUserProfileById } from "./userProfileStore";
-import { isCommunityEmailReady, isUserProfileComplete } from "./userProfileTypes";
+import { resolveSessionGate } from "./sessionGate";
 
 export type CommunityActionDenyReason =
   | "user_id_required"
@@ -10,20 +9,12 @@ export type CommunityActionDenyReason =
 export async function checkCommunityActionAllowed(
   userId: string,
 ): Promise<{ allowed: true } | { allowed: false; error: CommunityActionDenyReason }> {
-  const id = userId.trim();
-  if (!id) {
-    return { allowed: false, error: "user_id_required" };
-  }
-
-  const profile = await findUserProfileById(id);
-  if (!profile || !isUserProfileComplete(profile)) {
-    return { allowed: false, error: "community_profile_required" };
-  }
-  if (!isCommunityEmailReady(profile)) {
-    return { allowed: false, error: "community_email_required" };
-  }
-
-  return { allowed: true };
+  const gate = await resolveSessionGate(userId);
+  if (gate.allowed) return { allowed: true };
+  return {
+    allowed: false,
+    error: gate.apiError ?? "community_profile_required",
+  };
 }
 
 export function communityActionDeniedResponse(

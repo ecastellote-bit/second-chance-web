@@ -12,6 +12,11 @@ import {
   getObservatorySessionId,
   trackObservatoryEvent,
 } from "@/lib/observatory/client";
+import {
+  fetchClientSessionGate,
+  getEmailHint,
+  setEmailHint,
+} from "@/lib/users/activeUserSession";
 
 type Step = "input" | "email" | "success";
 
@@ -32,7 +37,11 @@ export function QuickInterestCapture({
   emailCta,
   successTitle,
   successCopy,
+  successCopyWithProfile,
   continueHref,
+  continueLabel = "Seguir explorando",
+  exploreMoreHref,
+  exploreMoreLabel,
   actionChips,
   className = "",
   onChipSelect,
@@ -44,6 +53,8 @@ export function QuickInterestCapture({
   const [actionMode, setActionMode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  /** null = aún no evaluamos sesión */
+  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -55,6 +66,20 @@ export function QuickInterestCapture({
       path: pathname.slice(0, 120),
     });
   }, [intentType, pathname]);
+
+  /** Prefill email + detectar si ya hay perfil (sin forzar gate de create). */
+  useEffect(() => {
+    const hint = getEmailHint();
+    if (hint) setEmail(hint);
+
+    void fetchClientSessionGate().then((gate) => {
+      const known =
+        gate.reason === "ready" ||
+        gate.reason === "email_missing" ||
+        gate.reason === "profile_incomplete";
+      setHasProfile(known);
+    });
+  }, []);
 
   const track = useCallback(
     (
@@ -135,6 +160,14 @@ export function QuickInterestCapture({
         );
         return;
       }
+      setEmailHint(email);
+      // Revalidar perfil antes del éxito (por si se creó en otra pestaña).
+      const gate = await fetchClientSessionGate();
+      const known =
+        gate.reason === "ready" ||
+        gate.reason === "email_missing" ||
+        gate.reason === "profile_incomplete";
+      setHasProfile(known);
       setStep("success");
     } finally {
       setLoading(false);
@@ -142,6 +175,12 @@ export function QuickInterestCapture({
   }
 
   if (step === "success") {
+    const profileKnown = hasProfile === true;
+    const body =
+      profileKnown && successCopyWithProfile
+        ? successCopyWithProfile
+        : successCopy;
+
     return (
       <section
         className={[
@@ -151,22 +190,44 @@ export function QuickInterestCapture({
       >
         <p className="text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">Listo</p>
         <h2 className="mt-1 text-[1.25rem] font-bold text-[#0B2E59]">{successTitle}</h2>
-        <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">{successCopy}</p>
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">{body}</p>
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <Link
             href={continueHref}
             className="vu-focus inline-flex min-h-[44px] flex-1 items-center justify-center rounded-xl bg-[#0B2E59] px-4 text-sm font-semibold text-white"
           >
-            Seguir explorando
+            {continueLabel}
           </Link>
-          <Link
-            href={`/perfil/crear?redirect=${encodeURIComponent(pathname)}`}
-            onClick={() => track("surface_interest_profile_invite_clicked")}
-            className="vu-focus inline-flex min-h-[44px] flex-1 items-center justify-center rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] px-4 text-sm font-semibold text-[#0B2E59]"
-          >
-            Crear mi perfil
-          </Link>
+          {exploreMoreHref && exploreMoreLabel ? (
+            <Link
+              href={exploreMoreHref}
+              className="vu-focus inline-flex min-h-[44px] flex-1 items-center justify-center rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] px-4 text-sm font-semibold text-[#0B2E59]"
+            >
+              {exploreMoreLabel}
+            </Link>
+          ) : null}
+          {profileKnown ? (
+            <Link
+              href="/perfil"
+              className="vu-focus inline-flex min-h-[44px] flex-1 items-center justify-center rounded-xl border border-[#E8EEF3] bg-white px-4 text-sm font-semibold text-[#1A9BB0]"
+            >
+              Ver mi perfil
+            </Link>
+          ) : (
+            <Link
+              href={`/perfil/crear?redirect=${encodeURIComponent(pathname || continueHref)}`}
+              onClick={() => track("surface_interest_profile_invite_clicked")}
+              className="vu-focus inline-flex min-h-[44px] flex-1 items-center justify-center rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] px-4 text-sm font-semibold text-[#0B2E59]"
+            >
+              Crear perfil (opcional)
+            </Link>
+          )}
         </div>
+        {!profileKnown ? (
+          <p className="mt-3 text-[11px] leading-relaxed text-[#6B7A8C]">
+            El perfil no es obligatorio para esta señal. Podés seguir sin crearlo.
+          </p>
+        ) : null}
       </section>
     );
   }
@@ -182,7 +243,11 @@ export function QuickInterestCapture({
         <p className="text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">Un paso más</p>
         <h2 className="mt-1 text-[1.25rem] font-bold text-[#0B2E59]">{emailStepTitle}</h2>
         <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">{emailStepCopy}</p>
-        <form onSubmit={handleEmailSubmit} className="mt-4">
+        <p className="mt-2 text-[12px] leading-relaxed text-[#6B7A8C]">
+          Esto no crea un perfil ni abre cuenta. Solo nos permite avisarte si se armar algo
+          relacionado.
+        </p>
+        <form onSubmit={(e) => void handleEmailSubmit(e)} className="mt-4">
           <input
             type="email"
             autoComplete="email"

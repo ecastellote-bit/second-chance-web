@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PROFILE_FLOW_COPY } from "@/lib/content/profileFlowCopy";
 import { getFoundationalCohortBatch } from "@/lib/learning/foundationalCohort";
@@ -10,10 +10,12 @@ import {
   getFoundingMemberArchiveId,
 } from "@/lib/learning/foundationalMember";
 import {
+  bindLocalSession,
   fetchCommunityContact,
   fetchUserProfile,
+  getCachedUserId,
   getOrCreateUserId,
-  markProfileComplete,
+  setEmailHint,
 } from "@/lib/users/activeUserSession";
 import {
   parseChipInput,
@@ -93,6 +95,10 @@ type Props = {
 
 export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromQuery = searchParams.get("redirect")?.trim();
+  const safeRedirect =
+    (fromQuery && fromQuery.startsWith("/") ? fromQuery : null) || redirectTo;
   const copy = PROFILE_FLOW_COPY.crear;
 
   const [displayName, setDisplayName] = useState("");
@@ -185,7 +191,8 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
   }, [coverFile]);
 
   useEffect(() => {
-    const userId = getOrCreateUserId();
+    const userId =
+      mode === "edit" ? getCachedUserId() ?? getOrCreateUserId() : getOrCreateUserId();
     Promise.all([fetchUserProfile(userId), fetchCommunityContact(userId)]).then(
       ([profile, contact]) => {
         if (profile) hydrate(profile);
@@ -220,6 +227,11 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
     const userId = getOrCreateUserId();
 
     try {
+      if (mode === "create" && !email.trim()) {
+        setError("El email privado es necesario para poder retomar tu perfil después.");
+        return;
+      }
+
       if (avatarUploading) {
         setError("Esperá unos segundos: la foto de perfil se está subiendo.");
         return;
@@ -306,8 +318,9 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
         });
       }
 
-      markProfileComplete(data.profile);
-      router.replace(redirectTo);
+      bindLocalSession(data.profile);
+      if (email.trim()) setEmailHint(email);
+      router.replace(safeRedirect);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
     } finally {
@@ -336,6 +349,16 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
           </p>
           <h1 className="text-[1.5rem] font-bold text-[#0B2E59]">{copy.title}</h1>
           <p className="text-[15px] leading-relaxed text-[#6B7A8C]">{copy.subtitle}</p>
+          {mode === "create" ? (
+            <p className="text-sm text-[#6B7A8C]">
+              <Link
+                href={`/perfil/continuar?redirect=${encodeURIComponent(safeRedirect)}`}
+                className="font-semibold text-[#1A9BB0] underline"
+              >
+                {copy.resumeLink}
+              </Link>
+            </p>
+          ) : null}
         </div>
 
         <ProfilePhotosEditor
@@ -435,6 +458,7 @@ export function PerfilForm({ mode, redirectTo = "/perfil" }: Props) {
               value={email}
               onChange={setEmail}
               type="email"
+              required={mode === "create"}
               placeholder={PROFILE_FLOW_COPY.hints.email}
             />
             <label className="flex cursor-pointer items-start gap-3 text-sm text-[#243647]">

@@ -21,6 +21,7 @@ export const FUNDADOR_V2_HERO = {
 export const FUNDADOR_V2_CTAS = {
   primary: {
     label: "Ver por dónde puedo empezar",
+    /** Ancla real en la misma página — no es un destino muerto. */
     href: "#por-donde-empezar",
   },
   reading: {
@@ -35,31 +36,38 @@ export const FUNDADOR_V2_CTAS = {
 
 export const FUNDADOR_V2_EMOTIONAL = {
   title: "¿Qué sentís que quedó esperando en vos?",
+  /** Guía: cada opción navega a un lugar concreto del barrio. */
+  helper: "Tocá una opción: te lleva a un lugar real para dar el primer paso.",
   options: [
     {
       id: "talent",
       label: "Un talento que fui dejando de lado",
       href: "/formacion",
+      hint: "Formación en el barrio",
     },
     {
       id: "idea",
       label: "Una idea que nunca terminé de mover",
       href: "/proyectos",
+      hint: "Proyectos y semillas",
     },
     {
       id: "people",
       label: "Ganas de hacer algo con otras personas",
-      href: "/circulos",
+      href: "/comunidad",
+      hint: "Comunidad viva",
     },
     {
       id: "stage",
       label: "Una etapa laboral que ya no me representa",
       href: "/full?founder=1",
+      hint: "Lectura inicial",
     },
     {
       id: "look",
       label: "No sé todavía, pero quiero mirar",
       href: "/barrio",
+      hint: "Entrar al barrio",
     },
   ],
 } as const;
@@ -167,6 +175,7 @@ export const FUNDADOR_V2_STORIES_SECTION = {
 
 export const FUNDADOR_V2_ECOSYSTEM = {
   title: "Puertas del barrio",
+  helper: "Cuatro entradas vivas. Elegí la que te resuene y entrá.",
   doors: [
     {
       id: "projects",
@@ -178,9 +187,16 @@ export const FUNDADOR_V2_ECOSYSTEM = {
     {
       id: "people",
       title: "Personas impulsando ideas",
-      href: "/circulos",
+      href: "/comunidad",
       image: "/vu/puerta-conectar-otros.png",
       fallbackImage: "/vu/evento-cafe-conexiones-vc.png",
+    },
+    {
+      id: "vivos",
+      title: "Equipos y roles abiertos",
+      href: "/proyectos/vivos",
+      image: "/vu/mesa-ideas-compartidas.jpeg",
+      fallbackImage: "/vu/proyecto-manos-transforman.png",
     },
     {
       id: "spaces",
@@ -188,13 +204,6 @@ export const FUNDADOR_V2_ECOSYSTEM = {
       href: "/plaza",
       image: "/vu/patio-iluminado-encuentro.jpeg",
       fallbackImage: "/vu/mesa-ideas-compartidas.jpeg",
-    },
-    {
-      id: "opportunities",
-      title: "Oportunidades para empezar algo",
-      href: "/eventos",
-      image: "/vu/evento-emprende-proposito.png",
-      fallbackImage: "/vu/evento-ideas-comunidad.png",
     },
   ],
 } as const;

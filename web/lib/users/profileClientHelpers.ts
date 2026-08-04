@@ -3,6 +3,7 @@ import {
   emitEarnedBadges,
   readEarnedBadgesFromJson,
 } from "@/lib/badges-store/badgeToastClient";
+import { bindLocalSession } from "@/lib/users/activeUserSession";
 
 /** Adapta la vista cliente al shape que espera PublicProfileCard (server). */
 export function clientViewToProfileRecord(
@@ -71,6 +72,7 @@ export async function saveUserProfileFromClient(
   }
 
   emitEarnedBadges(readEarnedBadgesFromJson(data));
+  bindLocalSession(data.profile);
 
   return data.profile;
 }

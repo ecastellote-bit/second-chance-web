@@ -344,6 +344,63 @@ export async function findUserProfileBySlug(
   return enrichProfileOnRead(profile);
 }
 
+/**
+ * Busca perfil por email normalizado (contacto privado).
+ * Escala con listado de perfiles — mismo patrón que el directorio.
+ */
+export async function findUserProfileByEmail(
+  email: string,
+): Promise<VuUserProfileRecord | null> {
+  const normalized = normalizeCommunityEmail(email);
+  if (!normalized) return null;
+
+  const profiles = await listUserProfiles(1000);
+  const profile =
+    profiles.find(
+      (item) => normalizeCommunityEmail(item.email ?? null) === normalized,
+    ) ?? null;
+
+  if (!profile) return null;
+  return enrichProfileOnRead(profile);
+}
+
+/**
+ * Actualiza email (y consentimiento) de un perfil ya completo sin reescribir todo.
+ */
+export async function updateProfileEmail(input: {
+  userId: string;
+  email: string;
+  notificationConsent?: boolean;
+}): Promise<VuUserProfileRecord> {
+  assertVercelBlobForProduction("user_profile");
+
+  const userId = input.userId.trim();
+  if (!userId) throw new Error("user_id_required");
+
+  const existing = await findUserProfileById(userId);
+  if (!existing) throw new Error("profile_not_found");
+  if (!isUserProfileComplete(existing)) throw new Error("profile_incomplete");
+
+  const normalized = normalizeCommunityEmail(input.email);
+  if (!normalized) throw new Error("email_invalid");
+
+  const now = new Date().toISOString();
+  const notificationConsent =
+    input.notificationConsent === undefined
+      ? existing.notificationConsent === true
+      : input.notificationConsent === true;
+
+  const profile = normalizeStoredProfile({
+    ...existing,
+    email: normalized,
+    notificationConsent,
+    updatedAt: now,
+  });
+
+  await persistProfileRecord(profile);
+  return profile;
+}
+
 async function loadPublicDirectoryCandidates(): Promise<VuUserProfileRecord[]> {
   const profiles = await listUserProfiles(500);
   return profiles

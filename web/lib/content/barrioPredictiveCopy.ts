@@ -11,7 +11,8 @@ export type BarrioTrustChip = {
 
 export const BARRIO_TRUST_CHIPS: BarrioTrustChip[] = [
   { label: "Proyectos", href: "/proyectos" },
-  { label: "Ideas", href: "/proyectos/sembrar" },
+  { label: "Vivos", href: "/proyectos/vivos" },
+  { label: "Comunidad", href: "/comunidad" },
   { label: "Formación", href: "/formacion" },
   { label: "Círculos", href: "/circulos" },
   { label: "Eventos", href: "/eventos" },
@@ -21,9 +22,9 @@ export const BARRIO_PREDICTIVE_COPY = {
   eyebrow: "VOCATIONUP · SECOND CHANCE",
   title: "Entrá al barrio",
   subtitle:
-    "Proyectos, formación, círculos, encuentros e ideas para empezar a moverte.",
+    "Proyectos, equipos colaborativos, comunidad, formación y encuentros para empezar a moverte.",
   primaryCta: "Hacer mi lectura sin costo",
-  secondaryCta: "Explorar ahora",
+  secondaryCta: "Explorar puertas",
   liveSectionTitle: "Ya hay mesas empezando a moverse",
 } as const;
 
@@ -40,12 +41,30 @@ export type BarrioActionCard = {
 export const BARRIO_ACTION_CARDS: BarrioActionCard[] = [
   {
     id: "proyectos",
-    title: "Ver proyectos",
-    line: "Ideas que buscan manos, voces y primeras señales.",
+    title: "Ver proyectos semilla",
+    line: "Ideas del equipo y de la comunidad que buscan primeras señales.",
     cta: "Entrar",
     href: "/proyectos",
     image: "/vu/seeds/projects/radio-second-chance.jpg",
     fallbackImage: "/vu/proyecto-manos-transforman.png",
+  },
+  {
+    id: "vivos",
+    title: "Proyectos vivos",
+    line: "Equipos en marcha: postularte, roles abiertos y hitos reales.",
+    cta: "Entrar",
+    href: "/proyectos/vivos",
+    image: "/vu/mesa-ideas-compartidas.jpeg",
+    fallbackImage: "/vu/proyecto-manos-transforman.png",
+  },
+  {
+    id: "comunidad",
+    title: "Comunidad",
+    line: "Publicá, leé y sumate a lo que se construye juntos.",
+    cta: "Abrir feed",
+    href: "/comunidad",
+    image: "/vu/puerta-conectar-otros.png",
+    fallbackImage: "/vu/evento-cafe-conexiones-vc.png",
   },
   {
     id: "sembrar",
@@ -67,8 +86,8 @@ export const BARRIO_ACTION_CARDS: BarrioActionCard[] = [
   },
   {
     id: "circulos",
-    title: "Unirme a un círculo",
-    line: "Mesas en formación para conectar por afinidad.",
+    title: "Círculos del catálogo",
+    line: "Temas de afinidad del barrio (no son grupos cerrados).",
     cta: "Ver círculos",
     href: "/circulos",
     image: "/vu/seeds/circles/empezar-de-nuevo.jpg",
@@ -82,15 +101,6 @@ export const BARRIO_ACTION_CARDS: BarrioActionCard[] = [
     href: "/eventos",
     image: "/vu/seeds/events/mesa-second-chance-caba.jpg",
     fallbackImage: "/vu/evento-cafe-conexiones-vc.png",
-  },
-  {
-    id: "oportunidades",
-    title: "Encontrar oportunidades",
-    line: "Convocatorias semilla para aportar o empezar.",
-    cta: "Explorar",
-    href: "/eventos",
-    image: "/vu/evento-emprende-proposito.png",
-    fallbackImage: "/vu/evento-ideas-comunidad.png",
   },
   {
     id: "lectura",

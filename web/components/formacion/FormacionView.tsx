@@ -16,14 +16,6 @@ import {
 
 const FORMACION_FILTER = new Set(["talleres", "charlas"]);
 
-function TrustChip({ label }: { label: string }) {
-  return (
-    <span className="inline-flex rounded-full border border-[#1A9BB0]/25 bg-white/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#0B2E59]">
-      {label}
-    </span>
-  );
-}
-
 function RouteCard({
   title,
   line,
@@ -113,7 +105,13 @@ export function FormacionView() {
                   <p className="mt-1 max-w-md text-[13px] leading-snug text-white/90">{copy.subtitle}</p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {copy.chips.map((chip) => (
-                      <TrustChip key={chip} label={chip} />
+                      <a
+                        key={chip}
+                        href="#interes-formacion"
+                        className="inline-flex rounded-full border border-[#1A9BB0]/25 bg-white/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#0B2E59]"
+                      >
+                        {chip}
+                      </a>
                     ))}
                   </div>
                 </div>
@@ -126,7 +124,10 @@ export function FormacionView() {
             </div>
 
             {/* Tarjetas predictivas */}
-            <p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]">
+            <p
+              id="primeras-rutas"
+              className="mb-3 scroll-mt-4 text-[10px] font-bold uppercase tracking-wider text-[#1A9BB0]"
+            >
               {copy.routesTitle}
             </p>
             <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">

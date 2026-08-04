@@ -952,8 +952,14 @@ function ResultPageInner() {
               Recuperar una lectura guardada
             </Link>
             <Link
-              href="/plaza"
+              href="/barrio"
               className="vu-focus inline-flex min-h-[3rem] w-full items-center justify-center rounded-2xl border border-[#E8EEF3] bg-white px-4 text-[15px] font-semibold text-[#1A9BB0] active:scale-[0.99]"
+            >
+              Entrar al barrio
+            </Link>
+            <Link
+              href="/plaza"
+              className="vu-focus inline-flex min-h-[3rem] w-full items-center justify-center rounded-2xl border border-[#E8EEF3] bg-white px-4 text-[15px] font-semibold text-[#6B7A8C] active:scale-[0.99]"
             >
               Volver a la plaza
             </Link>
@@ -1256,8 +1262,10 @@ function ResultPageInner() {
             ? `/full/themes?archiveId=${encodeURIComponent(archiveId)}`
             : `/full/themes?caseId=${encodeURIComponent(caseId)}&diagnosticRunId=${encodeURIComponent(diagnosticRunId)}`
           : "/full/result";
+        const barrioHref = "/barrio";
         const plazaHref = "/plaza";
-        const perfilHref = `/perfil/crear?redirect=${encodeURIComponent(themesHref)}`;
+        const perfilHref = `/perfil/crear?redirect=${encodeURIComponent(barrioHref)}`;
+        const retomarHref = `/perfil/continuar?redirect=${encodeURIComponent(barrioHref)}`;
         const draftServerConfirmed = preservationLevel !== "local_only";
 
         return (
@@ -2497,30 +2505,44 @@ function ResultPageInner() {
               className="flex flex-col items-center"
             />
             <p className="text-xs text-[#6B7A8C] max-w-md mx-auto">
-              Para el barrio necesitás perfil en VocationUp. Si ya lo tenés, podés ir
-              directo a temáticas o a la plaza.
+              Para actuar en el barrio necesitás perfil en VocationUp. Si ya lo creaste,
+              retomaló. Si no, crealo y volvés con un lugar concreto para seguir.
             </p>
-            <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-center sm:flex-wrap">
               <button
                 type="button"
                 onClick={() => router.push(perfilHref)}
                 className="rounded-xl bg-[#0B2E59] px-8 py-3 text-sm font-medium text-white"
               >
-                Crear perfil y continuar
+                Crear perfil y entrar al barrio
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push(retomarHref)}
+                className="rounded-xl border border-[#0B2E59]/25 px-8 py-3 text-sm font-medium text-[#0B2E59]"
+              >
+                Ya tengo perfil — retomarlo
               </button>
               <button
                 type="button"
                 onClick={() => router.push(themesHref)}
                 className="rounded-xl border border-black/20 px-8 py-3 text-sm font-medium text-[#0B2E59]"
               >
-                Elegir temática
+                Elegir temática primero
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push(barrioHref)}
+                className="rounded-xl border border-[#1A9BB0]/40 px-8 py-3 text-sm font-medium text-[#0B2E59]"
+              >
+                Ir al barrio
               </button>
               <button
                 type="button"
                 onClick={() => router.push(plazaHref)}
-                className="rounded-xl border border-[#1A9BB0]/40 px-8 py-3 text-sm font-medium text-[#0B2E59]"
+                className="rounded-xl border border-[#E8EEF3] px-8 py-3 text-sm font-medium text-[#6B7A8C]"
               >
-                Ir al barrio
+                Ir a la plaza
               </button>
             </div>
           </div>

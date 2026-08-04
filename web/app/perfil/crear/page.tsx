@@ -1,8 +1,8 @@
 "use client";
 
+import { Suspense } from "react";
 import { PerfilForm } from "@/components/perfil/PerfilForm";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
 
 function PerfilCrearContent() {
   const searchParams = useSearchParams();

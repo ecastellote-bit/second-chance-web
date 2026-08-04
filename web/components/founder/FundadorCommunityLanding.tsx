@@ -113,6 +113,7 @@ export function FundadorCommunityLanding({
   const [showSoftFeedback, setShowSoftFeedback] = useState(false);
   const [exitOpen, setExitOpen] = useState(false);
   const [exitTrigger, setExitTrigger] = useState<FounderExitTrigger>("unknown_exit_attempt");
+  const [emotionSpotlight, setEmotionSpotlight] = useState(false);
   const fundadorGuardUrlRef = useRef("/fundador");
 
   useEffect(() => {
@@ -191,7 +192,14 @@ export function FundadorCommunityLanding({
   });
 
   function scrollToEmotional() {
-    emotionalRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const el = emotionalRef.current;
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    setEmotionSpotlight(true);
+    window.setTimeout(() => {
+      el.focus({ preventScroll: true });
+    }, 350);
+    window.setTimeout(() => setEmotionSpotlight(false), 2000);
   }
 
   function handleSelectOption(id: FounderMicrogateOptionId) {
@@ -262,9 +270,10 @@ export function FundadorCommunityLanding({
             </p>
 
             <div className="mt-5 flex flex-col gap-3">
-              <button
-                type="button"
-                onClick={() => {
+              <a
+                href={FUNDADOR_V2_CTAS.primary.href}
+                onClick={(event) => {
+                  event.preventDefault();
                   trackFounderConversion("founder.primary_cta_click", { cta: "start_path" });
                   trackFounderPrimaryCta({
                     ctaId: "start_path",
@@ -278,7 +287,7 @@ export function FundadorCommunityLanding({
               >
                 {FUNDADOR_V2_CTAS.primary.label}
                 <CtaChevron />
-              </button>
+              </a>
 
               <Link
                 href={FUNDADOR_V2_CTAS.reading.href}
@@ -324,12 +333,25 @@ export function FundadorCommunityLanding({
       <section
         id="por-donde-empezar"
         ref={emotionalRef}
-        className="scroll-mt-4 px-4 py-7"
+        tabIndex={-1}
+        aria-labelledby="fundador-emotional-title"
+        className={[
+          "scroll-mt-4 px-4 py-7 outline-none transition-[box-shadow,background-color] duration-500",
+          emotionSpotlight
+            ? "bg-[#0B2E59]/35 ring-2 ring-inset ring-[#C6D92D]/55"
+            : "",
+        ].join(" ")}
       >
         <div className="mx-auto max-w-lg">
-          <h2 className="text-[17px] font-bold leading-snug text-white">
+          <h2
+            id="fundador-emotional-title"
+            className="text-[17px] font-bold leading-snug text-white"
+          >
             {FUNDADOR_V2_EMOTIONAL.title}
           </h2>
+          <p className="mt-2 text-[13px] leading-relaxed text-white/70">
+            {FUNDADOR_V2_EMOTIONAL.helper}
+          </p>
           <ul className="mt-4 flex flex-col gap-2.5">
             {FUNDADOR_V2_EMOTIONAL.options.map((option) => (
               <li key={option.id}>
@@ -347,9 +369,12 @@ export function FundadorCommunityLanding({
                     });
                     markAction();
                   }}
-                  className="vu-focus flex min-h-[3rem] w-full items-center rounded-2xl border border-white/14 bg-[#0B2E59]/55 px-4 py-3 text-left text-[14px] font-semibold leading-snug text-white/95 active:scale-[0.99]"
+                  className="vu-focus flex min-h-[3rem] w-full items-center justify-between gap-3 rounded-2xl border border-white/14 bg-[#0B2E59]/55 px-4 py-3 text-left text-[14px] font-semibold leading-snug text-white/95 active:scale-[0.99]"
                 >
-                  {option.label}
+                  <span>{option.label}</span>
+                  <span className="shrink-0 text-[11px] font-medium text-[#C6D92D]/90">
+                    {option.hint}
+                  </span>
                 </Link>
               </li>
             ))}
@@ -367,6 +392,9 @@ export function FundadorCommunityLanding({
       <section className="px-4 py-5">
         <div className="mx-auto max-w-lg">
           <h2 className="text-[17px] font-bold text-white">{FUNDADOR_V2_ECOSYSTEM.title}</h2>
+          <p className="mt-2 text-[13px] leading-relaxed text-white/65">
+            {FUNDADOR_V2_ECOSYSTEM.helper}
+          </p>
           <div className="mt-4 grid grid-cols-2 gap-3">
             {FUNDADOR_V2_ECOSYSTEM.doors.map((door) => (
               <EcosystemDoor

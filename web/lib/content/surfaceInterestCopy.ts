@@ -11,8 +11,14 @@ export type SurfaceInterestConfig = {
   emailStepCopy: string;
   emailCta: string;
   successTitle: string;
+  /** Sin perfil en el dispositivo */
   successCopy: string;
+  /** Con perfil ya reconocido (Serie 3) */
+  successCopyWithProfile?: string;
   continueHref: string;
+  continueLabel?: string;
+  exploreMoreHref?: string;
+  exploreMoreLabel?: string;
   actionChips?: { id: string; label: string }[];
 };
 
@@ -26,11 +32,17 @@ export const FORMACION_INTEREST: SurfaceInterestConfig = {
   footnote: "No necesitás perfil para decirnos esto.",
   emailStepTitle: "Dejanos tu email",
   emailStepCopy:
-    "Te avisamos si armamos algo sobre esto o aparece una propuesta relacionada.",
+    "Te avisamos si armamos algo sobre esto o aparece una propuesta relacionada. No es un registro de usuario.",
   emailCta: "Avisarme avances",
   successTitle: "Ya quedó registrado",
-  successCopy: "Tu interés quedó guardado. Seguí explorando o creá tu perfil cuando quieras.",
-  continueHref: "/formacion",
+  successCopy:
+    "Tu interés quedó guardado. Seguí explorando las rutas de abajo o el barrio — el perfil es opcional.",
+  successCopyWithProfile:
+    "Tu interés quedó guardado. Podés mirar las primeras rutas abajo o seguir en el barrio con tu perfil.",
+  continueHref: "/formacion#primeras-rutas",
+  continueLabel: "Ver primeras rutas",
+  exploreMoreHref: "/barrio",
+  exploreMoreLabel: "Entrar al barrio",
   actionChips: [
     { id: "comunicacion", label: "Comunicación" },
     { id: "oficios", label: "Oficios" },
@@ -50,8 +62,13 @@ export const PROYECTOS_INTEREST: SurfaceInterestConfig = {
   emailStepCopy: "Te avisamos si aparece algo parecido o se abre una mesa relacionada.",
   emailCta: "Avisarme avances",
   successTitle: "Interés registrado",
-  successCopy: "Guardamos tu señal. Seguí explorando proyectos del barrio.",
+  successCopy: "Guardamos tu señal. Seguí explorando proyectos del barrio — el perfil es opcional.",
+  successCopyWithProfile:
+    "Guardamos tu señal. Podés seguir viendo convocatorias o sumarte a un proyecto vivo.",
   continueHref: "/proyectos",
+  continueLabel: "Ver proyectos",
+  exploreMoreHref: "/proyectos/vivos",
+  exploreMoreLabel: "Proyectos vivos",
   actionChips: [
     { id: "proponer", label: "Quiero proponer una idea" },
     { id: "sumarme", label: "Quiero sumarme a proyectos" },
@@ -70,8 +87,13 @@ export const CIRCULOS_INTEREST: SurfaceInterestConfig = {
   emailStepCopy: "Te avisamos si se arma un círculo sobre esto o algo parecido.",
   emailCta: "Avisarme avances",
   successTitle: "Interés registrado",
-  successCopy: "Tu señal quedó guardada. Seguí explorando círculos del barrio.",
+  successCopy: "Tu señal quedó guardada. Seguí explorando — el perfil es opcional.",
+  successCopyWithProfile:
+    "Tu señal quedó guardada. Podés mirar el catálogo o la comunidad viva.",
   continueHref: "/circulos",
+  continueLabel: "Ver círculos",
+  exploreMoreHref: "/comunidad",
+  exploreMoreLabel: "Ir a la comunidad",
   actionChips: [
     { id: "proponer", label: "Quiero proponer un círculo" },
     { id: "sumarme", label: "Quiero sumarme a un círculo" },
@@ -90,8 +112,13 @@ export const EVENTOS_INTEREST: SurfaceInterestConfig = {
   emailStepCopy: "Te avisamos si organizamos algo en esa zona o con ese formato.",
   emailCta: "Avisarme avances",
   successTitle: "Interés registrado",
-  successCopy: "Tu sugerencia quedó guardada. Seguí viendo encuentros del barrio.",
+  successCopy: "Tu sugerencia quedó guardada. Seguí viendo encuentros — el perfil es opcional.",
+  successCopyWithProfile:
+    "Tu sugerencia quedó guardada. Podés seguir el calendario o entrar al barrio.",
   continueHref: "/eventos",
+  continueLabel: "Ver encuentros",
+  exploreMoreHref: "/barrio",
+  exploreMoreLabel: "Entrar al barrio",
 };
 
 export const FORMACION_PREDICTIVE = {
@@ -111,7 +138,7 @@ export const FORMACION_ROUTE_CARDS = [
     line: "Radio comunitaria y presencia en red — ejemplo vivo del barrio.",
     image: "/vu/seeds/projects/radio-second-chance.jpg",
     fallback: "/vu/proyecto-radio-barrial.png",
-    href: "/proyectos/radio-second-chance",
+    href: "/proyectos/semilla/radio-second-chance",
   },
   {
     id: "f2",
@@ -124,15 +151,15 @@ export const FORMACION_ROUTE_CARDS = [
   {
     id: "f3",
     title: "Gestión de proyectos",
-    line: "Para quienes están armando su primer movimiento.",
+    line: "Equipos en marcha y roles abiertos para tu primer movimiento.",
     image: "/vu/seeds/projects/banco-ideas-dormidas.jpg",
     fallback: "/vu/mesa-ideas-compartidas.jpeg",
-    href: "/proyectos",
+    href: "/proyectos/vivos",
   },
   {
     id: "f4",
     title: "Reinicio y orientación",
-    line: "Ordenar experiencias y próximos movimientos posibles.",
+    line: "Afinidades del catálogo y voz en la comunidad.",
     image: "/vu/seeds/projects/reinicio-laboral-adulto.jpg",
     fallback: "/vu/circulo-reinicio-40.png",
     href: "/circulos/empezar-de-nuevo",
