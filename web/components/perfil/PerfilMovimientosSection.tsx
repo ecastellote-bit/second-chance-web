@@ -67,10 +67,11 @@ function buildNextStep(
   }
 
   return {
-    title: "Seguí en la plaza",
-    description: "Tu barrio ya tiene movimientos. Revisá actividad o volvé a la plaza.",
-    cta: "Ir a la plaza",
-    href: "/plaza",
+    title: "Conectá con el barrio vivo",
+    description:
+      "Publicá en comunidad, mirá proyectos abiertos o escribí a alguien del directorio.",
+    cta: "Ir a comunidad",
+    href: "/comunidad",
   };
 }
 
@@ -239,6 +240,18 @@ export function PerfilMovimientosSection({
               className="vu-focus flex min-h-[44px] items-center justify-center rounded-xl bg-[#0B2E59] text-sm font-semibold text-white"
             >
               Empezar por una activación
+            </Link>
+            <Link
+              href="/proyectos/vivos"
+              className="vu-focus flex min-h-[44px] items-center justify-center rounded-xl border border-[#0B2E59]/15 text-sm font-semibold text-[#0B2E59]"
+            >
+              Ver proyectos vivos
+            </Link>
+            <Link
+              href="/community/conectar_con_otros"
+              className="vu-focus flex min-h-[44px] items-center justify-center rounded-xl border border-[#0B2E59]/15 text-sm font-semibold text-[#0B2E59]"
+            >
+              Directorio Connect
             </Link>
             <Link
               href="/plaza"

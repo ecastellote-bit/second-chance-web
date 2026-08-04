@@ -1,7 +1,7 @@
 "use client";
 
 import { getFoundingMemberArchiveId } from "@/lib/learning/foundationalMember";
-import { getOrCreateUserId } from "@/lib/users/activeUserSession";
+import { getCachedUserId } from "@/lib/users/activeUserSession";
 import type {
   CommunityActivityItem,
   CommunityActivityType,
@@ -15,13 +15,14 @@ function resolveIds(archiveId?: string | null): {
   archiveId: string | null;
 } {
   return {
-    userId: getOrCreateUserId(),
+    /** No inventar identidades huérfanas (Serie 0 / 4). */
+    userId: getCachedUserId() ?? "",
     archiveId: archiveId ?? getFoundingMemberArchiveId() ?? null,
   };
 }
 
 export async function fetchCommunityActivities(): Promise<CommunityActivityItem[]> {
-  const userId = getOrCreateUserId();
+  const userId = getCachedUserId();
   if (!userId) return [];
 
   const res = await fetch(
@@ -32,7 +33,7 @@ export async function fetchCommunityActivities(): Promise<CommunityActivityItem[
 }
 
 export async function fetchCommunityMessages(): Promise<CommunityMessage[]> {
-  const userId = getOrCreateUserId();
+  const userId = getCachedUserId();
   if (!userId) return [];
 
   const res = await fetch(

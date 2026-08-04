@@ -6,8 +6,11 @@ import { VivoProjectCard } from "@/components/proyectos-vivos/VivoProjectCard";
 import { Button } from "@/components/ui/Button";
 import { PROFILE_FAMILIES } from "@/lib/registries/profileFamilies";
 import type { ProjectStatus, VivoProject } from "@/lib/projects-vivos/projectTypes";
+import { PROJECT_WORLDS } from "@/lib/content/projectWorldsCopy";
+import { TEAM_FOUNDER_PROJECTS } from "@/lib/content/teamFounderSeeds";
 
 const PAGE_SIZE = 12;
+const SEED_TEASERS = TEAM_FOUNDER_PROJECTS.slice(0, 3);
 
 type ListResponse = {
   ok?: boolean;
@@ -76,10 +79,10 @@ export function VivosDirectoryView() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-[1.85rem] font-bold tracking-tight text-[#0B2E59]">
-            Proyectos Vivos
+            {PROJECT_WORLDS.vivo.directoryTitle}
           </h1>
           <p className="mt-2 max-w-2xl text-base leading-relaxed text-[#6B7A8C]">
-            Ideas colaborativas con roles abiertos. Sumate a un equipo o lanzá el tuyo.
+            {PROJECT_WORLDS.vivo.directorySubtitle}
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -179,14 +182,25 @@ export function VivosDirectoryView() {
           {!error && !loading && projects.length === 0 ? (
             <div className="mt-6 rounded-2xl border border-[#E8EEF3] bg-[#F8FAFC] p-8 text-center">
               <p className="text-lg text-[#243647]">
-                Aún no hay proyectos en esta área. ¡Sé el primero!
+                Aún no hay proyectos vivos en esta búsqueda.
               </p>
-              <Link
-                href="/proyectos/vivos/nuevo"
-                className="vu-focus mt-5 inline-flex min-h-[48px] items-center rounded-[10px] bg-[#0B2E59] px-6 text-base font-semibold text-white"
-              >
-                Crear mi proyecto
-              </Link>
+              <p className="mt-2 text-base leading-relaxed text-[#6B7A8C]">
+                Podés crear el tuyo o mirar las semillas del barrio mientras el directorio se llena.
+              </p>
+              <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <Link
+                  href="/proyectos/vivos/nuevo"
+                  className="vu-focus inline-flex min-h-[48px] items-center rounded-[10px] bg-[#0B2E59] px-6 text-base font-semibold text-white"
+                >
+                  Crear mi proyecto
+                </Link>
+                <Link
+                  href="/proyectos"
+                  className="vu-focus inline-flex min-h-[48px] items-center rounded-[10px] border border-[#E8EEF3] bg-white px-6 text-base font-semibold text-[#0B2E59]"
+                >
+                  Ver semillas
+                </Link>
+              </div>
             </div>
           ) : null}
 
@@ -217,17 +231,28 @@ export function VivosDirectoryView() {
         <aside className="h-fit space-y-4">
           <div className="rounded-2xl border border-[#E8EEF3] bg-white p-5">
             <h2 className="text-lg font-semibold text-[#0B2E59]">
-              Inspirate con semillas fundadoras
+              {PROJECT_WORLDS.vivo.bridgeToSeedsTitle}
             </h2>
             <p className="mt-2 text-base leading-relaxed text-[#6B7A8C]">
-              Las semillas son ideas del equipo y de la ola fundadora. Los proyectos vivos son
-              equipos que se arman con roles abiertos.
+              {PROJECT_WORLDS.vivo.bridgeToSeedsBody}
             </p>
+            <ul className="mt-4 space-y-2">
+              {SEED_TEASERS.map((seed) => (
+                <li key={seed.id}>
+                  <Link
+                    href={`/proyectos/${seed.id}`}
+                    className="vu-focus block rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] px-3 py-2.5 text-[13px] font-semibold text-[#0B2E59] transition-colors hover:border-[#1A9BB0]/40"
+                  >
+                    {seed.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
             <Link
               href="/proyectos"
               className="vu-focus mt-4 inline-flex min-h-[48px] items-center text-base font-semibold text-[#1A9BB0] underline"
             >
-              Ver semillas fundadoras →
+              {PROJECT_WORLDS.vivo.bridgeToSeedsCta} →
             </Link>
           </div>
 

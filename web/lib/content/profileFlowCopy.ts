@@ -11,6 +11,13 @@ export const PROFILE_FLOW_COPY = {
     ctaResume: "Retomar mi perfil",
     ctaCreate: "Crear perfil nuevo",
   },
+  /** Versión compacta para tarjetas de listado (Serie 4 — semilla/vivo). */
+  identityMissingCompact: {
+    title: "Para esta acción, necesitamos tu perfil",
+    body: "Si ya lo creaste, retomaló. Si no, crealo — la lectura de esta página queda libre.",
+    ctaResume: "Retomar",
+    ctaCreate: "Crear",
+  },
   profileIncomplete: {
     title: "Tu perfil está a medio camino",
     body: "Guardamos parte de tus datos, pero falta algo obligatorio (foto, nombre o qué buscás/aportás) para actuar con confianza en el barrio.",

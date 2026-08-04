@@ -1,9 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { SessionContinueLinks } from "@/components/perfil/SessionContinueLinks";
 import { CIRCULOS_CATALOG } from "@/lib/content/circulosCatalog";
-import { getCachedUserId } from "@/lib/users/activeUserSession";
+import {
+  fetchClientSessionGate,
+  getCachedUserId,
+} from "@/lib/users/activeUserSession";
 import {
   COMMUNITY_POST_MAX,
   type CommunityPost,
@@ -24,6 +28,13 @@ export function CreateCommunityPostBox({ onCreated }: Props) {
   const [showLink, setShowLink] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [canPost, setCanPost] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    void fetchClientSessionGate().then((gate) => {
+      setCanPost(gate.allowed);
+    });
+  }, []);
 
   const canPublish = useMemo(
     () => content.trim().length > 0 && Boolean(circleTagSlug),
@@ -32,8 +43,8 @@ export function CreateCommunityPostBox({ onCreated }: Props) {
 
   async function publish() {
     const userId = getCachedUserId();
-    if (!userId) {
-      window.location.href = "/perfil/crear?redirect=%2Fcomunidad";
+    if (!userId || canPost === false) {
+      setError("Necesitás retomar o completar tu perfil para publicar.");
       return;
     }
     if (!canPublish || saving) return;
@@ -63,7 +74,15 @@ export function CreateCommunityPostBox({ onCreated }: Props) {
         error?: string;
       };
       if (!res.ok || !data.ok || !data.post) {
-        throw new Error(data.message ?? data.error ?? "No se pudo publicar");
+        const code = data.error ?? "";
+        throw new Error(
+          data.message ??
+            (code === "community_profile_required"
+              ? "Completá tu perfil para publicar."
+              : code === "community_email_required"
+                ? "Agregá tu email de contacto en el perfil para publicar."
+                : data.error ?? "No se pudo publicar"),
+        );
       }
       emitEarnedBadges(readEarnedBadgesFromJson(data));
       onCreated(data.post);
@@ -79,64 +98,73 @@ export function CreateCommunityPostBox({ onCreated }: Props) {
 
   return (
     <div className="sticky top-0 z-10 border-b border-[#E8EEF3] bg-[#F8FAFC]/95 p-4 backdrop-blur">
-      <div className="rounded-[12px] border border-[#E8EEF3] bg-white p-4 shadow-sm">
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          maxLength={COMMUNITY_POST_MAX}
-          rows={3}
-          placeholder="¿Qué estás construyendo hoy?"
-          className="min-h-[96px] w-full rounded-xl border border-[#E8EEF3] px-4 py-3 text-base text-[#243647]"
+      {canPost === false ? (
+        <SessionContinueLinks
+          returnTo="/comunidad"
+          density="compact"
+          title="Para publicar, necesitamos tu perfil"
+          body="La lectura del feed es libre. Retomá o creá tu perfil para sumar una publicación."
         />
-        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <label className="flex-1">
-            <span className="sr-only">Tema (círculo)</span>
-            <select
-              value={circleTagSlug}
-              onChange={(e) => setCircleTagSlug(e.target.value)}
-              className="min-h-[48px] w-full rounded-xl border border-[#E8EEF3] bg-white px-3 text-base"
-            >
-              {CIRCULOS_CATALOG.map((circle) => (
-                <option key={circle.id} value={circle.id}>
-                  {circle.title}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="button"
-            onClick={() => setShowLink((v) => !v)}
-            className="vu-focus min-h-[48px] rounded-xl border border-[#E8EEF3] px-4 text-sm font-semibold text-[#1A9BB0]"
-          >
-            {showLink ? "Quitar enlace" : "Agregar enlace"}
-          </button>
-          <Button
-            type="button"
-            variant="primary"
-            size="lg"
-            disabled={!canPublish || saving}
-            onClick={() => void publish()}
-          >
-            {saving ? "Publicando..." : "Publicar"}
-          </Button>
-        </div>
-        {showLink ? (
-          <input
-            value={linkUrl}
-            onChange={(e) => setLinkUrl(e.target.value)}
-            placeholder="https://…"
-            className="mt-3 min-h-[48px] w-full rounded-xl border border-[#E8EEF3] px-4 text-base"
+      ) : (
+        <div className="rounded-[12px] border border-[#E8EEF3] bg-white p-4 shadow-sm">
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            maxLength={COMMUNITY_POST_MAX}
+            rows={3}
+            placeholder="¿Qué estás construyendo hoy?"
+            className="min-h-[96px] w-full rounded-xl border border-[#E8EEF3] px-4 py-3 text-base text-[#243647]"
           />
-        ) : null}
-        <p className="mt-2 text-sm text-[#6B7A8C]">
-          {content.length} / {COMMUNITY_POST_MAX}
-        </p>
-        {error ? (
-          <p className="mt-2 text-base text-red-600" role="alert">
-            {error}
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <label className="flex-1">
+              <span className="sr-only">Tema (círculo)</span>
+              <select
+                value={circleTagSlug}
+                onChange={(e) => setCircleTagSlug(e.target.value)}
+                className="min-h-[48px] w-full rounded-xl border border-[#E8EEF3] bg-white px-3 text-base"
+              >
+                {CIRCULOS_CATALOG.map((circle) => (
+                  <option key={circle.id} value={circle.id}>
+                    {circle.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowLink((v) => !v)}
+              className="vu-focus min-h-[48px] rounded-xl border border-[#E8EEF3] px-4 text-sm font-semibold text-[#1A9BB0]"
+            >
+              {showLink ? "Quitar enlace" : "Agregar enlace"}
+            </button>
+            <Button
+              type="button"
+              variant="primary"
+              size="lg"
+              disabled={!canPublish || saving || canPost === null}
+              onClick={() => void publish()}
+            >
+              {saving ? "Publicando..." : "Publicar"}
+            </Button>
+          </div>
+          {showLink ? (
+            <input
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              placeholder="https://…"
+              className="mt-3 min-h-[48px] w-full rounded-xl border border-[#E8EEF3] px-4 text-base"
+            />
+          ) : null}
+          <p className="mt-2 text-sm text-[#6B7A8C]">
+            {content.length} / {COMMUNITY_POST_MAX}
           </p>
-        ) : null}
-      </div>
+          {error ? (
+            <p className="mt-2 text-base text-red-600" role="alert">
+              {error}
+            </p>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }

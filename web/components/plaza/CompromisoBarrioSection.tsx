@@ -32,26 +32,43 @@ export function CompromisoBarrioSection() {
           <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">{saved.note}</p>
         ) : null}
         <p className="mt-3 text-[12px] text-[#6B7A8C]">
-          Quedó registrado para esta etapa fundadora. Podés ver el detalle en Actividad y Mensajes.
+          Quedó registrado para esta etapa fundadora. Podés seguir en proyectos, comunidad o
+          actividad.
         </p>
-        {saved.id === "crear_proyecto" ? (
+        <div className="mt-3 flex flex-wrap gap-3">
+          {saved.id === "crear_proyecto" ? (
+            <button
+              type="button"
+              onClick={() => router.push("/proyectos/sembrar")}
+              className="vu-focus text-[13px] font-semibold text-[#1A9BB0] underline"
+            >
+              Sembrar mi proyecto
+            </button>
+          ) : null}
+          {saved.id === "sumarme" ? (
+            <button
+              type="button"
+              onClick={() => router.push("/proyectos/vivos")}
+              className="vu-focus text-[13px] font-semibold text-[#1A9BB0] underline"
+            >
+              Ver proyectos vivos
+            </button>
+          ) : null}
           <button
             type="button"
-            onClick={() => router.push("/proyectos/sembrar")}
-            className="vu-focus mt-3 text-[13px] font-semibold text-[#1A9BB0] underline"
+            onClick={() => router.push("/activacion")}
+            className="vu-focus text-[13px] font-semibold text-[#1A9BB0] underline"
           >
-            Ir a proyectos del barrio
+            Elegir activación
           </button>
-        ) : null}
-        {saved.id === "sumarme" ? (
           <button
             type="button"
-            onClick={() => router.push("/proyectos/manos-que-transforman")}
-            className="vu-focus mt-3 text-[13px] font-semibold text-[#1A9BB0] underline"
+            onClick={() => router.push("/actividad")}
+            className="vu-focus text-[13px] font-semibold text-[#1A9BB0] underline"
           >
-            Ver taller vecinal destacado
+            Ver mi actividad
           </button>
-        ) : null}
+        </div>
       </section>
     );
   }
@@ -116,18 +133,18 @@ export function CompromisoBarrioSection() {
             type: "system_next_step",
             title: "Guardaste tu compromiso",
             body: `Registramos: ${label}. Tu compromiso quedó guardado para esta etapa fundadora.`,
-            ctaLabel: "Ver mi actividad",
-            ctaHref: "/actividad",
+            ctaLabel: "Elegir activación",
+            ctaHref: "/activacion",
             dedupeKey: dedupe,
             meta: { commitmentId: selected },
           });
           await postCommunityMessage({
             from: "VocationUp",
             subject: "Compromiso registrado",
-            body: "Tu compromiso quedó registrado para esta etapa fundadora. Lo vas a ver reflejado en Actividad.",
+            body: "Tu compromiso quedó registrado para esta etapa fundadora. Seguí desde activación o la plaza.",
             kind: "next_step",
-            ctaLabel: "Ver mensajes",
-            ctaHref: "/mensajes",
+            ctaLabel: "Ir a la plaza",
+            ctaHref: "/plaza",
             dedupeKey: `msg_${dedupe}`,
             meta: { commitmentId: selected },
           });

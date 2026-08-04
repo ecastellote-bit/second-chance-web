@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { getCachedUserId, fetchUserProfile } from "@/lib/users/activeUserSession";
+import { CommunityActionGate } from "@/components/perfil/CommunityActionGate";
+import {
+  fetchUserProfile,
+  getCachedUserId,
+} from "@/lib/users/activeUserSession";
 import { PROFILE_FAMILIES } from "@/lib/registries/profileFamilies";
 import {
   MAX_ROLES_PER_PROJECT,
@@ -15,6 +19,7 @@ import {
   emitEarnedBadges,
   readEarnedBadgesFromJson,
 } from "@/lib/badges-store/badgeToastClient";
+import { PROJECT_WORLDS } from "@/lib/content/projectWorldsCopy";
 
 type RoleDraft = {
   title: string;
@@ -28,7 +33,10 @@ const emptyRole = (): RoleDraft => ({
   skillsRaw: "",
 });
 
-export function CreateVivoProjectWizard() {
+/**
+ * Wizard only mounts as child of CommunityActionGate when session is ready.
+ */
+function WizardSteps() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [title, setTitle] = useState("");
@@ -39,12 +47,12 @@ export function CreateVivoProjectWizard() {
   const [roles, setRoles] = useState<RoleDraft[]>([emptyRole()]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [userId, setUserId] = useState<string | null>(null);
+  const [userId, setUserId] = useState(() => getCachedUserId() ?? "");
 
   useEffect(() => {
     const id = getCachedUserId();
-    setUserId(id);
     if (!id) return;
+    setUserId(id);
     void fetchUserProfile(id).then((profile) => {
       if (profile?.familiaVocacional) setFamiliaId(profile.familiaVocacional);
       if (profile?.city) setCity(profile.city);
@@ -62,8 +70,9 @@ export function CreateVivoProjectWizard() {
   }
 
   async function publish() {
-    if (!userId) {
-      router.push("/perfil/crear?redirect=%2Fproyectos%2Fvivos%2Fnuevo");
+    const actorId = userId || getCachedUserId();
+    if (!actorId) {
+      setError(PROJECT_WORLDS.vivo.createNeedsProfile);
       return;
     }
     setSaving(true);
@@ -73,7 +82,7 @@ export function CreateVivoProjectWizard() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId,
+          userId: actorId,
           title,
           description,
           familiaVocacional: familiaLabel,
@@ -97,7 +106,8 @@ export function CreateVivoProjectWizard() {
       };
       if (!res.ok || !data.ok || !data.project) {
         const map: Record<string, string> = {
-          project_creator_limit: "Ya tenés 3 proyectos activos. Completá o pausá uno para crear otro.",
+          project_creator_limit:
+            "Ya tenés 3 proyectos activos. Completá o pausá uno para crear otro.",
           community_profile_required: "Completá tu perfil para crear un proyecto.",
           community_email_required: "Agregá tu email en el perfil para crear un proyecto.",
         };
@@ -113,14 +123,8 @@ export function CreateVivoProjectWizard() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 pb-16">
-      <Link href="/proyectos/vivos" className="text-sm font-semibold text-[#1A9BB0] underline">
-        ← Proyectos Vivos
-      </Link>
-      <h1 className="mt-4 text-[1.75rem] font-bold text-[#0B2E59]">
-        Crear proyecto colaborativo
-      </h1>
-      <p className="mt-2 text-base text-[#6B7A8C]">Paso {step} de 3</p>
+    <>
+      <p className="mt-1 text-base text-[#6B7A8C]">Paso {step} de 3</p>
 
       {step === 1 ? (
         <div className="mt-6 space-y-4 rounded-2xl border border-[#E8EEF3] bg-white p-5">
@@ -285,6 +289,41 @@ export function CreateVivoProjectWizard() {
           </div>
         </div>
       ) : null}
+    </>
+  );
+}
+
+export function CreateVivoProjectWizard() {
+  return (
+    <div className="mx-auto max-w-2xl px-4 py-8 pb-16">
+      <Link href="/proyectos/vivos" className="text-sm font-semibold text-[#1A9BB0] underline">
+        ← Proyectos Vivos
+      </Link>
+      <h1 className="mt-4 text-[1.75rem] font-bold text-[#0B2E59]">
+        Crear proyecto colaborativo
+      </h1>
+      <p className="mt-2 text-base text-[#6B7A8C]">
+        Esto abre un proyecto vivo (roles y postulaciones). No es una semilla en revisión del
+        equipo fundador.
+      </p>
+
+      <div className="mt-6">
+        <CommunityActionGate
+          mode="inline"
+          returnTo="/proyectos/vivos/nuevo"
+          gateHint={PROJECT_WORLDS.vivo.createNeedsProfile}
+        >
+          <WizardSteps />
+        </CommunityActionGate>
+      </div>
+
+      <p className="mt-6 text-[13px] leading-relaxed text-[#6B7A8C]">
+        ¿Solo querés explorar ideas del equipo?{" "}
+        <Link href="/proyectos" className="font-semibold text-[#1A9BB0] underline">
+          Mirar semillas del barrio
+        </Link>
+        .
+      </p>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   DirectoryProfileCard,
@@ -51,10 +52,10 @@ function SearchIcon() {
 function EmptyDirectoryIllustration() {
   return (
     <div
-      className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#DFF4F7] text-2xl"
+      className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#DFF4F7] text-sm font-bold text-[#0B2E59]"
       aria-hidden
     >
-      🤝
+      VU
     </div>
   );
 }
@@ -309,20 +310,34 @@ export function ConnectDirectoryGallery() {
         <div className="mt-8 rounded-2xl border border-[#E8EEF3] bg-[#F8FAFC] px-6 py-10 text-center">
           <EmptyDirectoryIllustration />
           <p className="mt-4 text-lg leading-relaxed text-[#243647]">
-            Todavía no hay perfiles que coincidan con tu búsqueda. Probá con otros filtros o
-            volvé más tarde.
+            {hasActiveFilters
+              ? "Todavía no hay perfiles que coincidan con tu búsqueda. Probá con otros filtros o volvé más tarde."
+              : "Todavía no hay perfiles públicos en el directorio. Cuando alguien active su perfil visible, va a aparecer acá."}
           </p>
-          {hasActiveFilters ? (
-            <Button
-              type="button"
-              variant="secondary"
-              size="lg"
-              className="mt-6"
-              onClick={clearFilters}
+          <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            {hasActiveFilters ? (
+              <Button
+                type="button"
+                variant="secondary"
+                size="lg"
+                onClick={clearFilters}
+              >
+                Limpiar filtros
+              </Button>
+            ) : null}
+            <Link
+              href="/comunidad"
+              className="vu-focus inline-flex min-h-[48px] items-center rounded-2xl border border-[#E8EEF3] bg-white px-6 text-base font-semibold text-[#0B2E59]"
             >
-              Limpiar filtros
-            </Button>
-          ) : null}
+              Ir a la comunidad
+            </Link>
+            <Link
+              href="/mensajes"
+              className="vu-focus inline-flex min-h-[48px] items-center text-base font-semibold text-[#1A9BB0] underline"
+            >
+              Mis mensajes
+            </Link>
+          </div>
         </div>
       ) : null}
 

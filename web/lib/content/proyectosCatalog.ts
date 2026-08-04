@@ -19,7 +19,7 @@ export type ProyectoListItem = {
 export const PROYECTOS_HEADER = {
   title: "Proyectos del barrio",
   subtitle:
-    "Convocatorias semilla del equipo y espacios para sumar manos, voces y caminos.",
+    "Semillas del equipo y de la ola fundadora: interés y señales. Para armar equipo con roles, usá Proyectos vivos.",
 } as const;
 
 /** Convocatorias del equipo fundador — honestas, sin autores externos fingidos */

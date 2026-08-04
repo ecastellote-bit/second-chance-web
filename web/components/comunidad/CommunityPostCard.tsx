@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { SessionContinueLinks } from "@/components/perfil/SessionContinueLinks";
 import { getCachedUserId } from "@/lib/users/activeUserSession";
 import type {
   CommunityComment,
@@ -44,6 +45,8 @@ export function CommunityPostCard({ post, currentUserId, onPostUpdated }: Props)
   const [draft, setDraft] = useState("");
   const [loadingComments, setLoadingComments] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showSessionGate, setShowSessionGate] = useState(false);
+  const [commentError, setCommentError] = useState("");
 
   useEffect(() => {
     setLiked(Boolean(currentUserId && post.likedBy?.includes(currentUserId)));
@@ -54,7 +57,7 @@ export function CommunityPostCard({ post, currentUserId, onPostUpdated }: Props)
   async function toggleLike() {
     const userId = currentUserId ?? getCachedUserId();
     if (!userId) {
-      window.location.href = "/perfil/crear?redirect=%2Fcomunidad";
+      setShowSessionGate(true);
       return;
     }
 
@@ -73,10 +76,12 @@ export function CommunityPostCard({ post, currentUserId, onPostUpdated }: Props)
         ok?: boolean;
         liked?: boolean;
         likesCount?: number;
+        error?: string;
       };
-      if (!res.ok || !data.ok) throw new Error("like_failed");
+      if (!res.ok || !data.ok) throw new Error(data.error ?? "like_failed");
       setLiked(Boolean(data.liked));
       setLikesCount(data.likesCount ?? 0);
+      setShowSessionGate(false);
       onPostUpdated({
         ...post,
         likedBy: data.liked
@@ -116,13 +121,14 @@ export function CommunityPostCard({ post, currentUserId, onPostUpdated }: Props)
     event.preventDefault();
     const userId = currentUserId ?? getCachedUserId();
     if (!userId) {
-      window.location.href = "/perfil/crear?redirect=%2Fcomunidad";
+      setShowSessionGate(true);
       return;
     }
     const content = draft.trim();
     if (!content || submitting) return;
 
     setSubmitting(true);
+    setCommentError("");
     try {
       const res = await fetch(
         `/api/comunidad/posts/${encodeURIComponent(post.id)}/comentar`,
@@ -137,9 +143,18 @@ export function CommunityPostCard({ post, currentUserId, onPostUpdated }: Props)
         comment?: CommunityComment;
         commentsCount?: number;
         message?: string;
+        error?: string;
       };
       if (!res.ok || !data.ok || !data.comment) {
-        throw new Error(data.message ?? "No se pudo comentar");
+        const code = data.error ?? "";
+        throw new Error(
+          data.message ??
+            (code === "community_profile_required"
+              ? "Completá tu perfil para comentar."
+              : code === "community_email_required"
+                ? "Agregá tu email de contacto para comentar."
+                : "No se pudo comentar"),
+        );
       }
       setComments((prev) => [...prev, data.comment!]);
       setCommentsCount(data.commentsCount ?? commentsCount + 1);
@@ -149,7 +164,7 @@ export function CommunityPostCard({ post, currentUserId, onPostUpdated }: Props)
         commentsCount: data.commentsCount ?? commentsCount + 1,
       });
     } catch (err) {
-      window.alert(err instanceof Error ? err.message : "Error al comentar");
+      setCommentError(err instanceof Error ? err.message : "Error al comentar");
     } finally {
       setSubmitting(false);
     }
@@ -231,7 +246,7 @@ export function CommunityPostCard({ post, currentUserId, onPostUpdated }: Props)
               onClick={() => void toggleLike()}
               className="vu-focus inline-flex min-h-[44px] items-center gap-2 text-base text-[#6B7A8C] hover:text-[#0B2E59]"
             >
-              <span aria-hidden>{liked ? "❤️" : "♡"}</span>
+              <span aria-hidden>{liked ? "♥" : "♡"}</span>
               {likesCount}
             </button>
             <button
@@ -239,10 +254,21 @@ export function CommunityPostCard({ post, currentUserId, onPostUpdated }: Props)
               onClick={() => void openComments()}
               className="vu-focus inline-flex min-h-[44px] items-center gap-2 text-base text-[#6B7A8C] hover:text-[#0B2E59]"
             >
-              <span aria-hidden>💬</span>
-              {commentsCount}
+              Comentarios
+              {commentsCount > 0 ? ` · ${commentsCount}` : ""}
             </button>
           </div>
+
+          {showSessionGate ? (
+            <div className="mt-4">
+              <SessionContinueLinks
+                returnTo="/comunidad"
+                density="compact"
+                title="Para reaccionar o comentar, necesitamos tu perfil"
+                body="La lectura es libre. Retomá o creá tu perfil para interactuar."
+              />
+            </div>
+          ) : null}
 
           {commentsOpen ? (
             <div className="mt-4 border-t border-[#E8EEF3] pt-4">
@@ -277,6 +303,11 @@ export function CommunityPostCard({ post, currentUserId, onPostUpdated }: Props)
                   Enviar
                 </Button>
               </form>
+              {commentError ? (
+                <p className="mt-2 text-sm text-red-600" role="alert">
+                  {commentError}
+                </p>
+              ) : null}
             </div>
           ) : null}
         </div>

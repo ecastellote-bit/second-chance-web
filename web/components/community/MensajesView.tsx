@@ -90,14 +90,23 @@ export function MensajesView({ embedded = false }: { embedded?: boolean }) {
           <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">
             {MENSAJES_COPY.emptyBody}
           </p>
-          {!embedded ? (
-            <Link
-              href="/proyectos/sembrar"
-              className="vu-focus mt-5 inline-flex min-h-[44px] items-center justify-center rounded-xl bg-[#0B2E59] px-5 text-sm font-semibold text-white"
-            >
-              Sembrar un proyecto
-            </Link>
-          ) : null}
+          <div
+            className={
+              embedded
+                ? "mt-4 flex flex-col gap-2"
+                : "mt-5 flex flex-col gap-2"
+            }
+          >
+            {MENSAJES_COPY.emptyHints.map((hint) => (
+              <Link
+                key={hint.href}
+                href={hint.href}
+                className="vu-focus rounded-xl border border-[#0B2E59]/15 px-4 py-3 text-sm font-semibold text-[#0B2E59]"
+              >
+                {hint.label}
+              </Link>
+            ))}
+          </div>
         </div>
       )}
     </div>

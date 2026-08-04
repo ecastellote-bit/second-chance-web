@@ -137,7 +137,7 @@ export function resolveMessageCta(message: CommunityMessage): ResolvedCta | null
       return { label: "Ver proyectos", href: "/proyectos" };
     }
     case "review_pending":
-      return { label: "Ver actividad", href: "/actividad" };
+      return { label: "Ver proyectos semilla", href: "/proyectos" };
     case "interest_confirmation": {
       const circleId = metaStr(meta, "circleId");
       if (circleId) {
@@ -167,7 +167,7 @@ export function resolveMessageCta(message: CommunityMessage): ResolvedCta | null
           href: `/eventos/${encodeURIComponent(targetId)}`,
         };
       }
-      return { label: "Ver actividad", href: "/actividad" };
+      return { label: "Ir a la plaza", href: "/plaza" };
     }
     case "project_signal_confirmation": {
       const projectId = metaStr(meta, "projectId");
@@ -177,7 +177,7 @@ export function resolveMessageCta(message: CommunityMessage): ResolvedCta | null
           href: `/proyectos/semilla/${encodeURIComponent(projectId)}`,
         };
       }
-      return { label: "Ver actividad", href: "/actividad" };
+      return { label: "Ver proyectos semilla", href: "/proyectos" };
     }
     case "next_step":
     case "community_seed":

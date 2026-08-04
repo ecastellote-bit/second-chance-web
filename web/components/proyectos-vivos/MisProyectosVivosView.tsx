@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ProjectStatusBadge } from "@/components/proyectos-vivos/VivoProjectCard";
+import { SessionContinueLinks } from "@/components/perfil/SessionContinueLinks";
 import { Button } from "@/components/ui/Button";
 import { getCachedUserId } from "@/lib/users/activeUserSession";
-import type { MisProyectosPayload, VivoProject } from "@/lib/projects-vivos/projectTypes";
+import type { MisProyectosPayload } from "@/lib/projects-vivos/projectTypes";
 
 type Tab = "lidero" | "participo" | "postule";
 
@@ -14,11 +15,13 @@ export function MisProyectosVivosView() {
   const [data, setData] = useState<MisProyectosPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [needsSession, setNeedsSession] = useState(false);
 
   useEffect(() => {
     const userId = getCachedUserId();
     if (!userId) {
-      window.location.href = "/perfil/crear?redirect=%2Fproyectos%2Fvivos%2Fmis-proyectos";
+      setNeedsSession(true);
+      setLoading(false);
       return;
     }
 
@@ -50,12 +53,23 @@ export function MisProyectosVivosView() {
     };
   }, []);
 
-  const items: VivoProject[] =
-    tab === "lidero"
-      ? data?.lidero ?? []
-      : tab === "participo"
-        ? data?.participo ?? []
-        : (data?.postule ?? []).map((item) => item);
+  if (needsSession) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-8 pb-16">
+        <Link href="/proyectos/vivos" className="text-sm font-semibold text-[#1A9BB0] underline">
+          ← Proyectos Vivos
+        </Link>
+        <h1 className="mt-4 text-[1.75rem] font-bold text-[#0B2E59]">Mis proyectos</h1>
+        <div className="mt-6">
+          <SessionContinueLinks
+            returnTo="/proyectos/vivos/mis-proyectos"
+            title="Para ver tus proyectos, necesitamos tu perfil"
+            body="Retomá tu perfil en este dispositivo o creá uno. Después volvés a esta lista."
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 pb-16">
@@ -95,17 +109,39 @@ export function MisProyectosVivosView() {
         <p className="mt-8 text-base text-red-600">{error}</p>
       ) : null}
 
-      {!loading && !error && items.length === 0 ? (
+      {!loading && !error && tab === "lidero" && (data?.lidero ?? []).length === 0 ? (
         <div className="mt-8 rounded-2xl border border-[#E8EEF3] bg-[#F8FAFC] p-6 text-center">
           <p className="text-base text-[#243647]">No hay proyectos en esta pestaña.</p>
-          {tab === "lidero" ? (
-            <Link
-              href="/proyectos/vivos/nuevo"
-              className="vu-focus mt-4 inline-flex min-h-[48px] items-center rounded-[10px] bg-[#0B2E59] px-5 text-base font-semibold text-white"
-            >
-              Crear mi proyecto
-            </Link>
-          ) : null}
+          <Link
+            href="/proyectos/vivos/nuevo"
+            className="vu-focus mt-4 inline-flex min-h-[48px] items-center rounded-[10px] bg-[#0B2E59] px-5 text-base font-semibold text-white"
+          >
+            Crear mi proyecto
+          </Link>
+        </div>
+      ) : null}
+
+      {!loading && !error && tab === "participo" && (data?.participo ?? []).length === 0 ? (
+        <div className="mt-8 rounded-2xl border border-[#E8EEF3] bg-[#F8FAFC] p-6 text-center">
+          <p className="text-base text-[#243647]">No hay proyectos en esta pestaña.</p>
+          <Link
+            href="/proyectos/vivos"
+            className="vu-focus mt-4 inline-flex min-h-[48px] items-center text-base font-semibold text-[#1A9BB0] underline"
+          >
+            Explorar proyectos vivos
+          </Link>
+        </div>
+      ) : null}
+
+      {!loading && !error && tab === "postule" && (data?.postule ?? []).length === 0 ? (
+        <div className="mt-8 rounded-2xl border border-[#E8EEF3] bg-[#F8FAFC] p-6 text-center">
+          <p className="text-base text-[#243647]">No hay proyectos en esta pestaña.</p>
+          <Link
+            href="/proyectos/vivos"
+            className="vu-focus mt-4 inline-flex min-h-[48px] items-center text-base font-semibold text-[#1A9BB0] underline"
+          >
+            Explorar proyectos vivos
+          </Link>
         </div>
       ) : null}
 

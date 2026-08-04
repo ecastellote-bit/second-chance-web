@@ -7,8 +7,9 @@ import { CommunityActionGate } from "@/components/perfil/CommunityActionGate";
 import { FOUNDER_FLOW_COPY } from "@/lib/content/founderFlowCopy";
 import { getFoundingMemberArchiveId } from "@/lib/learning/foundationalMember";
 import { communityActionClientError } from "@/lib/content/communityActionGateCopy";
-import { getOrCreateUserId } from "@/lib/users/activeUserSession";
+import { getCachedUserId } from "@/lib/users/activeUserSession";
 import { getFoundationalCohortBatch } from "@/lib/learning/foundationalCohort";
+import { ALIVE_LINKS } from "@/lib/content/aliveLinks";
 import { VuBottomNav } from "@/components/layout/VuMobileShell";
 
 function SembrarForm() {
@@ -25,12 +26,18 @@ function SembrarForm() {
     setError("");
 
     try {
+      const userId = getCachedUserId();
+      if (!userId) {
+        throw new Error(
+          "Perdimos tu identidad en este dispositivo. Retomá o creá tu perfil y volvé a sembrar.",
+        );
+      }
       const res = await fetch("/api/founder-projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           archiveId: getFoundingMemberArchiveId(),
-          userId: getOrCreateUserId(),
+          userId,
           title,
           summary,
           cohortBatch: getFoundationalCohortBatch(),
@@ -57,31 +64,34 @@ function SembrarForm() {
           <p className="text-sm leading-relaxed text-[#6B7A8C]">{copy.successBody}</p>
           <p className="rounded-xl border border-[#C6D92D]/40 bg-[#F4F9E0] px-4 py-3 text-[13px] text-[#243647]">
             Recibimos tu proyecto. Tu semilla quedó guardada para revisión de la ola fundadora.
-            Lo vas a ver en Actividad y Mensajes.
+            La vas a ver en la mesa de proyectos y en Actividad.
           </p>
           <Link
-            href="/actividad"
+            href={ALIVE_LINKS.proyectos.href}
             className="inline-block w-full rounded-xl bg-[#0B2E59] px-5 py-3 text-sm font-semibold text-white"
-          >
-            Ver mi actividad
-          </Link>
-          <Link
-            href="/mensajes"
-            className="inline-block w-full rounded-xl border border-[#0B2E59]/20 px-5 py-3 text-sm font-semibold text-[#0B2E59]"
-          >
-            Ver mensajes
-          </Link>
-          <Link
-            href="/proyectos"
-            className="inline-block w-full rounded-xl border border-[#E8EEF3] px-5 py-3 text-sm font-semibold text-[#0B2E59]"
           >
             Ver proyectos semilla
           </Link>
-          <Link href="/plaza" className="block text-sm font-semibold text-[#1A9BB0] underline">
-            Ir a la plaza
+          <Link
+            href={ALIVE_LINKS.vivos.href}
+            className="inline-block w-full rounded-xl border border-[#0B2E59]/20 px-5 py-3 text-sm font-semibold text-[#0B2E59]"
+          >
+            {ALIVE_LINKS.vivos.label}
+          </Link>
+          <Link
+            href={ALIVE_LINKS.actividad.href}
+            className="inline-block w-full rounded-xl border border-[#E8EEF3] px-5 py-3 text-sm font-semibold text-[#0B2E59]"
+          >
+            {ALIVE_LINKS.actividad.label}
+          </Link>
+          <Link
+            href={ALIVE_LINKS.barrio.href}
+            className="block text-sm font-semibold text-[#1A9BB0] underline"
+          >
+            {ALIVE_LINKS.barrio.label}
           </Link>
         </div>
-        <VuBottomNav active="actividad" />
+        <VuBottomNav active="plaza" />
       </main>
     );
   }

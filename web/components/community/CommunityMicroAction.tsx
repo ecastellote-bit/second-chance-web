@@ -154,7 +154,11 @@ export function CommunityMicroAction(props: Props) {
       : "border border-[#E8EEF3] bg-white text-[#0B2E59] hover:bg-[#F8FAFC]";
 
   return (
-    <CommunityActionGate returnTo={pathname || "/plaza"}>
+    <CommunityActionGate
+      returnTo={pathname || "/proyectos"}
+      density="compact"
+      gateHint="Guardar interés pide perfil en este dispositivo. Podés leer el proyecto sin crearlo."
+    >
     <div className={className}>
       <button
         type="button"

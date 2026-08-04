@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { BarrioNotificationHeader } from "@/components/notifications/NotificationBell";
+import { SessionContinueLinks } from "@/components/perfil/SessionContinueLinks";
 import { Button } from "@/components/ui/Button";
 import { getCachedUserId } from "@/lib/users/activeUserSession";
 import {
@@ -39,7 +40,8 @@ export function NotificacionesInboxView() {
   const load = useCallback(async (cursor?: string | null, append = false) => {
     const id = getCachedUserId();
     if (!id) {
-      router.replace("/perfil/crear?redirect=%2Fnotificaciones");
+      setUserId(null);
+      setLoading(false);
       return;
     }
     setUserId(id);
@@ -69,7 +71,7 @@ export function NotificacionesInboxView() {
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     void load(null, false);
@@ -107,6 +109,30 @@ export function NotificacionesInboxView() {
     setItems((prev) => prev.filter((n) => n.id !== item.id));
   }
 
+  if (!loading && !userId) {
+    return (
+      <div className="min-h-[100dvh] bg-[#F8FAFC]">
+        <BarrioNotificationHeader />
+        <div className="mx-auto max-w-2xl px-4 pb-16 pt-2">
+          <h1 className="text-[1.75rem] font-bold text-[#0B2E59]">Notificaciones</h1>
+          <div className="mt-6">
+            <SessionContinueLinks
+              returnTo="/notificaciones"
+              title="Para ver tus notificaciones, necesitamos tu perfil"
+              body="Retomá tu perfil en este dispositivo o creá uno. Después volvés acá."
+            />
+          </div>
+          <Link
+            href="/comunidad"
+            className="vu-focus mt-6 inline-flex min-h-[48px] items-center text-base font-semibold text-[#1A9BB0] underline"
+          >
+            Mientras tanto, mirá la comunidad
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-[100dvh] bg-[#F8FAFC]">
       <BarrioNotificationHeader />
@@ -128,14 +154,28 @@ export function NotificacionesInboxView() {
         {!loading && !error && items.length === 0 ? (
           <div className="mt-8 rounded-[12px] border border-[#E8EEF3] bg-white p-8 text-center">
             <p className="text-lg text-[#243647]">
-              No tenés notificaciones. ¡Interactuá con la comunidad!
+              No tenés notificaciones. Interactuá con el barrio vivo y van a aparecer acá.
             </p>
-            <Link
-              href="/comunidad"
-              className="vu-focus mt-4 inline-flex min-h-[48px] items-center text-base font-semibold text-[#1A9BB0] underline"
-            >
-              Ir a la Comunidad
-            </Link>
+            <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              <Link
+                href="/comunidad"
+                className="vu-focus inline-flex min-h-[48px] items-center text-base font-semibold text-[#1A9BB0] underline"
+              >
+                Ir a la Comunidad
+              </Link>
+              <Link
+                href="/proyectos/vivos"
+                className="vu-focus inline-flex min-h-[48px] items-center text-base font-semibold text-[#1A9BB0] underline"
+              >
+                Proyectos vivos
+              </Link>
+              <Link
+                href="/community/conectar_con_otros"
+                className="vu-focus inline-flex min-h-[48px] items-center text-base font-semibold text-[#1A9BB0] underline"
+              >
+                Connect
+              </Link>
+            </div>
           </div>
         ) : null}
 

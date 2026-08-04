@@ -18,6 +18,7 @@ import { ProjectCover } from "@/components/proyectos/ProjectCover";
 import { CommunityMicroAction } from "@/components/community/CommunityMicroAction";
 import { resolveProjectCoverSrc } from "@/lib/public/projectSeedMedia";
 import { PROYECTOS_CATALOG, PROYECTOS_HEADER, TEAM_PROJECTS_CATALOG } from "@/lib/content/proyectosCatalog";
+import { PROJECT_WORLDS } from "@/lib/content/projectWorldsCopy";
 import { TeamProjectCard } from "@/components/proyectos/ProyectoStubView";
 
 type PublicSeedListItem = {
@@ -114,13 +115,13 @@ export function ProyectosListView() {
           <div className="mx-auto w-full max-w-3xl px-4 py-5 pb-8 lg:max-w-4xl lg:px-8 lg:py-8">
             <div className="mb-6 max-w-2xl">
               <p className="mb-1 hidden text-xs font-semibold uppercase tracking-wider text-[#1A9BB0] lg:block">
-                Mesa del barrio
+                {PROJECT_WORLDS.seed.listEyebrow}
               </p>
               <h1 className="text-[1.65rem] font-bold tracking-tight text-[#0B2E59] lg:text-[1.85rem]">
                 {PROYECTOS_HEADER.title}
               </h1>
               <p className="mt-2 text-[15px] leading-relaxed text-[#6B7A8C]">
-                {PROYECTOS_HEADER.subtitle}
+                {PROJECT_WORLDS.seed.listSubtitle}
               </p>
             </div>
 
@@ -130,16 +131,16 @@ export function ProyectosListView() {
 
             <Link
               href="/proyectos/vivos"
-              className="vu-focus mb-6 flex min-h-[52px] items-center justify-between gap-3 rounded-[24px] border border-[#1A9BB0]/35 bg-[#E8F7FA] px-5 py-4 text-[#0B2E59] shadow-[0_4px_16px_rgba(15,42,70,0.06)]"
+              className="vu-focus mb-3 flex min-h-[52px] items-center justify-between gap-3 rounded-[24px] border border-[#1A9BB0]/35 bg-[#E8F7FA] px-5 py-4 text-[#0B2E59] shadow-[0_4px_16px_rgba(15,42,70,0.06)]"
             >
               <div className="min-w-0 text-left">
-                <p className="text-[15px] font-bold">¿Tenés una idea propia?</p>
+                <p className="text-[15px] font-bold">{PROJECT_WORLDS.listBridge.vivosTitle}</p>
                 <p className="mt-0.5 text-[12px] leading-snug text-[#6B7A8C]">
-                  Lanzá un proyecto colaborativo con roles abiertos y armá tu equipo.
+                  {PROJECT_WORLDS.listBridge.vivosBody}
                 </p>
               </div>
               <span className="shrink-0 text-[13px] font-bold text-[#1A9BB0]">
-                Proyectos vivos →
+                {PROJECT_WORLDS.listBridge.vivosCta}
               </span>
             </Link>
 
@@ -148,14 +149,16 @@ export function ProyectosListView() {
               className="vu-focus mb-6 flex min-h-[52px] items-center justify-between gap-3 rounded-[24px] bg-[#0B2E59] px-5 py-4 text-white shadow-[0_4px_16px_rgba(15,42,70,0.12)] active:scale-[0.99]"
             >
               <div className="min-w-0 text-left">
-                <p className="text-[15px] font-bold">Sembrar mi idea</p>
+                <p className="text-[15px] font-bold">{PROJECT_WORLDS.listBridge.seedTitle}</p>
                 <p className="mt-0.5 text-[12px] leading-snug text-white/85">
                   {canSembrar
-                    ? "Dejá una primera semilla para revisión del equipo."
-                    : "Ser fundador para sembrar tu proyecto en el barrio."}
+                    ? PROJECT_WORLDS.listBridge.seedBodyQualified
+                    : PROJECT_WORLDS.listBridge.seedBodyLocked}
                 </p>
               </div>
-              <span className="shrink-0 text-[13px] font-bold text-[#C6D92D]">Sembrar →</span>
+              <span className="shrink-0 text-[13px] font-bold text-[#C6D92D]">
+                {PROJECT_WORLDS.listBridge.seedCta}
+              </span>
             </Link>
 
             <QuickInterestCapture {...PROYECTOS_INTEREST} className="mb-6" />
@@ -214,16 +217,16 @@ export function ProyectosListView() {
                   </p>
                   <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                     <Link
-                      href={canSembrar ? "/proyectos/sembrar" : "/fundador"}
+                      href="/proyectos/vivos"
                       className="vu-focus flex min-h-[48px] items-center justify-center rounded-2xl bg-[#0B2E59] px-4 text-sm font-bold text-white"
                     >
-                      {canSembrar ? "Sembrar un proyecto" : "Ser fundador y sembrar"}
+                      Explorar proyectos vivos
                     </Link>
                     <Link
-                      href="/plaza"
+                      href={canSembrar ? "/proyectos/sembrar" : "/fundador"}
                       className="vu-focus flex min-h-[48px] items-center justify-center rounded-2xl border border-[#1A9BB0]/40 bg-white px-4 text-sm font-semibold text-[#0B2E59]"
                     >
-                      Volver a la plaza
+                      {canSembrar ? "Sembrar un proyecto" : "Ser fundador y sembrar"}
                     </Link>
                   </div>
                 </div>
@@ -294,7 +297,7 @@ export function ProyectosListView() {
               href="/proyectos/radio-second-chance"
               className="vu-focus mb-6 flex min-h-[44px] items-center justify-center gap-2 rounded-2xl border border-[#0B2E59]/20 px-4 text-sm font-semibold text-[#0B2E59]"
             >
-              Ver convocatoria destacada del equipo
+              Ver convocatoria semilla destacada: Radio Second Chance
             </Link>
 
             <section className="mt-6">

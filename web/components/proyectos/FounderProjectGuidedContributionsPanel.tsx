@@ -9,9 +9,10 @@ import {
   GUIDED_CONTRIBUTION_VISIBLE_PREFIX,
 } from "@/lib/community/guidedContributionCopy";
 import { communityActionClientError } from "@/lib/content/communityActionGateCopy";
+import { PROJECT_WORLDS } from "@/lib/content/projectWorldsCopy";
 import type { FounderProjectGuidedContributionKind } from "@/lib/learning/founderProjectGuidedContributions";
 import { ReportContentButton } from "@/components/community/ReportContentButton";
-import { getOrCreateUserId } from "@/lib/users/activeUserSession";
+import { getCachedUserId } from "@/lib/users/activeUserSession";
 
 type VisibleContribution = {
   contributionId: string;
@@ -69,6 +70,13 @@ export function FounderProjectGuidedContributionsPanel({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    const userId = getCachedUserId();
+    if (!userId) {
+      setFeedback(
+        "Para enviar un aporte necesitamos tu identidad en este dispositivo. Retomá o creá tu perfil.",
+      );
+      return;
+    }
     setSending(true);
     setFeedback("");
     try {
@@ -76,7 +84,7 @@ export function FounderProjectGuidedContributionsPanel({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: getOrCreateUserId(),
+          userId,
           projectId,
           projectTitle,
           kind,
@@ -108,9 +116,10 @@ export function FounderProjectGuidedContributionsPanel({
     }
   }
 
+  const worlds = PROJECT_WORLDS.seed;
+
   return (
     <section className="mt-6 space-y-6">
-      <CommunityActionGate returnTo={returnTo}>
       <div id="guided-contributions" className="scroll-mt-4 rounded-2xl border border-[#E8EEF3] bg-white p-4">
         <h2 className="text-lg font-bold text-[#0B2E59]">
           Sumá un aporte para que este proyecto avance
@@ -118,55 +127,62 @@ export function FounderProjectGuidedContributionsPanel({
         <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">
           Podés dejar una idea concreta. Los aportes se revisan antes de mostrarse públicamente.
         </p>
-        <form onSubmit={submit} className="mt-4 space-y-3">
-          <fieldset className="space-y-2">
-            {GUIDED_CONTRIBUTION_KIND_OPTIONS.map((option) => (
-              <label
-                key={option.kind}
-                className={[
-                  "flex cursor-pointer items-start gap-2 rounded-xl border px-3 py-2 text-[13px]",
-                  kind === option.kind
-                    ? "border-[#C6D92D] bg-[#F4F9E0]"
-                    : "border-[#E8EEF3] bg-[#F8FAFC]",
-                ].join(" ")}
-              >
-                <input
-                  type="radio"
-                  name="contributionKind"
-                  value={option.kind}
-                  checked={kind === option.kind}
-                  onChange={() => setKind(option.kind)}
-                  className="mt-0.5"
-                />
-                <span className="text-[#0B2E59]">{option.label}</span>
-              </label>
-            ))}
-          </fieldset>
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            rows={4}
-            maxLength={1200}
-            placeholder="Escribí una idea concreta. No hace falta que sea perfecta. Evitá datos personales, venta o enlaces externos."
-            className="vu-focus w-full resize-none rounded-xl border border-[#E8EEF3] px-3 py-3 text-sm leading-relaxed text-[#243647]"
-          />
-          <button
-            type="submit"
-            disabled={sending}
-            className="vu-focus min-h-[44px] w-full rounded-xl bg-[#0B2E59] text-sm font-semibold text-white disabled:opacity-70"
-          >
-            {sending ? "Enviando…" : "Enviar aporte"}
-          </button>
-        </form>
-        {feedback ? (
-          <p className="mt-3 text-[12px] leading-relaxed text-[#6B7A8C]">{feedback}</p>
-        ) : null}
-        <p className="mt-3 rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] px-3 py-2 text-[12px] leading-relaxed text-[#6B7A8C]">
-          Los aportes no se publican automáticamente. El equipo revisa primero para cuidar el
-          barrio.
+        <p className="mt-2 rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] px-3 py-2 text-[12px] leading-relaxed text-[#6B7A8C]">
+          {worlds.contributionHint}
         </p>
+
+        <div className="mt-4">
+          <CommunityActionGate returnTo={returnTo} gateHint={worlds.contributionHint}>
+            <form onSubmit={submit} className="space-y-3">
+              <fieldset className="space-y-2">
+                {GUIDED_CONTRIBUTION_KIND_OPTIONS.map((option) => (
+                  <label
+                    key={option.kind}
+                    className={[
+                      "flex cursor-pointer items-start gap-2 rounded-xl border px-3 py-2 text-[13px]",
+                      kind === option.kind
+                        ? "border-[#C6D92D] bg-[#F4F9E0]"
+                        : "border-[#E8EEF3] bg-[#F8FAFC]",
+                    ].join(" ")}
+                  >
+                    <input
+                      type="radio"
+                      name="contributionKind"
+                      value={option.kind}
+                      checked={kind === option.kind}
+                      onChange={() => setKind(option.kind)}
+                      className="mt-0.5"
+                    />
+                    <span className="text-[#0B2E59]">{option.label}</span>
+                  </label>
+                ))}
+              </fieldset>
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                rows={4}
+                maxLength={1200}
+                placeholder="Escribí una idea concreta. No hace falta que sea perfecta. Evitá datos personales, venta o enlaces externos."
+                className="vu-focus w-full resize-none rounded-xl border border-[#E8EEF3] px-3 py-3 text-sm leading-relaxed text-[#243647]"
+              />
+              <button
+                type="submit"
+                disabled={sending}
+                className="vu-focus min-h-[44px] w-full rounded-xl bg-[#0B2E59] text-sm font-semibold text-white disabled:opacity-70"
+              >
+                {sending ? "Enviando…" : "Enviar aporte"}
+              </button>
+            </form>
+            {feedback ? (
+              <p className="mt-3 text-[12px] leading-relaxed text-[#6B7A8C]">{feedback}</p>
+            ) : null}
+            <p className="mt-3 rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] px-3 py-2 text-[12px] leading-relaxed text-[#6B7A8C]">
+              Los aportes no se publican automáticamente. El equipo revisa primero para cuidar el
+              barrio.
+            </p>
+          </CommunityActionGate>
+        </div>
       </div>
-      </CommunityActionGate>
 
       {hideVisibleList ? null : (
         <div className="rounded-2xl border border-[#E8EEF3] bg-white p-4">

@@ -3,22 +3,31 @@ export const ACTIVIDAD_COPY = {
   subtitle: "Tus movimientos dentro del barrio.",
   emptyTitle: "Todavía no hay movimientos registrados",
   emptyBody:
-    "Cuando elijas un camino, sembres un proyecto o marques interés en un espacio, lo vas a ver acá.",
+    "Cuando elijas un camino, sembres un proyecto, marques interés o publiques en la comunidad, lo vas a ver acá.",
   emptyHints: [
+    { label: "Elegir cómo empezar", href: "/activacion" },
     { label: "Explorar la plaza", href: "/plaza" },
-    { label: "Guardar un círculo", href: "/circulos" },
-    { label: "Sembrar un proyecto", href: "/proyectos/sembrar" },
+    { label: "Proyectos vivos", href: "/proyectos/vivos" },
+    { label: "Comunidad", href: "/comunidad" },
+    { label: "Directorio Connect", href: "/community/conectar_con_otros" },
+    { label: "Círculos del catálogo", href: "/circulos" },
+    { label: "Sembrar una idea", href: "/proyectos/sembrar" },
   ],
 };
 
 export const MENSAJES_COPY = {
-  title: "Mensajes",
+  title: "Avisos del barrio",
   subtitle:
-    "Bandeja de avisos del barrio — no es chat libre ni mensajería directa. Acá verás respuestas del equipo y próximos pasos cuando correspondan.",
-  emptyTitle: "Todavía no hay avisos para vos",
+    "Señales y respuesta del equipo — distintas de tus conversaciones directas en Mis mensajes.",
+  emptyTitle: "Todavía no hay avisos del equipo",
   emptyBody:
-    "Cuando tu proyecto reciba interés, el equipo revise una semilla o haya un próximo paso relevante, lo vas a ver acá. No hay conversaciones en vivo todavía.",
+    "Cuando tu semilla reciba revisión o haya un próximo paso del barrio, lo vas a ver acá. Mientras tanto podés escribir a personas por Connect.",
+  emptyHints: [
+    { label: "Directorio Connect", href: "/community/conectar_con_otros" },
+    { label: "Proyectos vivos", href: "/proyectos/vivos" },
+    { label: "Volver a la plaza", href: "/plaza" },
+  ],
 };
 
 export const INTEREST_REGISTERED_TOAST =
-  "Interés registrado. Si este espacio empieza a moverse o aparece una oportunidad compatible, lo vas a ver en Actividad.";
+  "Interés registrado. Si este espacio se mueve o aparece un próximo paso, lo vas a ver en Actividad y Notificaciones.";

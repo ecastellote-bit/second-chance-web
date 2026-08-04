@@ -15,7 +15,7 @@ import {
   founderSeedStatusLabel,
 } from "@/lib/public/founderSeedStatusLabel";
 import type { FounderProjectSeed } from "@/lib/learning/founderProjectSeeds";
-import { getOrCreateUserId } from "@/lib/users/activeUserSession";
+import { getCachedUserId } from "@/lib/users/activeUserSession";
 
 type PublicSeedPayload = FounderSeedPublicViewModel;
 
@@ -37,7 +37,7 @@ export default function SeedPageContent({ seedId, userIdFromUrl }: Props) {
 
   useEffect(() => {
     const queryUserId = userIdFromUrl;
-    const userId = queryUserId || getOrCreateUserId();
+    const userId = queryUserId || getCachedUserId() || "";
     const qs = userId ? `?userId=${encodeURIComponent(userId)}` : "";
     setLoading(true);
     setNotVisible(false);
@@ -131,6 +131,12 @@ export default function SeedPageContent({ seedId, userIdFromUrl }: Props) {
           className="vu-focus mt-8 flex min-h-[48px] items-center justify-center rounded-2xl border border-[#E8EEF3] bg-white text-sm font-semibold text-[#6B7A8C]"
         >
           Volver a proyectos
+        </Link>
+        <Link
+          href="/proyectos/vivos"
+          className="vu-focus mt-2 flex min-h-[48px] items-center justify-center rounded-2xl border border-transparent text-sm font-semibold text-[#1A9BB0] underline"
+        >
+          Explorar Proyectos vivos
         </Link>
       </main>
       <VuBottomNav active="plaza" />

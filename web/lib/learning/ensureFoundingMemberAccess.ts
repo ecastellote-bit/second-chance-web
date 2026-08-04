@@ -3,7 +3,7 @@
 import {
   fetchUserProfile,
   getCachedProfile,
-  getOrCreateUserId,
+  getCachedUserId,
 } from "@/lib/users/activeUserSession";
 import {
   grantFoundingMember,
@@ -21,7 +21,10 @@ export async function ensureFoundingMemberAccess(): Promise<boolean> {
     return true;
   }
 
-  const profile = await fetchUserProfile(getOrCreateUserId());
+  const userId = getCachedUserId();
+  if (!userId) return false;
+
+  const profile = await fetchUserProfile(userId);
   const archiveId = profile?.diagnosticArchiveId?.trim();
   if (archiveId) {
     grantFoundingMember(archiveId);

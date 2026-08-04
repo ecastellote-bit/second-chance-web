@@ -76,7 +76,14 @@ export function CommunityFeedView() {
           <Link href="/circulos" className="font-semibold text-[#1A9BB0] underline">
             círculos del catálogo
           </Link>
-          . No son grupos con membresía.
+          . No son grupos con membresía. Podés contactar personas desde el{" "}
+          <Link
+            href="/community/conectar_con_otros"
+            className="font-semibold text-[#1A9BB0] underline"
+          >
+            directorio Connect
+          </Link>
+          .
         </p>
       </header>
 
@@ -109,6 +116,20 @@ export function CommunityFeedView() {
             <p className="text-lg text-[#243647]">
               Todavía no hay publicaciones. Sé la primera voz del barrio.
             </p>
+            <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              <Link
+                href="/community/conectar_con_otros"
+                className="vu-focus inline-flex min-h-[48px] items-center text-base font-semibold text-[#1A9BB0] underline"
+              >
+                Conocé personas en Connect →
+              </Link>
+              <Link
+                href="/proyectos/vivos"
+                className="vu-focus inline-flex min-h-[48px] items-center text-base font-semibold text-[#1A9BB0] underline"
+              >
+                Proyectos vivos →
+              </Link>
+            </div>
           </div>
         ) : null}
 
@@ -140,10 +161,16 @@ export function CommunityFeedView() {
         ) : null}
       </div>
 
-      <div className="mt-8 px-4 text-center">
+      <div className="mt-8 space-y-3 px-4 text-center">
+        <Link
+          href="/mensajes"
+          className="block text-base font-semibold text-[#1A9BB0] underline"
+        >
+          Ir a mis mensajes →
+        </Link>
         <Link
           href="/proyectos/vivos"
-          className="text-base font-semibold text-[#1A9BB0] underline"
+          className="block text-base font-semibold text-[#1A9BB0] underline"
         >
           ¿Tenés un proyecto? Mirá Proyectos Vivos →
         </Link>

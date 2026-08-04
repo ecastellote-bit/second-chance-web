@@ -36,7 +36,14 @@ export function DirectMessagesInbox({
 
   const loadConversations = useCallback(async () => {
     const userId = getCachedUserId();
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false);
+      setError("");
+      setConversations([]);
+      setTotalUnread(0);
+      onTotalUnreadChange?.(0);
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -53,7 +60,11 @@ export function DirectMessagesInbox({
       };
 
       if (!res.ok || !data.ok || !data.conversations) {
-        throw new Error(data.error ?? "No se pudieron cargar las conversaciones");
+        throw new Error(
+          data.error === "user_id_required"
+            ? "Retomá tu perfil en este dispositivo para ver conversaciones."
+            : data.error ?? "No se pudieron cargar las conversaciones",
+        );
       }
 
       const unread = data.totalUnread ?? 0;
@@ -64,7 +75,7 @@ export function DirectMessagesInbox({
       setError(
         err instanceof Error
           ? err.message
-          : "Hubo un problema al cargar el directorio. Intentá de nuevo en unos minutos.",
+          : "Hubo un problema al cargar tus mensajes. Intentá de nuevo en unos minutos.",
       );
     } finally {
       setLoading(false);
@@ -115,19 +126,24 @@ export function DirectMessagesInbox({
 
       {!loading && !error && conversations.length === 0 ? (
         <div className="mt-6 rounded-2xl border border-[#E8EEF3] bg-[#F8FAFC] p-8 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#DFF4F7] text-2xl">
-            💬
-          </div>
-          <p className="mt-4 text-lg leading-relaxed text-[#243647]">
-            Todavía no tenés mensajes. Cuando contactes a alguien desde el directorio,
-            aparecerá acá.
+          <p className="text-lg leading-relaxed text-[#243647]">
+            Todavía no tenés mensajes. Cuando contactes a alguien desde el directorio o un
+            perfil público, la conversación aparece acá.
           </p>
-          <Link
-            href="/community/conectar_con_otros"
-            className="vu-focus mt-6 inline-flex min-h-[48px] items-center rounded-2xl bg-[#0B2E59] px-6 text-base font-bold text-white"
-          >
-            Ir al directorio
-          </Link>
+          <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <Link
+              href="/community/conectar_con_otros"
+              className="vu-focus inline-flex min-h-[48px] items-center rounded-2xl bg-[#0B2E59] px-6 text-base font-bold text-white"
+            >
+              Ir al directorio Connect
+            </Link>
+            <Link
+              href="/comunidad"
+              className="vu-focus inline-flex min-h-[48px] items-center rounded-2xl border border-[#E8EEF3] bg-white px-6 text-base font-semibold text-[#0B2E59]"
+            >
+              Ver la comunidad
+            </Link>
+          </div>
         </div>
       ) : null}
 

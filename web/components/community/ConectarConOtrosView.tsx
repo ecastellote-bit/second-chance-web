@@ -73,6 +73,18 @@ export function ConectarConOtrosView() {
 
         <PublicCommunityRecentActivity className="mb-6 mt-8" limit={5} surface="connection" />
 
+        <div className="mb-6 flex flex-col gap-2 rounded-2xl border border-[#1A9BB0]/25 bg-[#E8F7FA] px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[13px] leading-relaxed text-[#0B2E59]">
+            Contactaste a alguien? Seguí el hilo en tus mensajes directos.
+          </p>
+          <Link
+            href="/mensajes"
+            className="vu-focus shrink-0 text-sm font-bold text-[#1A9BB0] underline"
+          >
+            Ir a mis mensajes →
+          </Link>
+        </div>
+
         <p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-[#6B7A8C]">
           Formas de sumarte
         </p>

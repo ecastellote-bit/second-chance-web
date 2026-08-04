@@ -21,6 +21,11 @@ type Props = {
   mode?: "inline" | "page";
   /** Aviso humano opcional antes del copy del gate (p. ej. sembrar proyecto) */
   gateHint?: string;
+  /**
+   * compact: muro corto para microacciones en listados (Serie 4).
+   * No oculta el resto de la página: solo reemplaza el bloque de acción.
+   */
+  density?: "default" | "compact";
 };
 
 function shellCard(
@@ -48,7 +53,9 @@ export function CommunityActionGate({
   returnTo,
   mode = "inline",
   gateHint,
+  density = "default",
 }: Props) {
+  const compact = density === "compact";
   const pathname = usePathname();
   const [ready, setReady] = useState(false);
   const [gate, setGate] = useState<ClientSessionGate | null>(null);
@@ -163,7 +170,39 @@ export function CommunityActionGate({
   let card: React.ReactNode;
 
   if (reason === "email_missing") {
-    card = (
+    card = compact ? (
+      <div className="space-y-2 text-left">
+        {gateHint ? (
+          <p className="text-[12px] leading-relaxed text-[#6B7A8C]">{gateHint}</p>
+        ) : null}
+        <p className="text-[13px] font-semibold text-[#0B2E59]">
+          {copyGate.emailMissing.title}
+        </p>
+        <form onSubmit={(e) => void submitEmail(e)} className="space-y-2">
+          <input
+            type="email"
+            required
+            autoComplete="email"
+            value={emailDraft}
+            onChange={(e) => setEmailDraft(e.target.value)}
+            placeholder="tu@email.com"
+            className="min-h-[40px] w-full rounded-xl border border-[#E8EEF3] px-3 text-[13px]"
+          />
+          {emailError ? (
+            <p className="text-[12px] text-[#DC2626]" role="alert">
+              {emailError}
+            </p>
+          ) : null}
+          <button
+            type="submit"
+            disabled={emailSaving}
+            className="vu-focus min-h-[40px] w-full rounded-xl bg-[#0B2E59] px-3 text-[12px] font-semibold text-white disabled:opacity-70"
+          >
+            {emailSaving ? "Guardando…" : copyGate.emailMissing.submit}
+          </button>
+        </form>
+      </div>
+    ) : (
       <div className="space-y-3 text-center">
         {gateHint ? (
           <p className="rounded-xl border border-[#C6D92D]/35 bg-[#F4F9E0] px-4 py-3 text-[13px] leading-relaxed text-[#243647]">
@@ -222,7 +261,30 @@ export function CommunityActionGate({
       </div>
     );
   } else if (reason === "profile_incomplete") {
-    card = (
+    card = compact ? (
+      <div className="space-y-2 text-left">
+        {gateHint ? (
+          <p className="text-[12px] leading-relaxed text-[#6B7A8C]">{gateHint}</p>
+        ) : null}
+        <p className="text-[13px] font-semibold text-[#0B2E59]">
+          {copyGate.profileIncomplete.title}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={completarHref}
+            className="vu-focus inline-flex min-h-[40px] items-center rounded-xl bg-[#0B2E59] px-3 text-[12px] font-semibold text-white"
+          >
+            {copyGate.profileIncomplete.cta}
+          </Link>
+          <Link
+            href={continuarHref}
+            className="vu-focus inline-flex min-h-[40px] items-center rounded-xl border border-[#E8EEF3] px-3 text-[12px] font-semibold text-[#1A9BB0]"
+          >
+            {copyGate.identityMissing.ctaResume}
+          </Link>
+        </div>
+      </div>
+    ) : (
       <div className="space-y-3 text-center">
         {gateHint ? (
           <p className="rounded-xl border border-[#C6D92D]/35 bg-[#F4F9E0] px-4 py-3 text-[13px] leading-relaxed text-[#243647]">
@@ -259,7 +321,34 @@ export function CommunityActionGate({
     );
   } else {
     // no_local_identity | profile_missing
-    card = (
+    card = compact ? (
+      <div className="space-y-2 text-left">
+        {gateHint ? (
+          <p className="text-[12px] leading-relaxed text-[#6B7A8C]">{gateHint}</p>
+        ) : (
+          <p className="text-[12px] leading-relaxed text-[#6B7A8C]">
+            {copyGate.identityMissingCompact.body}
+          </p>
+        )}
+        <p className="text-[13px] font-semibold text-[#0B2E59]">
+          {copyGate.identityMissingCompact.title}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={continuarHref}
+            className="vu-focus inline-flex min-h-[40px] items-center rounded-xl bg-[#0B2E59] px-3 text-[12px] font-semibold text-white"
+          >
+            {copyGate.identityMissingCompact.ctaResume}
+          </Link>
+          <Link
+            href={crearHref}
+            className="vu-focus inline-flex min-h-[40px] items-center rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] px-3 text-[12px] font-semibold text-[#0B2E59]"
+          >
+            {copyGate.identityMissingCompact.ctaCreate}
+          </Link>
+        </div>
+      </div>
+    ) : (
       <div className="space-y-3 text-center">
         {gateHint ? (
           <p className="rounded-xl border border-[#C6D92D]/35 bg-[#F4F9E0] px-4 py-3 text-[13px] leading-relaxed text-[#243647]">
@@ -293,6 +382,12 @@ export function CommunityActionGate({
           </Link>
         </div>
       </div>
+    );
+  }
+
+  if (compact && mode === "inline") {
+    return (
+      <div className="rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] p-3">{card}</div>
     );
   }
 

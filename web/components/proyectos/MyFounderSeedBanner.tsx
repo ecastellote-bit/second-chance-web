@@ -8,13 +8,13 @@ import {
   founderSeedStatusHint,
   founderSeedStatusLabel,
 } from "@/lib/public/founderSeedStatusLabel";
-import { getOrCreateUserId } from "@/lib/users/activeUserSession";
+import { getCachedUserId } from "@/lib/users/activeUserSession";
 
 export function MyFounderSeedBanner() {
   const [seeds, setSeeds] = useState<FounderProjectSeed[]>([]);
 
   useEffect(() => {
-    const userId = getOrCreateUserId();
+    const userId = getCachedUserId();
     if (!userId) return;
 
     const cohort = getFoundationalCohortBatch();
@@ -50,10 +50,10 @@ export function MyFounderSeedBanner() {
           Ver mi semilla
         </Link>
         <Link
-          href="/actividad"
+          href="/proyectos/vivos"
           className="vu-focus rounded-xl border border-[#0B2E59]/25 px-3 py-2 text-xs font-semibold text-[#0B2E59]"
         >
-          Ver actividad
+          Explorar Proyectos vivos
         </Link>
       </div>
     </section>

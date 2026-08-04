@@ -275,10 +275,17 @@ function ThemesPageContent() {
             </button>
             <button
               type="button"
-              onClick={() => router.push("/actividad")}
+              onClick={() => router.push("/plaza")}
               className={themeSecondaryBtn}
             >
-              Ver mi actividad
+              Ir a la plaza
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/proyectos/vivos")}
+              className={themeSecondaryBtn}
+            >
+              Ver proyectos vivos
             </button>
           </div>
         </div>

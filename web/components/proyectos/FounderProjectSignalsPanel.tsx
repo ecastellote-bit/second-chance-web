@@ -5,7 +5,8 @@ import { usePathname } from "next/navigation";
 import { CommunityActionGate } from "@/components/perfil/CommunityActionGate";
 import { postCommunityEvent } from "@/lib/community/communityClient";
 import { communityActionClientError } from "@/lib/content/communityActionGateCopy";
-import { getOrCreateUserId } from "@/lib/users/activeUserSession";
+import { PROJECT_WORLDS } from "@/lib/content/projectWorldsCopy";
+import { getCachedUserId } from "@/lib/users/activeUserSession";
 
 const CAPABILITY_OPTIONS = [
   "organización",
@@ -69,7 +70,7 @@ export function FounderProjectSignalsPanel({
   const [savingCapabilities, setSavingCapabilities] = useState(false);
 
   useEffect(() => {
-    const userId = getOrCreateUserId();
+    const userId = getCachedUserId();
     if (!userId) return;
 
     fetch(
@@ -140,8 +141,9 @@ export function FounderProjectSignalsPanel({
     setSavingCapabilities(false);
   }
 
+  const worlds = PROJECT_WORLDS.seed;
+
   return (
-    <CommunityActionGate returnTo={returnTo}>
     <section id="project-signals" className="mt-6 scroll-mt-4 rounded-2xl border border-[#E8EEF3] bg-white px-4 py-4">
       <h2 className="text-base font-bold text-[#0B2E59]">Dejá una señal sobre este proyecto</h2>
       <p className="mt-2 text-[13px] leading-relaxed text-[#6B7A8C]">
@@ -150,74 +152,82 @@ export function FounderProjectSignalsPanel({
       </p>
       <p className="mt-2 rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] px-3 py-2 text-[12px] text-[#6B7A8C]">
         Ninguna de estas acciones abre contacto directo automático ni muestra tus datos
-        públicamente.
+        públicamente. Esto es un gesto de semilla — no abre un rol en un proyecto vivo.
       </p>
 
-      <div className="mt-4 space-y-2">
-        {(["project_follow_close", "project_interest", "project_join_exploration"] as const).map(
-          (signalType) => (
-            <button
-              key={signalType}
-              type="button"
-              disabled={loadingType !== null}
-              onClick={() => void sendSignal(signalType)}
-              className={[
-                "vu-focus flex min-h-[44px] w-full items-center justify-center rounded-xl border px-4 text-sm font-semibold",
-                activeTypeSet.has(signalType)
-                  ? "border-[#1A9BB0]/40 bg-[#E6F6FA] text-[#0B2E59]"
-                  : "border-[#E8EEF3] bg-white text-[#0B2E59]",
-              ].join(" ")}
-            >
-              {loadingType === signalType
-                ? "Guardando…"
-                : activeTypeSet.has(signalType)
-                  ? `${BUTTON_LABEL[signalType]} (registrada)`
-                  : BUTTON_LABEL[signalType]}
-            </button>
-          ),
-        )}
-      </div>
-
-      <div className="mt-4 rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] px-3 py-3">
-        <p className="text-sm font-semibold text-[#0B2E59]">Tal vez podría aportar</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {CAPABILITY_OPTIONS.map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => toggleCapability(option)}
-              className={[
-                "rounded-full px-3 py-1.5 text-[12px] font-semibold",
-                selectedCapabilities.includes(option)
-                  ? "bg-[#0B2E59] text-white"
-                  : "border border-[#D5DEE8] bg-white text-[#6B7A8C]",
-              ].join(" ")}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={() => void submitPossibleContribution()}
-          disabled={savingCapabilities}
-          className={[
-            "vu-focus mt-3 min-h-[42px] rounded-xl px-4 text-sm font-semibold",
-            activeTypeSet.has("project_possible_contribution")
-              ? "border border-[#1A9BB0]/40 bg-[#E6F6FA] text-[#0B2E59]"
-              : "bg-[#0B2E59] text-white",
-          ].join(" ")}
+      <div className="mt-4">
+        <CommunityActionGate
+          returnTo={returnTo}
+          gateHint={worlds.signalHint}
         >
-          {savingCapabilities
-            ? "Guardando…"
-            : activeTypeSet.has("project_possible_contribution")
-              ? "Actualizar posible aporte"
-              : "Registrar posible aporte"}
-        </button>
-      </div>
+          <div className="space-y-2">
+            {(["project_follow_close", "project_interest", "project_join_exploration"] as const).map(
+              (signalType) => (
+                <button
+                  key={signalType}
+                  type="button"
+                  disabled={loadingType !== null}
+                  onClick={() => void sendSignal(signalType)}
+                  className={[
+                    "vu-focus flex min-h-[44px] w-full items-center justify-center rounded-xl border px-4 text-sm font-semibold",
+                    activeTypeSet.has(signalType)
+                      ? "border-[#1A9BB0]/40 bg-[#E6F6FA] text-[#0B2E59]"
+                      : "border-[#E8EEF3] bg-white text-[#0B2E59]",
+                  ].join(" ")}
+                >
+                  {loadingType === signalType
+                    ? "Guardando…"
+                    : activeTypeSet.has(signalType)
+                      ? `${BUTTON_LABEL[signalType]} (registrada)`
+                      : BUTTON_LABEL[signalType]}
+                </button>
+              ),
+            )}
+          </div>
 
-      {feedback ? <p className="mt-3 text-[12px] leading-relaxed text-[#6B7A8C]">{feedback}</p> : null}
+          <div className="mt-4 rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] px-3 py-3">
+            <p className="text-sm font-semibold text-[#0B2E59]">Tal vez podría aportar</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {CAPABILITY_OPTIONS.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => toggleCapability(option)}
+                  className={[
+                    "rounded-full px-3 py-1.5 text-[12px] font-semibold",
+                    selectedCapabilities.includes(option)
+                      ? "bg-[#0B2E59] text-white"
+                      : "border border-[#D5DEE8] bg-white text-[#6B7A8C]",
+                  ].join(" ")}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => void submitPossibleContribution()}
+              disabled={savingCapabilities}
+              className={[
+                "vu-focus mt-3 min-h-[42px] rounded-xl px-4 text-sm font-semibold",
+                activeTypeSet.has("project_possible_contribution")
+                  ? "border border-[#1A9BB0]/40 bg-[#E6F6FA] text-[#0B2E59]"
+                  : "bg-[#0B2E59] text-white",
+              ].join(" ")}
+            >
+              {savingCapabilities
+                ? "Guardando…"
+                : activeTypeSet.has("project_possible_contribution")
+                  ? "Actualizar posible aporte"
+                  : "Registrar posible aporte"}
+            </button>
+          </div>
+
+          {feedback ? (
+            <p className="mt-3 text-[12px] leading-relaxed text-[#6B7A8C]">{feedback}</p>
+          ) : null}
+        </CommunityActionGate>
+      </div>
     </section>
-    </CommunityActionGate>
   );
 }

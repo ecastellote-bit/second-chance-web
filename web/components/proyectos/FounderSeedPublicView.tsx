@@ -9,6 +9,7 @@ import { FounderProjectGuidedContributionsPanel } from "@/components/proyectos/F
 import { FounderProjectSignalsPanel } from "@/components/proyectos/FounderProjectSignalsPanel";
 import { ProjectCover } from "@/components/proyectos/ProjectCover";
 import { ProjectVoicesBlock } from "@/components/proyectos/ProjectVoicesBlock";
+import { PROJECT_WORLDS } from "@/lib/content/projectWorldsCopy";
 import {
   founderSeedStatusHint,
   founderSeedStatusLabel,
@@ -40,6 +41,7 @@ export function FounderSeedPublicView({ seed }: Props) {
     seed.coverSrc ?? resolveProjectCoverSrc(seed.seedId, seed.coverImageUrl ?? null);
   const gallery = seed.galleryImageUrls ?? [];
   const showVideo = Boolean(seed.videoUrl?.trim() && seed.videoPosterUrl?.trim());
+  const worlds = PROJECT_WORLDS.seed;
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#F8FAFC] font-[family-name:var(--font-inter)]">
@@ -52,7 +54,7 @@ export function FounderSeedPublicView({ seed }: Props) {
           </Link>
 
           <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-[#C6D92D]">
-            {isPublished ? "Proyecto del barrio · cooperación en siembra" : "Tu proyecto · ola fundadora"}
+            {isPublished ? worlds.detailEyebrowPublished : worlds.detailEyebrowOwn}
           </p>
 
           <div className="mt-4 flex items-center gap-3">
@@ -83,6 +85,25 @@ export function FounderSeedPublicView({ seed }: Props) {
           <p className="mt-4 rounded-2xl border border-[#E8EEF3] bg-white px-4 py-3 text-[13px] leading-relaxed text-[#6B7A8C]">
             {founderSeedStatusHint(seed.status)}
           </p>
+
+          <p className="mt-3 rounded-2xl border border-[#1A9BB0]/25 bg-[#E8F7FA] px-4 py-3 text-[13px] leading-relaxed text-[#0B2E59]">
+            {worlds.detailHint}
+          </p>
+
+          <Link
+            href="/proyectos/vivos"
+            className="vu-focus mt-4 flex min-h-[48px] items-center justify-between gap-3 rounded-2xl border border-[#1A9BB0]/35 bg-white px-4 py-3 text-[#0B2E59]"
+          >
+            <span className="min-w-0 text-left">
+              <span className="block text-[13px] font-bold">{worlds.bridgeToVivosTitle}</span>
+              <span className="mt-0.5 block text-[12px] leading-snug text-[#6B7A8C]">
+                {worlds.bridgeToVivosBody}
+              </span>
+            </span>
+            <span className="shrink-0 text-[12px] font-bold text-[#1A9BB0]">
+              {worlds.bridgeToVivosCta} →
+            </span>
+          </Link>
 
           {gallery.length > 0 ? (
             <section className="mt-6">
@@ -154,16 +175,22 @@ export function FounderSeedPublicView({ seed }: Props) {
 
           <div className="mt-8 flex flex-col gap-2">
             <Link
-              href="/actividad"
+              href="/proyectos/vivos"
               className="vu-focus flex min-h-[48px] items-center justify-center rounded-2xl bg-[#0B2E59] text-sm font-bold text-white"
             >
-              Ver actividad
+              Explorar Proyectos vivos
             </Link>
             <Link
               href="/proyectos"
-              className="vu-focus flex min-h-[48px] items-center justify-center rounded-2xl border border-[#E8EEF3] bg-white text-sm font-semibold text-[#6B7A8C]"
+              className="vu-focus flex min-h-[48px] items-center justify-center rounded-2xl border border-[#E8EEF3] bg-white text-sm font-semibold text-[#0B2E59]"
             >
-              Volver a proyectos
+              Ver más semillas del barrio
+            </Link>
+            <Link
+              href="/barrio"
+              className="vu-focus flex min-h-[48px] items-center justify-center rounded-2xl border border-transparent text-sm font-semibold text-[#1A9BB0] underline"
+            >
+              Volver al barrio
             </Link>
           </div>
         </div>

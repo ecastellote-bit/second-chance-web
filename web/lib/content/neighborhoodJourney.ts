@@ -37,9 +37,30 @@ export const NEIGHBORHOOD_JOURNEY: NeighborhoodPath[] = [
     id: "perfil",
     title: "Perfil en VocationUp",
     description: "Identidad en el barrio — necesaria antes de proyectos e interacción con pares.",
-    route: "/perfil/crear",
+    route: "/perfil",
     phase: "diagnostic",
     requiresFoundingMember: true,
+  },
+  {
+    id: "vivos",
+    title: "Proyectos vivos",
+    description: "Iniciativas colaborativas con roles abiertos y postulación.",
+    route: "/proyectos/vivos",
+    phase: "deep",
+  },
+  {
+    id: "comunidad",
+    title: "Comunidad",
+    description: "Publicaciones y conversación del barrio.",
+    route: "/comunidad",
+    phase: "deep",
+  },
+  {
+    id: "connect",
+    title: "Directorio Connect",
+    description: "Personas del barrio y mensajes directos.",
+    route: "/community/conectar_con_otros",
+    phase: "deep",
   },
   {
     id: "themes",
@@ -118,12 +139,17 @@ export const COMMUNITY_DOOR_HUBS: Record<
       {
         label: "Formación aliada",
         route: "/formacion",
-        description: "Recursos y rutas sugeridas según tu temática.",
+        description: "Rutas y materiales vivos — no un muro de solo lectura.",
       },
       {
         label: "Tu diagnóstico",
         route: "/full/result",
         description: "Volver a la lectura guardada en tu perfil (si ya la completaste).",
+      },
+      {
+        label: "Comunidad",
+        route: "/comunidad",
+        description: "Leer y participar de lo que publica el barrio.",
       },
       {
         label: "La plaza",
@@ -138,14 +164,19 @@ export const COMMUNITY_DOOR_HUBS: Record<
       "Proyectos concretos, oportunidades y pasos que podés dar ya. Para quien quiere actuar.",
     links: [
       {
-        label: "Sembrar mi proyecto",
-        route: "/proyectos/sembrar",
-        description: "Fundadores: revisión prioritaria del equipo en la etapa fundadora.",
+        label: "Proyectos vivos",
+        route: "/proyectos/vivos",
+        description: "Iniciativas abiertas a sumar roles y postularte.",
       },
       {
-        label: "Mesa de proyectos",
+        label: "Sembrar mi proyecto",
+        route: "/proyectos/sembrar",
+        description: "Fundadores: semilla revisada por el equipo en la etapa fundadora.",
+      },
+      {
+        label: "Mesa de proyectos semilla",
         route: "/proyectos",
-        description: "Ver iniciativas del barrio y sumarte.",
+        description: "Semillas en curación de la ola fundadora.",
       },
       {
         label: "Eventos y convocatorias",
@@ -157,22 +188,32 @@ export const COMMUNITY_DOOR_HUBS: Record<
   conectar_con_otros: {
     title: "Conectar con otros",
     intro:
-      "Círculos, encuentros y comunidad real. Para quien necesita volver a relacionarse.",
+      "Directorio, mensajes, círculos y comunidad. Para quien necesita volver a relacionarse.",
     links: [
+      {
+        label: "Directorio Connect",
+        route: "/community/conectar_con_otros",
+        description: "Personas del barrio y contacto guiado.",
+      },
+      {
+        label: "Mis mensajes",
+        route: "/mensajes",
+        description: "Conversaciones directas y avisos del equipo.",
+      },
+      {
+        label: "Comunidad",
+        route: "/comunidad",
+        description: "Publicaciones del barrio.",
+      },
       {
         label: "Círculos",
         route: "/circulos",
-        description: "Conversaciones guiadas por afinidad.",
+        description: "Mesas temáticas con señales guiadas.",
       },
       {
-        label: "La plaza",
-        route: "/plaza",
-        description: "Compromiso con el barrio y puertas abiertas.",
-      },
-      {
-        label: "Explorar proyectos",
-        route: "/proyectos",
-        description: "Encontrar aliados en iniciativas activas.",
+        label: "Proyectos vivos",
+        route: "/proyectos/vivos",
+        description: "Encontrar aliados en iniciativas abiertas.",
       },
     ],
   },

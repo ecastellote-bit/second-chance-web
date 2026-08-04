@@ -17,6 +17,8 @@ import {
   emitEarnedBadges,
   readEarnedBadgesFromJson,
 } from "@/lib/badges-store/badgeToastClient";
+import { PROJECT_WORLDS } from "@/lib/content/projectWorldsCopy";
+import { PROFILE_FLOW_COPY } from "@/lib/content/profileFlowCopy";
 
 function errorLabel(code: string): string {
   const map: Record<string, string> = {
@@ -26,9 +28,18 @@ function errorLabel(code: string): string {
     application_already_exists: "Ya te postulaste a este rol.",
     community_profile_required: "Completá tu perfil para postularte.",
     community_email_required: "Agregá tu email en el perfil para postularte.",
-    user_id_required: "Necesitás iniciar sesión con tu perfil.",
+    user_id_required: "Necesitás retomar o crear tu perfil en este dispositivo.",
   };
   return map[code] ?? code;
+}
+
+function profileReturnLinks(slug: string) {
+  const returnTo = `/proyectos/vivos/${encodeURIComponent(slug)}`;
+  const q = `?redirect=${encodeURIComponent(returnTo)}`;
+  return {
+    resume: `/perfil/continuar${q}`,
+    create: `/perfil/crear${q}`,
+  };
 }
 
 export function VivoProjectDetailView({ slug }: { slug: string }) {
@@ -170,6 +181,7 @@ export function VivoProjectDetailView({ slug }: { slug: string }) {
   const { project, roles, members, milestones, pendingApplications } = detail;
   const isCreator = Boolean(userId && userId === project.creatorId);
   const openRoles = roles.filter((role) => !role.filled);
+  const profileLinks = profileReturnLinks(slug);
 
   return (
     <main className="pb-16">
@@ -188,7 +200,16 @@ export function VivoProjectDetailView({ slug }: { slug: string }) {
 
       <div className="mx-auto max-w-3xl px-4">
         <div className="-mt-8 rounded-2xl border border-[#E8EEF3] bg-white p-6 shadow-sm">
-          <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/proyectos/vivos"
+            className="text-sm font-semibold text-[#1A9BB0] underline"
+          >
+            ← Proyectos vivos
+          </Link>
+          <p className="mt-3 text-[11px] font-bold uppercase tracking-wider text-[#1A9BB0]">
+            Proyecto vivo · roles abiertos
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
             <ProjectStatusBadge status={project.status} />
             {project.city ? (
               <span className="text-sm text-[#6B7A8C]">{project.city}</span>
@@ -281,20 +302,36 @@ export function VivoProjectDetailView({ slug }: { slug: string }) {
                       Cubierto por {role.filledByName ?? "un miembro"}
                     </p>
                   ) : !isCreator ? (
-                    <Button
-                      type="button"
-                      variant="primary"
-                      size="lg"
-                      onClick={() => {
-                        if (!userId) {
-                          window.location.href = "/perfil/crear";
-                          return;
-                        }
-                        setApplyRole(role);
-                      }}
-                    >
-                      Quiero sumarme
-                    </Button>
+                    userId ? (
+                      <Button
+                        type="button"
+                        variant="primary"
+                        size="lg"
+                        onClick={() => setApplyRole(role)}
+                      >
+                        Quiero sumarme
+                      </Button>
+                    ) : (
+                      <div className="max-w-xs rounded-xl border border-[#E8EEF3] bg-[#F8FAFC] p-3">
+                        <p className="text-[12px] leading-relaxed text-[#6B7A8C]">
+                          {PROJECT_WORLDS.vivo.applyNeedsProfile}
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Link
+                            href={profileLinks.resume}
+                            className="vu-focus inline-flex min-h-[40px] items-center rounded-xl bg-[#0B2E59] px-3 text-[12px] font-semibold text-white"
+                          >
+                            {PROFILE_FLOW_COPY.identityMissingCompact.ctaResume}
+                          </Link>
+                          <Link
+                            href={profileLinks.create}
+                            className="vu-focus inline-flex min-h-[40px] items-center rounded-xl border border-[#E8EEF3] bg-white px-3 text-[12px] font-semibold text-[#0B2E59]"
+                          >
+                            {PROFILE_FLOW_COPY.identityMissingCompact.ctaCreate}
+                          </Link>
+                        </div>
+                      </div>
+                    )
                   ) : null}
                 </div>
               </div>
@@ -430,6 +467,21 @@ export function VivoProjectDetailView({ slug }: { slug: string }) {
             )}
           </section>
         ) : null}
+
+        <div className="mt-10 flex flex-col gap-2 border-t border-[#E8EEF3] pt-6">
+          <Link
+            href="/proyectos"
+            className="vu-focus text-base font-semibold text-[#1A9BB0] underline"
+          >
+            Inspirate con semillas del barrio →
+          </Link>
+          <Link
+            href="/proyectos/vivos"
+            className="vu-focus text-base font-semibold text-[#6B7A8C] underline"
+          >
+            Volver al directorio de vivos
+          </Link>
+        </div>
       </div>
 
       {userId ? (

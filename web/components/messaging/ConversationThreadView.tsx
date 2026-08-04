@@ -13,6 +13,8 @@ import {
   emitEarnedBadges,
   readEarnedBadgesFromJson,
 } from "@/lib/badges-store/badgeToastClient";
+import { humanMessageSendError } from "@/lib/users/profileSessionHrefs";
+import { SessionContinueLinks } from "@/components/perfil/SessionContinueLinks";
 
 type OtherProfile = {
   userId: string;
@@ -29,13 +31,19 @@ export function ConversationThreadView({ slug }: { slug: string }) {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const [noSession, setNoSession] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const loadThread = useCallback(async () => {
     const userId = getCachedUserId();
-    if (!userId) return;
+    if (!userId) {
+      setNoSession(true);
+      setLoading(false);
+      return;
+    }
 
     setMyUserId(userId);
+    setNoSession(false);
     setLoading(true);
     setError("");
 
@@ -91,7 +99,9 @@ export function ConversationThreadView({ slug }: { slug: string }) {
       };
 
       if (!messagesRes.ok || !messagesData.ok || !messagesData.messages) {
-        throw new Error(messagesData.error ?? "No se pudo cargar la conversación");
+        throw new Error(
+          humanMessageSendError(messagesData.error ?? "No se pudo cargar la conversación"),
+        );
       }
 
       setMessages(messagesData.messages);
@@ -133,7 +143,7 @@ export function ConversationThreadView({ slug }: { slug: string }) {
 
       const data = (await res.json()) as { ok?: boolean; message?: VuMessage; error?: string };
       if (!res.ok || !data.ok || !data.message) {
-        throw new Error(data.error ?? "No se pudo enviar el mensaje");
+        throw new Error(humanMessageSendError(data.error ?? "No se pudo enviar el mensaje"));
       }
 
       emitEarnedBadges(readEarnedBadgesFromJson(data));
@@ -154,6 +164,24 @@ export function ConversationThreadView({ slug }: { slug: string }) {
     );
   }
 
+  if (noSession) {
+    return (
+      <main className="mx-auto flex min-h-[100dvh] max-w-md flex-col justify-center bg-[#F8FAFC] px-6 py-12">
+        <SessionContinueLinks
+          returnTo={`/mensajes/${encodeURIComponent(slug)}`}
+          title="Para abrir esta conversación, necesitamos tu perfil"
+          body="Retomá tu perfil en este dispositivo o creá uno. Después volvés al hilo."
+        />
+        <Link
+          href="/mensajes"
+          className="vu-focus mt-6 text-center text-sm font-semibold text-[#1A9BB0] underline"
+        >
+          Volver a mis mensajes
+        </Link>
+      </main>
+    );
+  }
+
   if (error && !otherProfile) {
     return (
       <main className="flex min-h-[100dvh] flex-col items-center justify-center bg-[#F8FAFC] px-6 text-center">
@@ -163,6 +191,12 @@ export function ConversationThreadView({ slug }: { slug: string }) {
           className="vu-focus mt-6 inline-flex min-h-[48px] items-center rounded-2xl bg-[#0B2E59] px-6 text-base font-bold text-white"
         >
           Volver a mis mensajes
+        </Link>
+        <Link
+          href="/community/conectar_con_otros"
+          className="vu-focus mt-3 text-sm font-semibold text-[#1A9BB0] underline"
+        >
+          Ir al directorio Connect
         </Link>
       </main>
     );

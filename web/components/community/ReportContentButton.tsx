@@ -12,7 +12,7 @@ import type {
   CommunityReportReason,
   CommunityReportTargetType,
 } from "@/lib/learning/communityReports";
-import { getOrCreateUserId } from "@/lib/users/activeUserSession";
+import { getCachedUserId } from "@/lib/users/activeUserSession";
 
 type Props = {
   targetType: CommunityReportTargetType;
@@ -31,6 +31,13 @@ export function ReportContentButton({ targetType, targetId, className = "" }: Pr
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    const userId = getCachedUserId();
+    if (!userId) {
+      setFeedback(
+        "Para reportar necesitamos tu identidad en este dispositivo. Retomá o creá tu perfil.",
+      );
+      return;
+    }
     setSending(true);
     setFeedback("");
     try {
@@ -38,7 +45,7 @@ export function ReportContentButton({ targetType, targetId, className = "" }: Pr
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: getOrCreateUserId(),
+          userId,
           targetType,
           targetId,
           reason,
@@ -69,7 +76,7 @@ export function ReportContentButton({ targetType, targetId, className = "" }: Pr
   }
 
   return (
-    <CommunityActionGate returnTo={returnTo}>
+    <CommunityActionGate returnTo={returnTo} density="compact">
     <div className={className}>
       <button
         type="button"

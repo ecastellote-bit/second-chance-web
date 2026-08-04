@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { MESSAGE_CONTENT_MAX_LENGTH } from "@/lib/messaging/messageTypes";
@@ -7,6 +8,7 @@ import {
   emitEarnedBadges,
   readEarnedBadgesFromJson,
 } from "@/lib/badges-store/badgeToastClient";
+import { humanMessageSendError } from "@/lib/users/profileSessionHrefs";
 
 export type ContactModalProps = {
   isOpen: boolean;
@@ -30,13 +32,17 @@ export function ContactModal({
   const [content, setContent] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const threadHref = recipientSlug.trim()
+    ? `/mensajes/${encodeURIComponent(recipientSlug.trim())}`
+    : "/mensajes";
 
   useEffect(() => {
     if (!isOpen) return;
     setContent("");
     setError("");
-    setSuccess("");
+    setSuccess(false);
     setSending(false);
   }, [isOpen, recipientId]);
 
@@ -68,7 +74,7 @@ export function ContactModal({
 
     setSending(true);
     setError("");
-    setSuccess("");
+    setSuccess(false);
 
     try {
       const res = await fetch("/api/messages/send", {
@@ -83,17 +89,12 @@ export function ContactModal({
 
       const data = (await res.json()) as { ok?: boolean; error?: string };
       if (!res.ok || !data.ok) {
-        throw new Error(data.error ?? "No se pudo enviar el mensaje");
+        throw new Error(humanMessageSendError(data.error ?? "message_send_failed"));
       }
 
       emitEarnedBadges(readEarnedBadgesFromJson(data));
-      setSuccess(
-        "Mensaje enviado. Podés ver la conversación en tu bandeja de entrada.",
-      );
+      setSuccess(true);
       onSent?.();
-      window.setTimeout(() => {
-        onClose();
-      }, 1400);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo enviar el mensaje");
     } finally {
@@ -128,51 +129,72 @@ export function ContactModal({
           </button>
         </div>
 
-        <form onSubmit={(event) => void handleSubmit(event)} className="mt-5 space-y-4">
-          <label className="block space-y-2">
-            <span className="text-base font-semibold text-[#243647]">Tu mensaje</span>
-            <textarea
-              value={content}
-              onChange={(event) => setContent(event.target.value)}
-              placeholder="Escribí tu mensaje... ¿Qué te interesa de su perfil?"
-              maxLength={MESSAGE_CONTENT_MAX_LENGTH}
-              rows={5}
-              className="min-h-[120px] w-full rounded-xl border border-[#E8EEF3] px-4 py-3 text-base leading-relaxed text-[#243647]"
-            />
-          </label>
-
-          <p className="text-sm text-[#6B7A8C]">
-            {content.length} / {MESSAGE_CONTENT_MAX_LENGTH}
-          </p>
-
-          {error ? (
-            <p className="text-base font-medium text-red-600" role="alert">
-              {error}
-            </p>
-          ) : null}
-
-          {success ? (
+        {success ? (
+          <div className="mt-5 space-y-4">
             <p className="text-base font-medium text-[#059669]" role="status">
-              {success}
+              Mensaje enviado. Podés seguir la conversación en tu bandeja.
             </p>
-          ) : null}
+            <Link
+              href={threadHref}
+              className="vu-focus flex min-h-[48px] w-full items-center justify-center rounded-xl bg-[#0B2E59] px-5 text-sm font-semibold text-white"
+            >
+              Abrir conversación
+            </Link>
+            <button
+              type="button"
+              onClick={onClose}
+              className="vu-focus w-full text-sm font-semibold text-[#1A9BB0] underline"
+            >
+              Cerrar
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={(event) => void handleSubmit(event)} className="mt-5 space-y-4">
+            <label className="block space-y-2">
+              <span className="text-base font-semibold text-[#243647]">Tu mensaje</span>
+              <textarea
+                value={content}
+                onChange={(event) => setContent(event.target.value)}
+                placeholder="Escribí tu mensaje… ¿Qué te interesa de su camino o su proyecto?"
+                maxLength={MESSAGE_CONTENT_MAX_LENGTH}
+                rows={5}
+                className="min-h-[120px] w-full rounded-xl border border-[#E8EEF3] px-4 py-3 text-base leading-relaxed text-[#243647]"
+              />
+            </label>
 
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            fullWidth
-            disabled={sending || Boolean(success)}
-          >
-            {sending ? "Enviando..." : "Enviar mensaje"}
-          </Button>
-
-          {recipientSlug ? (
-            <p className="text-center text-sm text-[#6B7A8C]">
-              Perfil: /perfil/{recipientSlug}
+            <p className="text-sm text-[#6B7A8C]">
+              {content.length} / {MESSAGE_CONTENT_MAX_LENGTH}
             </p>
-          ) : null}
-        </form>
+
+            {error ? (
+              <p className="text-base font-medium text-red-600" role="alert">
+                {error}
+              </p>
+            ) : null}
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              disabled={sending}
+            >
+              {sending ? "Enviando..." : "Enviar mensaje"}
+            </Button>
+
+            {recipientSlug ? (
+              <p className="text-center text-sm text-[#6B7A8C]">
+                Destinatario:{" "}
+                <Link
+                  href={`/perfil/${recipientSlug}`}
+                  className="font-semibold text-[#1A9BB0] underline"
+                >
+                  ver perfil
+                </Link>
+              </p>
+            ) : null}
+          </form>
+        )}
       </div>
     </div>
   );
